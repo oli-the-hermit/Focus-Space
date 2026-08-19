@@ -518,36 +518,14 @@ a { color: var(--accent); text-decoration: none; }
 .tasks-content { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
 
 .tasks-content-header { display: flex; flex-direction: column; gap: 10px; }
-.tch-left {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-}
-.tch-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: wrap;
-}
+.tch-left { display: flex; align-items: center; gap: 8px; }
 .tch-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
+  flex: 1;
 }
-.timer-task-count-badge {
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  background: var(--border-light);
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-.tch-actions { display: flex; gap: 3px; flex-shrink: 0; }
+.tch-actions { display: flex; gap: 3px; }
 
 .progress-row {
   display: flex;
@@ -830,53 +808,6 @@ a { color: var(--accent); text-decoration: none; }
 .add-landmark-btn:hover { color: var(--accent); }
 
 /* ════════════════════════════════════════════════════════
-   MASTER LAYOUTS
-════════════════════════════════════════════════════════ */
-.master-two-column-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 20px;
-  align-items: start;
-}
-.master-three-column-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr 280px;
-  gap: 20px;
-  align-items: start;
-}
-
-@media (max-width: 1080px) {
-  .master-three-column-layout {
-    grid-template-columns: 1fr;
-  }
-  .master-two-column-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-.filter-grid-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.filter-grid-header-slot {
-  display: flex;
-  justify-content: flex-start;
-}
-.filter-grid-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.filter-grid-body .cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 16px;
-}
-
-/* ════════════════════════════════════════════════════════
    TAB: REWARDS
 ════════════════════════════════════════════════════════ */
 .rewards-topbar {
@@ -888,45 +819,27 @@ a { color: var(--accent); text-decoration: none; }
   gap: 12px;
 }
 .reward-stats {
-  display: inline-flex;
-  align-items: stretch;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  display: flex;
+  gap: 16px;
 }
 .rstat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 12px 24px;
-  width: 110px;
-  min-width: 110px;
-  border-right: 1px solid var(--border-light);
-  background: var(--surface);
-  transition: background var(--transition);
-  text-align: center;
-}
-.rstat:last-child {
-  border-right: none;
+  gap: 2px;
+  min-width: 72px;
 }
 .rstat-num {
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
-  letter-spacing: -0.02em;
 }
 .rstat-lbl {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   text-align: center;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  font-weight: 500;
 }
 
 .rewards-sections { display: flex; flex-direction: column; gap: 28px; }
@@ -940,8 +853,8 @@ a { color: var(--accent); text-decoration: none; }
 
 .rewards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 /* Reward Card */
@@ -959,20 +872,14 @@ a { color: var(--accent); text-decoration: none; }
 .reward-card.ready { border-color: var(--warning); background: var(--warning-light); }
 .reward-card.claimed { opacity: 0.5; }
 
-.reward-card-header { display: flex; align-items: flex-start; gap: 10px; }
+.reward-card-header { display: flex; align-items: flex-start; gap: 8px; }
 .reward-card-emoji { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
 .reward-card-info { flex: 1; min-width: 0; }
 .reward-card-name {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
-}
-.reward-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  margin-bottom: 2px;
 }
 .reward-card-desc {
   font-size: 0.76rem;
@@ -1568,243 +1475,4 @@ a { color: var(--accent); text-decoration: none; }
   background: var(--success-light);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-}
-
-/* ════════════════════════════════════════════════════════
-   TODAY'S AGENDA (GOOGLE MEET STYLE)
-════════════════════════════════════════════════════════ */
-.agenda-header-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #1A73E8, #1557B0);
-  color: #fff;
-  border-radius: var(--radius-lg);
-  margin-bottom: 20px;
-  box-shadow: 0 6px 20px rgba(26,115,232,0.22);
-}
-.agenda-date-heading {
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-.agenda-subheading {
-  font-size: 0.88rem;
-  opacity: 0.88;
-  margin-top: 4px;
-}
-.agenda-clock {
-  font-size: 2.2rem;
-  font-weight: 300;
-  letter-spacing: -0.03em;
-  background: rgba(255,255,255,0.15);
-  padding: 6px 18px;
-  border-radius: var(--radius-md);
-  backdrop-filter: blur(8px);
-}
-.agenda-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: start;
-}
-@media (max-width: 900px) {
-  .agenda-layout { grid-template-columns: 1fr; }
-}
-.agenda-hero-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border: 2px solid var(--accent);
-  background: var(--surface);
-  position: relative;
-  overflow: hidden;
-}
-.agenda-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 4px 12px;
-  background: var(--accent-light);
-  color: var(--accent);
-  border-radius: var(--radius-pill);
-  width: fit-content;
-}
-.agenda-hero-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-.agenda-hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.84rem;
-  color: var(--text-secondary);
-}
-.agenda-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg);
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light);
-}
-.agenda-hero-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-}
-.btn-jump-in {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: #34A853;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border-radius: var(--radius-pill);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(52,168,83,0.3);
-  transition: transform 0.18s ease, background 0.18s ease;
-}
-.btn-jump-in:hover {
-  background: #2D9247;
-  transform: translateY(-1px);
-}
-.btn-jump-in:active { transform: scale(0.97); }
-
-.agenda-events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-  max-height: 480px;
-  overflow-y: auto;
-}
-.agenda-item-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--bg);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  transition: background var(--transition), border-color var(--transition);
-}
-.agenda-item-card:hover {
-  background: var(--surface);
-  border-color: var(--accent-ring);
-}
-.agenda-item-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.agenda-item-time {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-.agenda-item-title {
-  font-size: 0.94rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.agenda-item-meta {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* ════════════════════════════════════════════════════════
-   MONTH VIEW & SELECTORS (Req 3)
-════════════════════════════════════════════════════════ */
-.cal-picker-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 8px;
-}
-.cal-select-xs {
-  padding: 4px 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  width: auto;
-}
-.cal-month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: 1fr;
-  min-height: 520px;
-  background: var(--surface);
-}
-.cal-month-header-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  text-align: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-.cal-month-header-cell {
-  padding: 10px 4px;
-  border-right: 1px solid var(--border-light);
-}
-.cal-month-cell {
-  min-height: 90px;
-  border-right: 1px solid var(--border-light);
-  border-bottom: 1px solid var(--border-light);
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: var(--surface);
-  transition: background var(--transition);
-  cursor: pointer;
-}
-.cal-month-cell:hover {
-  background: rgba(26,115,232,0.03);
-}
-.cal-month-cell.other-month {
-  opacity: 0.35;
-  background: var(--bg);
-}
-.cal-month-cell.today {
-  background: var(--accent-light);
-}
-.cal-month-day-num {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-.cal-month-event-pill {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  background: var(--surface-raised);
-  border: 1px solid var(--accent);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
 }
