@@ -182,6 +182,7 @@ a { color: var(--accent); text-decoration: none; }
 .tab-page { display: none; }
 .tab-page.active { display: block; animation: fadein 0.2s ease; }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.75; transform: scale(0.96); } }
 
 /* ════════════════════════════════════════════════════════
    CARDS

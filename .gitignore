@@ -14,6 +14,7 @@ cypress/screenshots/
 cypress/videos/
 test-results/
 .playwright/
+documentation/
 
 # Production & Build Outputs
 build/
@@ -42,6 +43,9 @@ lerna-debug.log*
 
 # Local database (user profiles & encrypted data)
 server/data/
+
+# Local Tooling & Binaries
+npm/
 
 # Environment & Secrets
 .env

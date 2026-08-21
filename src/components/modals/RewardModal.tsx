@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Reward, RewardTrigger, GoalFrequency } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface RewardModalProps {
   reward?: Reward | null;
   onClose: () => void;
 }
-
-const TRIGGER_LABELS: Record<string, string> = {
-  session: 'Session',
-  landmark: 'Landmark',
-  goal: 'Goal',
-  manual: 'Manual'
-};
 
 const FREQUENCY_OPTIONS: GoalFrequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'custom'];
 
@@ -25,15 +19,41 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   const [frequency, setFrequency] = useState<GoalFrequency>(
     reward ? (reward.frequency || reward.type || 'daily') : 'daily'
   );
-  const [trigger, setTrigger] = useState<RewardTrigger>(reward ? reward.trigger : 'manual');
-  const [linkedId, setLinkedId] = useState<string>(reward?.linkedId || '');
+
+  const initialSessionId = () => {
+    if (!reward) return '';
+    if (reward.linkedSessionId) return reward.linkedSessionId;
+    if (reward.trigger === 'session' && reward.linkedId) return reward.linkedId;
+    const matched = state.sessions.find(s => s.rewardId === reward.id);
+    return matched ? matched.id : '';
+  };
+
+  const initialGoalId = () => {
+    if (!reward) return '';
+    if (reward.linkedGoalId) return reward.linkedGoalId;
+    if (reward.trigger === 'goal' && reward.linkedId) return reward.linkedId;
+    const matched = state.goals.find(g => g.rewardId === reward.id);
+    return matched ? matched.id : '';
+  };
+
+  const [linkedSessionId, setLinkedSessionId] = useState<string>(initialSessionId);
+  const [linkedGoalId, setLinkedGoalId] = useState<string>(initialGoalId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalName = name.trim() || 'My Reward';
     const finalEmoji = emoji.trim() || '🎁';
-    const finalLinkedId = trigger !== 'manual' ? (linkedId || null) : null;
-    const finalStatus = trigger === 'manual' ? 'ready' : (reward ? reward.status : 'locked');
+    const finalSessionId = linkedSessionId || null;
+    const finalGoalId = linkedGoalId || null;
+
+    let inferredTrigger: RewardTrigger = 'manual';
+    if (finalSessionId) inferredTrigger = 'session';
+    else if (finalGoalId) inferredTrigger = 'goal';
+    else if (reward?.trigger === 'landmark') inferredTrigger = 'landmark';
+
+    const finalStatus = (!finalSessionId && !finalGoalId && inferredTrigger === 'manual')
+      ? 'ready'
+      : (reward ? reward.status : 'locked');
 
     if (reward) {
       updateReward(reward.id, {
@@ -44,8 +64,10 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         icon: finalEmoji,
         frequency,
         type: frequency,
-        trigger,
-        linkedId: finalLinkedId,
+        trigger: inferredTrigger,
+        linkedSessionId: finalSessionId,
+        linkedGoalId: finalGoalId,
+        linkedId: finalSessionId || finalGoalId || (reward.trigger === 'landmark' ? reward.linkedId : null),
         status: finalStatus
       });
     } else {
@@ -57,8 +79,10 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         icon: finalEmoji,
         frequency,
         type: frequency,
-        trigger,
-        linkedId: finalLinkedId,
+        trigger: inferredTrigger,
+        linkedSessionId: finalSessionId,
+        linkedGoalId: finalGoalId,
+        linkedId: finalSessionId || finalGoalId || null,
         status: finalStatus,
         claimedAt: null
       });
@@ -120,64 +144,36 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
       </div>
 
       <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Trigger Type</label>
+        <label className="form-label">{strings.rewards.linkSessionLabel}</label>
         <select
           className="form-select"
-          value={trigger}
-          onChange={e => setTrigger(e.target.value as RewardTrigger)}
+          value={linkedSessionId}
+          onChange={e => setLinkedSessionId(e.target.value)}
         >
-          {['session', 'landmark', 'goal', 'manual'].map(t => (
-            <option key={t} value={t}>
-              {TRIGGER_LABELS[t]}
+          <option value="">{strings.rewards.noSessionLinked}</option>
+          {state.sessions.map(s => (
+            <option key={s.id} value={s.id}>
+              {s.name} ({s.focusMinutes}m)
             </option>
           ))}
         </select>
       </div>
 
-      {trigger !== 'manual' && (
-        <div className="form-group" style={{ marginTop: '12px' }}>
-          <label className="form-label">Linked to</label>
-          <select
-            className="form-select"
-            value={linkedId}
-            onChange={e => setLinkedId(e.target.value)}
-          >
-            <option value="">— Select linked item —</option>
-
-            {trigger === 'session' && (
-              <optgroup label="Sessions">
-                {state.sessions.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-
-            {trigger === 'goal' && (
-              <optgroup label="Goals">
-                {state.goals.map(g => (
-                  <option key={g.id} value={g.id}>
-                    {g.name || g.title}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-
-            {trigger === 'landmark' && (
-              <optgroup label="Landmarks">
-                {state.goals.flatMap(g =>
-                  (g.landmarks || []).map(l => (
-                    <option key={l.id} value={l.id}>
-                      [{g.name || g.title}] {l.name || l.text}
-                    </option>
-                  ))
-                )}
-              </optgroup>
-            )}
-          </select>
-        </div>
-      )}
+      <div className="form-group" style={{ marginTop: '12px' }}>
+        <label className="form-label">{strings.rewards.linkGoalLabel}</label>
+        <select
+          className="form-select"
+          value={linkedGoalId}
+          onChange={e => setLinkedGoalId(e.target.value)}
+        >
+          <option value="">{strings.rewards.noGoalLinked}</option>
+          {state.goals.map(g => (
+            <option key={g.id} value={g.id}>
+              {g.name || g.title}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="modal-actions" style={{ marginTop: '20px' }}>
         <button type="button" className="btn-action" onClick={onClose}>

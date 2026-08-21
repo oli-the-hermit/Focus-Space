@@ -45,7 +45,34 @@ export const AppContent: React.FC = () => {
 
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
 
-  if (authStatus === 'unauthenticated' || authStatus === 'loading') {
+  if (authStatus === 'loading') {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card" style={{ padding: '48px 32px' }}>
+          <div className="auth-logo" style={{ animation: 'pulse 1.8s infinite ease-in-out' }}>
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <p className="auth-subtitle" style={{ margin: 0 }}>
+            {strings.auth.restoringSession}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authStatus === 'unauthenticated') {
     return <LoginScreen />;
   }
 

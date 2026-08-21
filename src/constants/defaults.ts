@@ -1,8 +1,8 @@
 import { Session, TaskList, Goal, Reward, CalendarEvent } from '../types';
 
 export const DEFAULT_SESSIONS: Session[] = [
-  { id: 's1', name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: null },
-  { id: 's2', name: 'Deep Work', focusMinutes: 50, breakMinutes: 10, rewardId: null },
+  { id: 's1', name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: 'r1' },
+  { id: 's2', name: 'Deep Work', focusMinutes: 50, breakMinutes: 10, rewardId: 'r2' },
   { id: 's3', name: 'Quick Sprint', focusMinutes: 15, breakMinutes: 3, rewardId: null }
 ];
 
@@ -28,7 +28,7 @@ export const DEFAULT_GOALS: Goal[] = [
     target: 4,
     current: 1,
     completed: false,
-    rewardId: null,
+    rewardId: 'r3',
     landmarks: [
       { id: 'lm1', name: 'Finish 1st morning session', text: 'Finish 1st morning session', completed: true, rewardId: null },
       { id: 'lm2', name: 'Finish 2nd afternoon session', text: 'Finish 2nd afternoon session', completed: false, rewardId: null }
@@ -60,6 +60,8 @@ export const DEFAULT_REWARDS: Reward[] = [
     type: 'daily',
     trigger: 'session',
     linkedId: 's1',
+    linkedSessionId: 's1',
+    linkedGoalId: null,
     status: 'locked',
     claimedAt: null
   },
@@ -74,6 +76,8 @@ export const DEFAULT_REWARDS: Reward[] = [
     type: 'daily',
     trigger: 'session',
     linkedId: 's2',
+    linkedSessionId: 's2',
+    linkedGoalId: null,
     status: 'locked',
     claimedAt: null
   },
@@ -88,6 +92,8 @@ export const DEFAULT_REWARDS: Reward[] = [
     type: 'weekly',
     trigger: 'goal',
     linkedId: 'g1',
+    linkedSessionId: null,
+    linkedGoalId: 'g1',
     status: 'ready',
     claimedAt: null
   }

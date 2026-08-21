@@ -47,7 +47,23 @@ export async function deriveDataKey(password: string, saltHex: string): Promise<
     { name: 'PBKDF2', salt: hexToBytes(saltHex), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     material,
     { name: 'AES-GCM', length: KEY_LEN_BYTES * 8 },
-    false,
+    true,
+    ['encrypt', 'decrypt']
+  );
+}
+
+export async function exportRawKey(key: CryptoKey): Promise<string> {
+  const raw = await crypto.subtle.exportKey('raw', key);
+  return bytesToBase64(new Uint8Array(raw));
+}
+
+export async function importRawKey(b64: string): Promise<CryptoKey> {
+  const bytes = base64ToBytes(b64);
+  return crypto.subtle.importKey(
+    'raw',
+    bytes,
+    { name: 'AES-GCM' },
+    true,
     ['encrypt', 'decrypt']
   );
 }

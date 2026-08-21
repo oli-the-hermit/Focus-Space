@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Goal, GoalFrequency } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface GoalModalProps {
   goal?: Goal | null;
@@ -14,7 +15,19 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
 
   const [name, setName] = useState(goal ? (goal.name || goal.title || '') : '');
   const [type, setType] = useState<GoalFrequency>(goal ? (goal.type || goal.frequency || 'daily') : 'daily');
-  const [rewardId, setRewardId] = useState<string>(goal?.rewardId || '');
+
+  const initialRewardId = () => {
+    if (goal?.rewardId) return goal.rewardId;
+    if (goal?.id) {
+      const linked = state.rewards.find(
+        r => r.linkedGoalId === goal.id || (r.trigger === 'goal' && r.linkedId === goal.id)
+      );
+      if (linked) return linked.id;
+    }
+    return '';
+  };
+
+  const [rewardId, setRewardId] = useState<string>(initialRewardId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,16 +85,16 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
       </div>
 
       <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Reward on Completion (optional)</label>
+        <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
         <select
           className="form-select"
           value={rewardId}
           onChange={e => setRewardId(e.target.value)}
         >
-          <option value="">— No reward —</option>
+          <option value="">{strings.rewards.noReward}</option>
           {state.rewards.map(r => (
             <option key={r.id} value={r.id}>
-              {r.name}
+              {r.emoji || r.icon ? `${r.emoji || r.icon} ` : ''}{r.name}
             </option>
           ))}
         </select>

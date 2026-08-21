@@ -596,7 +596,11 @@ function onPhaseComplete(skipped = false) {
 function unlockSessionRewards(session) {
   if (!session) return;
   state.rewards.forEach(r => {
-    if (r.trigger === 'session' && r.linkedId === session.id && r.status === 'locked') {
+    const isLinked =
+      (session.rewardId && r.id === session.rewardId) ||
+      (r.linkedSessionId && r.linkedSessionId === session.id) ||
+      (r.trigger === 'session' && r.linkedId === session.id);
+    if (isLinked && r.status === 'locked') {
       r.status = 'ready';
     }
   });
@@ -650,14 +654,17 @@ function initTimer() {
 //  SESSIONS
 // ═══════════════════════════════════════════════════════════
 function sessionModalForm(session = null) {
+  const linkedReward = session ? state.rewards.find(r => r.linkedSessionId === session.id || (r.trigger === 'session' && r.linkedId === session.id)) : null;
+  const currentRewardId = session?.rewardId || linkedReward?.id || '';
+
   const rewardOptions = state.rewards
-    .map(r => `<option value="${r.id}" ${session && session.rewardId === r.id ? 'selected' : ''}>${r.name}</option>`)
+    .map(r => `<option value="${r.id}" ${currentRewardId === r.id ? 'selected' : ''}>${r.emoji || r.icon || '🎁'} ${escHtml(r.name)}</option>`)
     .join('');
 
   return `
     <div class="form-group">
       <label class="form-label">Session Name</label>
-      <input type="text" id="mSessionName" class="form-input" value="${session ? session.name : ''}" placeholder="e.g. Deep Work">
+      <input type="text" id="mSessionName" class="form-input" value="${session ? escHtml(session.name) : ''}" placeholder="e.g. Deep Work">
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -691,14 +698,32 @@ window.submitSessionModal = function(editId) {
   const brk = Math.max(1, parseInt(document.getElementById('mSessionBreak').value) || 5);
   const rewardId = document.getElementById('mSessionReward').value || null;
 
+  let sessionId = editId;
   if (editId) {
     const s = state.sessions.find(x => x.id === editId);
     if (s) { s.name = name; s.focusMinutes = focus; s.breakMinutes = brk; s.rewardId = rewardId; }
   } else {
-    state.sessions.push({ id: uid(), name, focusMinutes: focus, breakMinutes: brk, rewardId });
+    sessionId = uid();
+    state.sessions.push({ id: sessionId, name, focusMinutes: focus, breakMinutes: brk, rewardId });
   }
+
+  // Synchronize reward links
+  state.rewards.forEach(r => {
+    if ((r.linkedSessionId === sessionId || (r.trigger === 'session' && r.linkedId === sessionId)) && r.id !== rewardId) {
+      r.linkedSessionId = null;
+      r.linkedId = r.linkedGoalId || null;
+      r.trigger = r.linkedGoalId ? 'goal' : 'manual';
+    }
+    if (rewardId && r.id === rewardId) {
+      r.linkedSessionId = sessionId;
+      r.linkedId = sessionId;
+      r.trigger = 'session';
+    }
+  });
+
   saveState();
   renderSessions();
+  renderRewards();
   closeModal(true);
 };
 
@@ -1855,8 +1880,11 @@ function renderGoals() {
 }
 
 function goalModalForm(goal = null) {
+  const linkedReward = goal ? state.rewards.find(r => r.linkedGoalId === goal.id || (r.trigger === 'goal' && r.linkedId === goal.id)) : null;
+  const currentRewardId = goal?.rewardId || linkedReward?.id || '';
+
   const rewardOptions = state.rewards.map(r =>
-    `<option value="${r.id}" ${goal && goal.rewardId === r.id ? 'selected' : ''}>${escHtml(r.name)}</option>`
+    `<option value="${r.id}" ${currentRewardId === r.id ? 'selected' : ''}>${r.emoji || r.icon || '🎁'} ${escHtml(r.name)}</option>`
   ).join('');
 
   const typeOptions = GOAL_TYPES.map(t =>
@@ -1868,18 +1896,18 @@ function goalModalForm(goal = null) {
       <label class="form-label">Goal Name</label>
       <input type="text" id="mGoalName" class="form-input" value="${goal ? escHtml(goal.name) : ''}" placeholder="e.g. Read 10 books">
     </div>
-    <div class="form-group">
+    <div class="form-group" style="margin-top:12px;">
       <label class="form-label">Frequency</label>
       <select id="mGoalType" class="form-select">${typeOptions}</select>
     </div>
-    <div class="form-group">
+    <div class="form-group" style="margin-top:12px;">
       <label class="form-label">Reward on Completion (optional)</label>
       <select id="mGoalReward" class="form-select">
         <option value="">— No reward —</option>
         ${rewardOptions}
       </select>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:20px;">
       <button class="btn-action" onclick="closeModal(null)">Cancel</button>
       <button class="btn-action primary" onclick="submitGoalModal(${goal ? `'${goal.id}'` : 'null'})">
         ${goal ? 'Save Changes' : 'Create Goal'}
@@ -1892,14 +1920,33 @@ window.submitGoalModal = function(editId) {
   const name = document.getElementById('mGoalName').value.trim() || 'Untitled Goal';
   const type = document.getElementById('mGoalType').value;
   const rewardId = document.getElementById('mGoalReward').value || null;
+
+  let goalId = editId;
   if (editId) {
     const g = state.goals.find(x => x.id === editId);
     if (g) { g.name = name; g.type = type; g.rewardId = rewardId; }
   } else {
-    state.goals.push({ id: uid(), name, type, rewardId, completed: false, landmarks: [] });
+    goalId = uid();
+    state.goals.push({ id: goalId, name, type, rewardId, completed: false, landmarks: [] });
   }
+
+  // Synchronize reward links
+  state.rewards.forEach(r => {
+    if ((r.linkedGoalId === goalId || (r.trigger === 'goal' && r.linkedId === goalId)) && r.id !== rewardId) {
+      r.linkedGoalId = null;
+      r.linkedId = r.linkedSessionId || null;
+      r.trigger = r.linkedSessionId ? 'session' : 'manual';
+    }
+    if (rewardId && r.id === rewardId) {
+      r.linkedGoalId = goalId;
+      r.linkedId = goalId;
+      r.trigger = 'goal';
+    }
+  });
+
   saveState();
   renderGoals();
+  renderRewards();
   closeModal(true);
 };
 
@@ -1922,8 +1969,16 @@ window.duplicateGoal = function(id) {
 window.deleteGoal = function(id) {
   if (!confirm('Delete this goal?')) return;
   state.goals = state.goals.filter(g => g.id !== id);
+  state.rewards.forEach(r => {
+    if (r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) {
+      r.linkedGoalId = null;
+      r.linkedId = r.linkedSessionId || null;
+      r.trigger = r.linkedSessionId ? 'session' : 'manual';
+    }
+  });
   saveState();
   renderGoals();
+  renderRewards();
 };
 
 window.toggleGoalComplete = function(id, checked) {
@@ -1937,7 +1992,11 @@ window.toggleGoalComplete = function(id, checked) {
 
 function unlockGoalRewards(goal) {
   state.rewards.forEach(r => {
-    if (r.trigger === 'goal' && r.linkedId === goal.id && r.status === 'locked') {
+    const isLinked =
+      (goal.rewardId && r.id === goal.rewardId) ||
+      (r.linkedGoalId && r.linkedGoalId === goal.id) ||
+      (r.trigger === 'goal' && r.linkedId === goal.id);
+    if (isLinked && r.status === 'locked') {
       r.status = 'ready';
     }
   });
@@ -2077,50 +2136,45 @@ function initGoals() {
 const TRIGGER_LABELS = { session: 'Session', landmark: 'Landmark', goal: 'Goal', manual: 'Manual' };
 
 function rewardModalForm(reward = null) {
-  const triggers = ['session', 'landmark', 'goal', 'manual'];
+  const linkedSessionId = reward?.linkedSessionId || (reward?.trigger === 'session' ? reward?.linkedId : null) || state.sessions.find(s => s.rewardId === reward?.id)?.id || '';
+  const linkedGoalId = reward?.linkedGoalId || (reward?.trigger === 'goal' ? reward?.linkedId : null) || state.goals.find(g => g.rewardId === reward?.id)?.id || '';
 
   const sessionOpts = state.sessions.map(s =>
-    `<option value="${s.id}" ${reward && reward.linkedId === s.id ? 'selected' : ''}>${escHtml(s.name)}</option>`
+    `<option value="${s.id}" ${linkedSessionId === s.id ? 'selected' : ''}>${escHtml(s.name)} (${s.focusMinutes}m)</option>`
   ).join('');
+
   const goalOpts = state.goals.map(g =>
-    `<option value="${g.id}" ${reward && reward.linkedId === g.id ? 'selected' : ''}>${escHtml(g.name)}</option>`
+    `<option value="${g.id}" ${linkedGoalId === g.id ? 'selected' : ''}>${escHtml(g.name)}</option>`
   ).join('');
-
-  const lmOpts = state.goals.flatMap(g => g.landmarks.map(l =>
-    `<option value="${l.id}" ${reward && reward.linkedId === l.id ? 'selected' : ''}>[${escHtml(g.name)}] ${escHtml(l.name)}</option>`
-  )).join('');
-
-  const currentTrigger = reward ? reward.trigger : 'manual';
 
   return `
     <div class="form-group">
       <label class="form-label">Reward Name</label>
       <input type="text" id="mRwName" class="form-input" value="${reward ? escHtml(reward.name) : ''}" placeholder="e.g. Coffee break ☕">
     </div>
-    <div class="form-group">
+    <div class="form-group" style="margin-top:12px;">
       <label class="form-label">Description (optional)</label>
       <textarea id="mRwDesc" class="form-input form-textarea" placeholder="What is this reward?">${reward ? escHtml(reward.description || '') : ''}</textarea>
     </div>
-    <div class="form-group">
+    <div class="form-group" style="margin-top:12px;">
       <label class="form-label">Emoji / Icon</label>
       <input type="text" id="mRwEmoji" class="form-input" value="${reward ? escHtml(reward.emoji || '🎁') : '🎁'}" placeholder="🎁" maxlength="4">
     </div>
-    <div class="form-group">
-      <label class="form-label">Trigger Type</label>
-      <select id="mRwTrigger" class="form-select" onchange="updateRewardLinkOptions()">
-        ${triggers.map(t => `<option value="${t}" ${currentTrigger === t ? 'selected' : ''}>${TRIGGER_LABELS[t]}</option>`).join('')}
+    <div class="form-group" style="margin-top:12px;">
+      <label class="form-label">Link to Focus Session (optional)</label>
+      <select id="mRwSession" class="form-select">
+        <option value="">— No session linked —</option>
+        ${sessionOpts}
       </select>
     </div>
-    <div id="mRwLinkWrap" class="form-group" style="${currentTrigger === 'manual' ? 'display:none' : ''}">
-      <label class="form-label">Linked to</label>
-      <select id="mRwLink" class="form-select">
-        <option value="">— Select —</option>
-        <optgroup id="mRwSessionOpts" label="Sessions">${sessionOpts}</optgroup>
-        <optgroup id="mRwGoalOpts" label="Goals">${goalOpts}</optgroup>
-        <optgroup id="mRwLmOpts" label="Landmarks">${lmOpts}</optgroup>
+    <div class="form-group" style="margin-top:12px;">
+      <label class="form-label">Link to Goal (optional)</label>
+      <select id="mRwGoal" class="form-select">
+        <option value="">— No goal linked —</option>
+        ${goalOpts}
       </select>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:20px;">
       <button class="btn-action" onclick="closeModal(null)">Cancel</button>
       <button class="btn-action primary" onclick="submitRewardModal(${reward ? `'${reward.id}'` : 'null'})">
         ${reward ? 'Save Changes' : 'Create Reward'}
@@ -2129,32 +2183,58 @@ function rewardModalForm(reward = null) {
   `;
 }
 
-window.updateRewardLinkOptions = function() {
-  const trigger = document.getElementById('mRwTrigger').value;
-  const wrap = document.getElementById('mRwLinkWrap');
-  const sessGrp = document.getElementById('mRwSessionOpts');
-  const goalGrp = document.getElementById('mRwGoalOpts');
-  const lmGrp = document.getElementById('mRwLmOpts');
-  wrap.style.display = trigger === 'manual' ? 'none' : '';
-  if (sessGrp) sessGrp.style.display = trigger === 'session' ? '' : 'none';
-  if (goalGrp) goalGrp.style.display = trigger === 'goal' ? '' : 'none';
-  if (lmGrp) lmGrp.style.display = trigger === 'landmark' ? '' : 'none';
-};
-
 window.submitRewardModal = function(editId) {
   const name = document.getElementById('mRwName').value.trim() || 'My Reward';
   const description = document.getElementById('mRwDesc').value.trim();
   const emoji = document.getElementById('mRwEmoji').value.trim() || '🎁';
-  const trigger = document.getElementById('mRwTrigger').value;
-  const linkedId = (trigger !== 'manual') ? (document.getElementById('mRwLink').value || null) : null;
-  const status = trigger === 'manual' ? 'ready' : 'locked';
+  const linkedSessionId = document.getElementById('mRwSession').value || null;
+  const linkedGoalId = document.getElementById('mRwGoal').value || null;
 
+  let trigger = 'manual';
+  if (linkedSessionId) trigger = 'session';
+  else if (linkedGoalId) trigger = 'goal';
+
+  const status = (!linkedSessionId && !linkedGoalId) ? 'ready' : (editId ? (state.rewards.find(x => x.id === editId)?.status || 'locked') : 'locked');
+
+  let rewardId = editId;
   if (editId) {
     const r = state.rewards.find(x => x.id === editId);
-    if (r) { r.name = name; r.description = description; r.emoji = emoji; r.trigger = trigger; r.linkedId = linkedId; }
+    if (r) {
+      r.name = name;
+      r.description = description;
+      r.emoji = emoji;
+      r.trigger = trigger;
+      r.linkedSessionId = linkedSessionId;
+      r.linkedGoalId = linkedGoalId;
+      r.linkedId = linkedSessionId || linkedGoalId || null;
+      r.status = status;
+    }
   } else {
-    state.rewards.push({ id: uid(), name, description, emoji, trigger, linkedId, status, claimedAt: null });
+    rewardId = uid();
+    state.rewards.push({
+      id: rewardId,
+      name,
+      description,
+      emoji,
+      trigger,
+      linkedSessionId,
+      linkedGoalId,
+      linkedId: linkedSessionId || linkedGoalId || null,
+      status,
+      claimedAt: null
+    });
   }
+
+  // Synchronize linked sessions and goals
+  state.sessions.forEach(s => {
+    if (s.rewardId === rewardId && s.id !== linkedSessionId) s.rewardId = null;
+    if (linkedSessionId && s.id === linkedSessionId) s.rewardId = rewardId;
+  });
+  state.goals.forEach(g => {
+    if (g.rewardId === rewardId && g.id !== linkedGoalId) g.rewardId = null;
+    if (linkedGoalId && g.id === linkedGoalId) g.rewardId = rewardId;
+  });
+
   saveState();
   renderRewards();
   renderSessions();
@@ -2244,7 +2324,6 @@ window.editReward = function(id) {
   const r = state.rewards.find(x => x.id === id);
   if (!r) return;
   openModal('Edit Reward', rewardModalForm(r));
-  setTimeout(updateRewardLinkOptions, 50);
 };
 
 window.duplicateReward = function(id) {
@@ -2281,7 +2360,6 @@ function updateRewardBadge() {
 function initRewards() {
   document.getElementById('addRewardBtn').addEventListener('click', () => {
     openModal('New Reward', rewardModalForm());
-    setTimeout(updateRewardLinkOptions, 50);
   });
 
   document.getElementById('closeCelebrationBtn').addEventListener('click', () => {
@@ -2297,12 +2375,25 @@ function initRewards() {
 // ═══════════════════════════════════════════════════════════
 function seedDefaults() {
   if (state.sessions.length === 0) {
+    const s1Id = uid();
+    const s2Id = uid();
+    const s3Id = uid();
+    const r1Id = uid();
+    const r2Id = uid();
+
     state.sessions = [
-      { id: uid(), name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: null },
-      { id: uid(), name: 'Deep Work',        focusMinutes: 50, breakMinutes: 10, rewardId: null },
-      { id: uid(), name: 'Quick Sprint',     focusMinutes: 15, breakMinutes: 3,  rewardId: null },
+      { id: s1Id, name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: r1Id },
+      { id: s2Id, name: 'Deep Work',        focusMinutes: 50, breakMinutes: 10, rewardId: r2Id },
+      { id: s3Id, name: 'Quick Sprint',     focusMinutes: 15, breakMinutes: 3,  rewardId: null },
     ];
     state.activeSessionId = state.sessions[0].id;
+
+    if (state.rewards.length === 0) {
+      state.rewards = [
+        { id: r1Id, name: '15-Minute Coffee Break', description: 'Enjoy a warm cup of coffee.', emoji: '☕', trigger: 'session', linkedSessionId: s1Id, linkedGoalId: null, linkedId: s1Id, status: 'locked', claimedAt: null },
+        { id: r2Id, name: 'Favorite Podcast Episode', description: 'Listen to 1 podcast episode.', emoji: '🎧', trigger: 'session', linkedSessionId: s2Id, linkedGoalId: null, linkedId: s2Id, status: 'locked', claimedAt: null },
+      ];
+    }
   }
   if (state.taskLists.length === 0) {
     const listId = uid();
@@ -2330,6 +2421,37 @@ function seedDefaults() {
       { id: uid(), title: 'Deep Work Session', sessionId: state.sessions[1]?.id || null, taskListId: listId, date: today, startTime: '09:00', durationMins: 50, details: 'Focus on core tasks', notified: false },
       { id: uid(), title: 'Sprint Review & Prep', sessionId: state.sessions[0]?.id || null, taskListId: listId, date: today, startTime: '11:30', durationMins: 25, details: 'Review progress', notified: false }
     ];
+  }
+  if (state.goals.length === 0) {
+    const g1Id = uid();
+    const r3Id = uid();
+    state.goals = [
+      {
+        id: g1Id,
+        name: 'Complete 4 Focus Sessions',
+        type: 'daily',
+        rewardId: r3Id,
+        completed: false,
+        landmarks: [
+          { id: uid(), name: 'Finish 1st morning session', completed: true, rewardId: null },
+          { id: uid(), name: 'Finish 2nd afternoon session', completed: false, rewardId: null }
+        ]
+      }
+    ];
+    if (!state.rewards.some(r => r.id === r3Id)) {
+      state.rewards.push({
+        id: r3Id,
+        name: 'Walk in the Park',
+        description: 'Take a relaxing 20-minute walk.',
+        emoji: '🌿',
+        trigger: 'goal',
+        linkedSessionId: null,
+        linkedGoalId: g1Id,
+        linkedId: g1Id,
+        status: 'ready',
+        claimedAt: null
+      });
+    }
   }
 }
 

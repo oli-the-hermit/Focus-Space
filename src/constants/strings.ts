@@ -86,7 +86,13 @@ export const strings = {
     emptyReady: 'Complete sessions, landmarks, or goals to unlock rewards.',
     emptyLocked: 'No locked rewards yet.',
     emptyClaimed: 'Claimed rewards will appear here.',
-    claimBtn: '🎁 Claim Reward!'
+    claimBtn: '🎁 Claim Reward!',
+    linkSessionLabel: 'Link to Focus Session (optional)',
+    noSessionLinked: '— No session linked —',
+    linkGoalLabel: 'Link to Goal (optional)',
+    noGoalLinked: '— No goal linked —',
+    noReward: '— No reward —',
+    rewardOnCompletion: 'Reward on Completion (optional)'
   },
   celebration: {
     rewardClaimed: 'Reward Claimed!',
@@ -120,7 +126,8 @@ export const strings = {
     switchToLogin: 'Already have an account? Sign in',
     switchToSetup: 'No account? Create the main account',
     signingIn: 'Signing in…',
-    creating: 'Creating…'
+    creating: 'Creating…',
+    restoringSession: 'Restoring session…'
   },
   userMenu: {
     profile: 'Profile',

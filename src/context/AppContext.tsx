@@ -26,7 +26,7 @@ import {
   DEFAULT_CALENDAR_EVENTS
 } from '../constants/defaults';
 import { api } from '../lib/api';
-import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex } from '../lib/crypto';
+import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../lib/crypto';
 import { strings } from '../constants/strings';
 import { getTodayStr } from '../lib/dateUtils';
 
@@ -144,6 +144,16 @@ interface AuthResponse {
 
 const LEGACY_STORAGE_KEY = 'focusspace_v1';
 const THEME_CACHE_KEY = 'focusspace_theme_cache';
+const AUTH_TOKEN_KEY = 'focusspace_auth_token';
+const AUTH_KEY_MATERIAL = 'focusspace_auth_key';
+const TIMER_RUN_KEY = 'focusspace_timer_run';
+
+interface PersistedTimerRun {
+  targetEndTime: number;
+  phase: TimerPhase;
+  sessionId: string | null;
+  total: number;
+}
 
 function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -214,13 +224,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, setState] = useState<AppState>(() => normalizeState(null));
 
   // ── Auth & encrypted data layer ──────────────────────────────────────
-  const [authStatus, setAuthStatus] = useState<AuthStatus>('unauthenticated');
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [profile, setProfile] = useState<Profile | null>(null);
   const tokenRef = useRef<string | null>(null);
   const dataKeyRef = useRef<CryptoKey | null>(null);
   const saveTimerRef = useRef<number | null>(null);
-  const authStatusRef = useRef<AuthStatus>('unauthenticated');
+  const authStatusRef = useRef<AuthStatus>('loading');
   authStatusRef.current = authStatus;
+  const targetEndTimeRef = useRef<number | null>(null);
+
+  // Auto-authenticate & restore persistent session on startup
+  useEffect(() => {
+    let cancelled = false;
+
+    const bootstrapAuth = async () => {
+      try {
+        const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+        const storedKeyMaterial = localStorage.getItem(AUTH_KEY_MATERIAL);
+
+        if (!storedToken || !storedKeyMaterial) {
+          if (!cancelled) setAuthStatus('unauthenticated');
+          return;
+        }
+
+        const key = await importRawKey(storedKeyMaterial);
+        tokenRef.current = storedToken;
+        dataKeyRef.current = key;
+
+        const [meRes, dataRes] = await Promise.all([
+          api.get<{ profile: Profile }>('/api/auth/me', storedToken),
+          api.get<AuthDataResponse>('/api/data', storedToken)
+        ]);
+
+        let nextState = normalizeState(null);
+        if (dataRes.cipher && dataRes.iv) {
+          const plain = await decryptBlob({ iv: dataRes.iv, cipher: dataRes.cipher }, key);
+          nextState = normalizeState(JSON.parse(plain));
+        }
+
+        // Restore active running timer if valid
+        try {
+          const timerRunRaw = localStorage.getItem(TIMER_RUN_KEY);
+          if (timerRunRaw) {
+            const runInfo: PersistedTimerRun = JSON.parse(timerRunRaw);
+            const now = Date.now();
+            if (runInfo.targetEndTime > now) {
+              const remainingSecs = Math.max(1, Math.ceil((runInfo.targetEndTime - now) / 1000));
+              nextState = {
+                ...nextState,
+                timer: {
+                  ...nextState.timer,
+                  phase: runInfo.phase,
+                  status: 'running',
+                  remaining: remainingSecs,
+                  total: runInfo.total || nextState.timer.total
+                }
+              };
+              targetEndTimeRef.current = runInfo.targetEndTime;
+            } else {
+              localStorage.removeItem(TIMER_RUN_KEY);
+            }
+          }
+        } catch {}
+
+        if (!cancelled) {
+          setProfile(meRes.profile);
+          setState(nextState);
+          setAuthStatus('authenticated');
+        }
+      } catch {
+        if (!cancelled) {
+          localStorage.removeItem(AUTH_TOKEN_KEY);
+          localStorage.removeItem(AUTH_KEY_MATERIAL);
+          localStorage.removeItem(TIMER_RUN_KEY);
+          tokenRef.current = null;
+          dataKeyRef.current = null;
+          targetEndTimeRef.current = null;
+          setProfile(null);
+          setAuthStatus('unauthenticated');
+        }
+      }
+    };
+
+    bootstrapAuth();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Theme bootstrap (cached) + application
   useEffect(() => {
@@ -287,12 +377,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const res = await api.post<AuthResponse>('/api/auth/login', { username, password });
     tokenRef.current = res.token;
     let next = normalizeState(null);
+    let key: CryptoKey;
     if (res.data.cipher && res.data.iv) {
-      const key = await deriveDataKey(password, res.data.salt);
+      key = await deriveDataKey(password, res.data.salt);
       const plain = await decryptBlob({ iv: res.data.iv, cipher: res.data.cipher }, key);
       next = normalizeState(JSON.parse(plain));
-      dataKeyRef.current = key;
+    } else {
+      key = await deriveDataKey(password, res.data.salt);
     }
+    dataKeyRef.current = key;
+    const rawKeyB64 = await exportRawKey(key);
+    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
+    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
     setProfile(res.profile);
     setAuthStatus('authenticated');
     setState(next);
@@ -302,7 +398,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
     const res = await api.post<AuthResponse>('/api/auth/setup', { username, displayName, password });
     tokenRef.current = res.token;
-    dataKeyRef.current = await deriveDataKey(password, res.data.salt);
+    const key = await deriveDataKey(password, res.data.salt);
+    dataKeyRef.current = key;
+    const rawKeyB64 = await exportRawKey(key);
+    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
+    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
+
     let next = normalizeState(null);
     let migrated = false;
     if (legacyRaw) {
@@ -335,8 +436,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await api.post('/api/auth/logout', {}, token);
       } catch {}
     }
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_KEY_MATERIAL);
+    localStorage.removeItem(TIMER_RUN_KEY);
     tokenRef.current = null;
     dataKeyRef.current = null;
+    targetEndTimeRef.current = null;
     setProfile(null);
     setAuthStatus('unauthenticated');
     setActiveTab('timer');
@@ -345,8 +450,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteOwnProfile = async (password: string) => {
     await api.del('/api/profile', { password }, tokenRef.current);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_KEY_MATERIAL);
+    localStorage.removeItem(TIMER_RUN_KEY);
     tokenRef.current = null;
     dataKeyRef.current = null;
+    targetEndTimeRef.current = null;
     setProfile(null);
     setAuthStatus('unauthenticated');
     setState(() => normalizeState(null));
@@ -381,6 +490,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
     tokenRef.current = res.token;
     dataKeyRef.current = newKey;
+    const rawKeyB64 = await exportRawKey(newKey);
+    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
+    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
     setProfile(res.profile);
     showToast(strings.profile.passwordChangedMsg);
   };
@@ -416,6 +528,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Phase completion handler
   const handlePhaseComplete = (skipped = false) => {
+    targetEndTimeRef.current = null;
+    try {
+      localStorage.removeItem(TIMER_RUN_KEY);
+    } catch {}
     const currentSession = state.sessions.find(s => s.id === state.activeSessionId) || state.sessions[0];
     const isFocus = state.timer.phase === 'focus';
 
@@ -425,14 +541,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         showToast('✅ Focus session complete! Time for a break.');
 
         // Unlock session rewards
-        if (currentSession && currentSession.rewardId) {
+        if (currentSession) {
           setState(prev => ({
             ...prev,
-            rewards: prev.rewards.map(r =>
-              r.id === currentSession.rewardId && r.status === 'locked'
-                ? { ...r, status: 'ready' }
-                : r
-            )
+            rewards: prev.rewards.map(r => {
+              const isLinked =
+                (currentSession.rewardId && r.id === currentSession.rewardId) ||
+                (r.linkedSessionId && r.linkedSessionId === currentSession.id) ||
+                (r.trigger === 'session' && r.linkedId === currentSession.id);
+              return isLinked && r.status === 'locked' ? { ...r, status: 'ready' } : r;
+            })
           }));
         }
 
@@ -490,29 +608,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Timer Tick Engine
+  // Timer Wall-Clock Tick Engine (Drift-free, background-resilient)
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (state.timer.status === 'running') {
-      timerRef.current = window.setInterval(() => {
-        setState(prev => {
-          if (prev.timer.status !== 'running') return prev;
+      if (!targetEndTimeRef.current) {
+        targetEndTimeRef.current = Date.now() + state.timer.remaining * 1000;
+        try {
+          localStorage.setItem(
+            TIMER_RUN_KEY,
+            JSON.stringify({
+              targetEndTime: targetEndTimeRef.current,
+              phase: state.timer.phase,
+              sessionId: state.activeSessionId,
+              total: state.timer.total
+            })
+          );
+        } catch {}
+      }
 
-          const nextRemaining = prev.timer.remaining - 1;
-          if (nextRemaining <= 0) {
+      timerRef.current = window.setInterval(() => {
+        const targetEnd = targetEndTimeRef.current;
+        if (!targetEnd) return;
+        const now = Date.now();
+        const remainingSecs = Math.max(0, Math.ceil((targetEnd - now) / 1000));
+
+        if (remainingSecs <= 0) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          targetEndTimeRef.current = null;
+          try {
+            localStorage.removeItem(TIMER_RUN_KEY);
+          } catch {}
+          handlePhaseComplete(false);
+        } else {
+          setState(prev => {
+            if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
             return {
               ...prev,
-              timer: { ...prev.timer, remaining: 0 }
+              timer: { ...prev.timer, remaining: remainingSecs }
             };
-          }
-
-          return {
-            ...prev,
-            timer: { ...prev.timer, remaining: nextRemaining }
-          };
-        });
-      }, 1000);
+          });
+        }
+      }, 500);
     } else {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -526,27 +667,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         timerRef.current = null;
       }
     };
-  }, [state.timer.status]);
+  }, [state.timer.status, state.timer.phase, state.activeSessionId]);
 
-  // Watch for timer reaching 0 while running
+  // Sync timer immediately on tab visibility / focus change
   useEffect(() => {
-    if (state.timer.status === 'running' && state.timer.remaining <= 0) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+    const handleSync = () => {
+      if (state.timer.status === 'running' && targetEndTimeRef.current) {
+        const now = Date.now();
+        const remainingSecs = Math.max(0, Math.ceil((targetEndTimeRef.current - now) / 1000));
+        if (remainingSecs <= 0) {
+          targetEndTimeRef.current = null;
+          try {
+            localStorage.removeItem(TIMER_RUN_KEY);
+          } catch {}
+          handlePhaseComplete(false);
+        } else {
+          setState(prev => {
+            if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
+            return {
+              ...prev,
+              timer: { ...prev.timer, remaining: remainingSecs }
+            };
+          });
+        }
       }
-      handlePhaseComplete(false);
-    }
-  }, [state.timer.remaining, state.timer.status]);
+    };
+
+    document.addEventListener('visibilitychange', handleSync);
+    window.addEventListener('focus', handleSync);
+    window.addEventListener('pageshow', handleSync);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleSync);
+      window.removeEventListener('focus', handleSync);
+      window.removeEventListener('pageshow', handleSync);
+    };
+  }, [state.timer.status]);
 
   // Timer Controls
   const toggleTimer = () => {
     setState(prev => {
       const isRunning = prev.timer.status === 'running';
       if (isRunning) {
+        const currentRemaining = targetEndTimeRef.current
+          ? Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000))
+          : prev.timer.remaining;
+        targetEndTimeRef.current = null;
+        try {
+          localStorage.removeItem(TIMER_RUN_KEY);
+        } catch {}
         return {
           ...prev,
-          timer: { ...prev.timer, status: 'paused' }
+          timer: { ...prev.timer, status: 'paused', remaining: currentRemaining }
         };
       }
 
@@ -564,6 +736,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (total <= 0 || isNaN(total)) {
         total = expectedTotal;
       }
+
+      const targetEndTime = Date.now() + remaining * 1000;
+      targetEndTimeRef.current = targetEndTime;
+      try {
+        localStorage.setItem(
+          TIMER_RUN_KEY,
+          JSON.stringify({
+            targetEndTime,
+            phase: prev.timer.phase,
+            sessionId: prev.activeSessionId,
+            total
+          })
+        );
+      } catch {}
 
       return {
         ...prev,
@@ -583,6 +769,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    targetEndTimeRef.current = null;
+    try {
+      localStorage.removeItem(TIMER_RUN_KEY);
+    } catch {}
     setState(prev => {
       const activeSession = prev.sessions.find(s => s.id === prev.activeSessionId) || prev.sessions[0];
       const mins = activeSession?.focusMinutes || 25;
@@ -606,6 +796,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    targetEndTimeRef.current = null;
+    try {
+      localStorage.removeItem(TIMER_RUN_KEY);
+    } catch {}
     handlePhaseComplete(true);
   };
 
@@ -677,6 +871,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // SESSIONS
   // ══════════════════════════════════════════════════════════════════════
   const setActiveSession = (id: string) => {
+    targetEndTimeRef.current = null;
+    try {
+      localStorage.removeItem(TIMER_RUN_KEY);
+    } catch {}
     setState(prev => {
       const s = prev.sessions.find(x => x.id === id) || prev.sessions[0];
       const dur = (s?.focusMinutes || 25) * 60;
@@ -691,11 +889,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createSession = (session: Omit<Session, 'id'>) => {
     const newSession: Session = { ...session, id: uid() };
-    setState(prev => ({
-      ...prev,
-      sessions: [...prev.sessions, newSession],
-      activeSessionId: prev.activeSessionId || newSession.id
-    }));
+    setState(prev => {
+      const updatedRewards = newSession.rewardId
+        ? prev.rewards.map(r =>
+            r.id === newSession.rewardId
+              ? { ...r, linkedSessionId: newSession.id, linkedId: newSession.id, trigger: 'session' as const }
+              : r
+          )
+        : prev.rewards;
+
+      return {
+        ...prev,
+        sessions: [...prev.sessions, newSession],
+        rewards: updatedRewards,
+        activeSessionId: prev.activeSessionId || newSession.id
+      };
+    });
     showToast(`Session "${newSession.name}" created.`);
   };
 
@@ -708,7 +917,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const mins = prev.timer.phase === 'focus' ? (activeS?.focusMinutes || 25) : (activeS?.breakMinutes || 5);
         timerUpdate = { ...prev.timer, remaining: mins * 60, total: mins * 60 };
       }
-      return { ...prev, sessions: updated, timer: timerUpdate };
+
+      let updatedRewards = prev.rewards;
+      if (session.rewardId !== undefined) {
+        updatedRewards = prev.rewards.map(r => {
+          // Unlink previously linked reward if it changed
+          if ((r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) && r.id !== session.rewardId) {
+            return {
+              ...r,
+              linkedSessionId: null,
+              linkedId: r.linkedGoalId || null,
+              trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
+            };
+          }
+          // Link new reward
+          if (session.rewardId && r.id === session.rewardId) {
+            return {
+              ...r,
+              linkedSessionId: id,
+              linkedId: id,
+              trigger: 'session' as const
+            };
+          }
+          return r;
+        });
+      }
+
+      return { ...prev, sessions: updated, rewards: updatedRewards, timer: timerUpdate };
     });
     showToast('Session updated.');
   };
@@ -729,9 +964,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const nextActiveId = prev.activeSessionId === id ? (filtered[0]?.id || null) : prev.activeSessionId;
       const nextActive = filtered.find(s => s.id === nextActiveId) || filtered[0];
       const mins = nextActive ? nextActive.focusMinutes : 25;
+
+      const updatedRewards = prev.rewards.map(r => {
+        if (r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) {
+          return {
+            ...r,
+            linkedSessionId: null,
+            linkedId: r.linkedGoalId || null,
+            trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
+          };
+        }
+        return r;
+      });
+
       return {
         ...prev,
         sessions: filtered,
+        rewards: updatedRewards,
         activeSessionId: nextActiveId,
         timer: {
           ...prev.timer,
@@ -955,14 +1204,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       completed: false,
       landmarks: goal.landmarks || []
     };
-    setState(prev => ({ ...prev, goals: [...prev.goals, newGoal] }));
+    setState(prev => {
+      const updatedRewards = newGoal.rewardId
+        ? prev.rewards.map(r =>
+            r.id === newGoal.rewardId
+              ? { ...r, linkedGoalId: newGoal.id, linkedId: newGoal.id, trigger: 'goal' as const }
+              : r
+          )
+        : prev.rewards;
+
+      return {
+        ...prev,
+        goals: [...prev.goals, newGoal],
+        rewards: updatedRewards
+      };
+    });
     showToast(`Goal "${newGoal.name}" created.`);
   };
 
   const updateGoal = (id: string, goal: Partial<Goal>) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.map(g =>
+    setState(prev => {
+      const updated = prev.goals.map(g =>
         g.id === id
           ? {
               ...g,
@@ -973,8 +1235,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               frequency: goal.frequency || goal.type || g.frequency
             }
           : g
-      )
-    }));
+      );
+
+      let updatedRewards = prev.rewards;
+      if (goal.rewardId !== undefined) {
+        updatedRewards = prev.rewards.map(r => {
+          if ((r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) && r.id !== goal.rewardId) {
+            return {
+              ...r,
+              linkedGoalId: null,
+              linkedId: r.linkedSessionId || null,
+              trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
+            };
+          }
+          if (goal.rewardId && r.id === goal.rewardId) {
+            return {
+              ...r,
+              linkedGoalId: id,
+              linkedId: id,
+              trigger: 'goal' as const
+            };
+          }
+          return r;
+        });
+      }
+
+      return { ...prev, goals: updated, rewards: updatedRewards };
+    });
     showToast('Goal updated.');
   };
 
@@ -998,9 +1285,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => ({
       ...prev,
       goals: prev.goals.filter(g => g.id !== id),
-      rewards: prev.rewards.map(r =>
-        (r.trigger === 'goal' && r.linkedId === id) ? { ...r, linkedId: null } : r
-      )
+      rewards: prev.rewards.map(r => {
+        if (r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) {
+          return {
+            ...r,
+            linkedGoalId: null,
+            linkedId: r.linkedSessionId || null,
+            trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
+          };
+        }
+        return r;
+      })
     }));
     showToast('Goal deleted.');
   };
@@ -1021,12 +1316,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const targetGoal = updated.find(g => g.id === id);
       let updatedRewards = prev.rewards;
       if (targetGoal && targetGoal.completed) {
-        updatedRewards = prev.rewards.map(r =>
-          (r.trigger === 'goal' && r.linkedId === id && r.status === 'locked') ||
-          (targetGoal.rewardId && r.id === targetGoal.rewardId && r.status === 'locked')
-            ? { ...r, status: 'ready' }
-            : r
-        );
+        updatedRewards = prev.rewards.map(r => {
+          const isLinked =
+            (r.linkedGoalId && r.linkedGoalId === id) ||
+            (r.trigger === 'goal' && r.linkedId === id) ||
+            (targetGoal.rewardId && r.id === targetGoal.rewardId);
+          return isLinked && r.status === 'locked' ? { ...r, status: 'ready' } : r;
+        });
       }
 
       return {
@@ -1166,6 +1462,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // REWARDS
   // ══════════════════════════════════════════════════════════════════════
   const addReward = (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }) => {
+    const linkedSession = reward.linkedSessionId || (reward.trigger === 'session' ? reward.linkedId : null);
+    const linkedGoal = reward.linkedGoalId || (reward.trigger === 'goal' ? reward.linkedId : null);
+    const inferredTrigger: Reward['trigger'] = reward.trigger || (linkedSession ? 'session' : linkedGoal ? 'goal' : 'manual');
+
     const newReward: Reward = {
       ...reward,
       id: uid(),
@@ -1174,29 +1474,102 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       desc: reward.description || reward.desc || '',
       emoji: reward.emoji || reward.icon || '🎁',
       icon: reward.emoji || reward.icon || '🎁',
-      status: reward.status || (reward.trigger === 'manual' ? 'ready' : 'locked'),
+      trigger: inferredTrigger,
+      linkedSessionId: linkedSession,
+      linkedGoalId: linkedGoal,
+      linkedId: linkedSession || linkedGoal || reward.linkedId || null,
+      status: reward.status || (inferredTrigger === 'manual' && !linkedSession && !linkedGoal ? 'ready' : 'locked'),
       claimedAt: null
     };
-    setState(prev => ({ ...prev, rewards: [...prev.rewards, newReward] }));
+
+    setState(prev => {
+      const updatedSessions = newReward.linkedSessionId
+        ? prev.sessions.map(s => (s.id === newReward.linkedSessionId ? { ...s, rewardId: newReward.id } : s))
+        : prev.sessions;
+
+      const updatedGoals = newReward.linkedGoalId
+        ? prev.goals.map(g => (g.id === newReward.linkedGoalId ? { ...g, rewardId: newReward.id } : g))
+        : prev.goals;
+
+      return {
+        ...prev,
+        rewards: [...prev.rewards, newReward],
+        sessions: updatedSessions,
+        goals: updatedGoals
+      };
+    });
     showToast(`Reward "${newReward.name}" created.`);
   };
 
   const updateReward = (id: string, reward: Partial<Reward>) => {
-    setState(prev => ({
-      ...prev,
-      rewards: prev.rewards.map(r =>
-        r.id === id
-          ? {
-              ...r,
-              ...reward,
-              description: reward.description || reward.desc || r.description,
-              desc: reward.desc || reward.description || r.desc,
-              emoji: reward.emoji || reward.icon || r.emoji,
-              icon: reward.icon || reward.emoji || r.icon
-            }
-          : r
-      )
-    }));
+    setState(prev => {
+      const updatedRewards = prev.rewards.map(r => {
+        if (r.id !== id) return r;
+        const nextLinkedSession = reward.linkedSessionId !== undefined
+          ? reward.linkedSessionId
+          : (reward.linkedId && reward.trigger === 'session' ? reward.linkedId : r.linkedSessionId);
+        const nextLinkedGoal = reward.linkedGoalId !== undefined
+          ? reward.linkedGoalId
+          : (reward.linkedId && reward.trigger === 'goal' ? reward.linkedId : r.linkedGoalId);
+
+        let nextTrigger = reward.trigger || r.trigger;
+        if (reward.linkedSessionId !== undefined || reward.linkedGoalId !== undefined) {
+          if (nextLinkedSession) nextTrigger = 'session';
+          else if (nextLinkedGoal) nextTrigger = 'goal';
+          else if (!r.linkedId) nextTrigger = 'manual';
+        }
+
+        return {
+          ...r,
+          ...reward,
+          description: reward.description !== undefined ? reward.description : (reward.desc !== undefined ? reward.desc : r.description),
+          desc: reward.desc !== undefined ? reward.desc : (reward.description !== undefined ? reward.description : r.desc),
+          emoji: reward.emoji || reward.icon || r.emoji,
+          icon: reward.icon || reward.emoji || r.icon,
+          trigger: nextTrigger,
+          linkedSessionId: nextLinkedSession,
+          linkedGoalId: nextLinkedGoal,
+          linkedId: nextLinkedSession || nextLinkedGoal || (reward.linkedId !== undefined ? reward.linkedId : r.linkedId)
+        };
+      });
+
+      const target = updatedRewards.find(r => r.id === id);
+      const targetSessionId = target?.linkedSessionId || (target?.trigger === 'session' ? target?.linkedId : null);
+      const targetGoalId = target?.linkedGoalId || (target?.trigger === 'goal' ? target?.linkedId : null);
+
+      let updatedSessions = prev.sessions;
+      if (reward.linkedSessionId !== undefined || reward.linkedId !== undefined) {
+        updatedSessions = prev.sessions.map(s => {
+          if (s.rewardId === id && s.id !== targetSessionId) {
+            return { ...s, rewardId: null };
+          }
+          if (targetSessionId && s.id === targetSessionId) {
+            return { ...s, rewardId: id };
+          }
+          return s;
+        });
+      }
+
+      let updatedGoals = prev.goals;
+      if (reward.linkedGoalId !== undefined || reward.linkedId !== undefined) {
+        updatedGoals = prev.goals.map(g => {
+          if (g.rewardId === id && g.id !== targetGoalId) {
+            return { ...g, rewardId: null };
+          }
+          if (targetGoalId && g.id === targetGoalId) {
+            return { ...g, rewardId: id };
+          }
+          return g;
+        });
+      }
+
+      return {
+        ...prev,
+        rewards: updatedRewards,
+        sessions: updatedSessions,
+        goals: updatedGoals
+      };
+    });
     showToast('Reward updated.');
   };
 

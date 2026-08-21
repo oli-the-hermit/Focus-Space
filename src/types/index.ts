@@ -87,6 +87,8 @@ export interface Reward {
   type?: GoalFrequency;
   trigger: RewardTrigger;
   linkedId?: string | null;
+  linkedSessionId?: string | null;
+  linkedGoalId?: string | null;
   status: RewardStatus;
   claimedAt?: number | null;
 }

@@ -20,8 +20,10 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
 
   const claimed = isClaimed || reward.status === 'claimed';
   const ready = showClaim !== undefined ? showClaim : reward.status === 'ready';
-  const triggerLabel = TRIGGER_LABELS[reward.trigger] || reward.trigger;
   const rewardFrequency = reward.frequency || reward.type || 'daily';
+  const hasSessionLink = !!(reward.linkedSessionId || (reward.trigger === 'session' && reward.linkedId));
+  const hasGoalLink = !!(reward.linkedGoalId || (reward.trigger === 'goal' && reward.linkedId));
+  const isLandmark = reward.trigger === 'landmark';
 
   const handleEdit = () => {
     openModal('EDIT_REWARD', { reward });
@@ -49,7 +51,12 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
             <span className={`goal-type-badge badge-${rewardFrequency}`}>
               {rewardFrequency.charAt(0).toUpperCase() + rewardFrequency.slice(1)}
             </span>
-            <span className="reward-trigger-badge">{triggerLabel}</span>
+            {hasSessionLink && <span className="reward-trigger-badge">Session</span>}
+            {hasGoalLink && <span className="reward-trigger-badge">Goal</span>}
+            {isLandmark && <span className="reward-trigger-badge">Landmark</span>}
+            {!hasSessionLink && !hasGoalLink && !isLandmark && (
+              <span className="reward-trigger-badge">Manual</span>
+            )}
             {claimed && (
               <span className="reward-trigger-badge" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
                 Claimed
