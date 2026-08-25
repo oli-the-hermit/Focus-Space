@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatDateStr, getTodayStr, getWeekRange, parseDateStr } from '../../lib/dateUtils';
+import { strings } from '../../constants/strings';
 
 export const CalendarTopbar: React.FC = () => {
   const { state, setCalendarView, setCalendarDate, openModal } = useApp();
@@ -40,7 +41,7 @@ export const CalendarTopbar: React.FC = () => {
   const handleSchedule = () => {
     openModal('SCHEDULE_EVENT', {
       date: state.calendarDate,
-      time: '09:00'
+      time: strings.calendar.quickAddPromptTime
     });
   };
 
@@ -58,9 +59,9 @@ export const CalendarTopbar: React.FC = () => {
   return (
     <div className="calendar-topbar">
       <div className="cal-nav-group">
-        <button className="btn-action" id="calPrevBtn" onClick={handlePrev}>&larr; Prev</button>
-        <button className="btn-action" id="calTodayBtn" onClick={handleToday}>Today</button>
-        <button className="btn-action" id="calNextBtn" onClick={handleNext}>Next &rarr;</button>
+        <button className="btn-action" id="calPrevBtn" onClick={handlePrev}>{strings.calendar.prevBtn}</button>
+        <button className="btn-action" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</button>
+        <button className="btn-action" id="calNextBtn" onClick={handleNext}>{strings.calendar.nextBtn}</button>
         <span className="cal-title-date" id="calDateTitle">
           {dateTitleText}
         </span>
@@ -73,25 +74,25 @@ export const CalendarTopbar: React.FC = () => {
             data-view="week"
             onClick={() => setCalendarView('week')}
           >
-            Week
+            {strings.calendar.views.week}
           </button>
           <button
             className={`filter-tab ${view === 'day' ? 'active' : ''}`}
             data-view="day"
             onClick={() => setCalendarView('day')}
           >
-            Day
+            {strings.calendar.views.day}
           </button>
           <button
             className={`filter-tab ${view === 'month' ? 'active' : ''}`}
             data-view="month"
             onClick={() => setCalendarView('month')}
           >
-            Month
+            {strings.calendar.views.month}
           </button>
         </div>
         <button className="btn-action primary" id="addCalEventBtn" onClick={handleSchedule}>
-          + Schedule Session
+          {strings.calendar.scheduleSessionBtn}
         </button>
       </div>
     </div>

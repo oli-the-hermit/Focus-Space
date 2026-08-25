@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { TimerRing } from './TimerRing';
 import { TimerControls } from './TimerControls';
+import { strings } from '../../constants/strings';
 
 export const TimerCard: React.FC = () => {
   const { state, toggleTimer, resetTimer, skipPhase } = useApp();
@@ -17,13 +18,13 @@ export const TimerCard: React.FC = () => {
   return (
     <div className="card timer-card">
       <div className={`phase-label ${state.timer.phase === 'break' ? 'break-phase' : ''}`} id="phaseLabel">
-        {state.timer.phase === 'focus' ? 'Focus' : 'Break'}
+        {state.timer.phase === 'focus' ? strings.timer.focusPhase : strings.timer.breakPhase}
       </div>
 
       <TimerRing
         remainingSec={remaining}
         totalSec={total}
-        sessionName={activeSession ? activeSession.name : 'No session'}
+        sessionName={activeSession ? activeSession.name : strings.timer.noSession}
         phase={state.timer.phase}
       />
 
@@ -36,7 +37,7 @@ export const TimerCard: React.FC = () => {
 
       <div className="session-progress-box" id="sessionProgressBox">
         <div className="session-progress-info">
-          <span>Session Progress</span>
+          <span>{strings.timer.sessionProgress}</span>
           <span className="session-progress-pct" id="sessionProgressPct">{pct}%</span>
         </div>
         <div className="session-progress-track">
@@ -51,7 +52,7 @@ export const TimerCard: React.FC = () => {
             <rect x="2" y="7" width="20" height="5" />
             <line x1="12" y1="22" x2="12" y2="7" />
           </svg>
-          Reward on completion: <strong id="sessionRewardName">{attachedReward.name}</strong>
+          {strings.timer.rewardOnCompletion} <strong id="sessionRewardName">{attachedReward.name}</strong>
         </div>
       )}
     </div>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskItem } from './TaskItem';
 import { Task } from '../../types';
+import { strings } from '../../constants/strings';
+import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
 
 export interface TaskListCardProps {
   listId?: string | null;
@@ -42,10 +44,10 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
   let titleText = '';
   if (inTimer) {
     titleText = activeList
-      ? `${activeSession?.name || 'Session'} · ${activeList.name}`
-      : (activeSession?.name || 'Focus Session');
+      ? `${activeSession?.name || strings.timer.focusPhase} · ${activeList.name}`
+      : (activeSession?.name || strings.timer.focusPhase);
   } else {
-    titleText = activeList ? activeList.name : 'Select a List';
+    titleText = activeList ? activeList.name : strings.tasks.selectListPrompt;
   }
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -91,9 +93,9 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
   const handleDeleteList = () => {
     if (activeList) {
       openModal('CONFIRM_DELETE', {
-        title: 'Delete Task List',
-        message: `Delete "${activeList.name}"?`,
-        confirmLabel: 'Delete List',
+        title: strings.tasks.deleteTooltip,
+        message: strings.sessions.deleteConfirmPrompt.replace('{name}', activeList.name),
+        confirmLabel: strings.common.delete,
         onConfirm: () => deleteList(activeList.id)
       });
     }
@@ -105,9 +107,9 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
 
   const handleDeleteTask = (lId: string, task: Task) => {
     openModal('CONFIRM_DELETE', {
-      title: 'Delete Task',
-      message: `Delete task "${task.text}"?`,
-      confirmLabel: 'Delete Task',
+      title: strings.common.delete,
+      message: strings.sessions.deleteConfirmPrompt.replace('{name}', task.text),
+      confirmLabel: strings.common.delete,
       onConfirm: () => deleteTask(lId, task.id)
     });
   };
@@ -122,7 +124,7 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
               {titleText}
             </span>
             <span className="timer-task-count-badge" id="taskRemainingPill">
-              {remainingCount} remaining
+              {strings.tasks.tasksRemaining.replace('{count}', String(remainingCount))}
             </span>
           </div>
 
@@ -132,34 +134,25 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
                 className="icon-btn xs"
                 id="renameListBtn"
                 onClick={handleRenameList}
-                title="Rename list"
+                title={strings.tasks.renameTooltip}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
+                <IconEdit size={14} />
               </button>
               <button
                 className="icon-btn xs"
                 id="duplicateListBtn"
                 onClick={() => duplicateList(activeList.id)}
-                title="Duplicate list"
+                title={strings.tasks.duplicateTooltip}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
+                <IconCopy size={14} />
               </button>
               <button
                 className="icon-btn xs danger"
                 id="deleteListBtn"
                 onClick={handleDeleteList}
-                title="Delete list"
+                title={strings.tasks.deleteTooltip}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
+                <IconTrash size={14} />
               </button>
             </div>
           )}
@@ -168,18 +161,17 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
 
       {/* Nested Task List Dropdown in Timer & Sessions */}
       {inTimer && (
-        <div className="timer-list-select-wrapper" style={{ marginTop: '12px', marginBottom: '14px' }}>
+        <div className="timer-list-select-wrapper timer-list-select-container">
           <select
             className="form-select"
             id="focusListSelect"
             value={state.selectedListIdForTimer || ''}
             onChange={e => setSelectedListForTimer(e.target.value || null)}
-            style={{ width: '100%' }}
           >
-            <option value="">— Select a Task List for this Session —</option>
+            <option value="">{strings.tasks.selectListPromptDropdown}</option>
             {state.taskLists.map(l => (
               <option key={l.id} value={l.id}>
-                {l.name} ({l.tasks.filter(t => !t.completed).length} tasks remaining)
+                {l.name} ({strings.tasks.tasksRemaining.replace('{count}', String(l.tasks.filter(t => !t.completed).length))})
               </option>
             ))}
           </select>
@@ -188,9 +180,11 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
 
       {/* Progress Bar */}
       {activeList && total > 0 && (
-        <div className="tch-progress" id="listProgress" style={{ marginBottom: '14px' }}>
+        <div className="tch-progress tch-progress-spaced" id="listProgress">
           <div className="progress-row">
-            <span id="progressLabel">{done} of {total} completed</span>
+            <span id="progressLabel">
+              {strings.tasks.completedOf.replace('{done}', String(done)).replace('{total}', String(total))}
+            </span>
             <span id="progressPct">{pct}%</span>
           </div>
           <div className="progress-track">
@@ -206,13 +200,13 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
             type="text"
             className="form-input"
             id="newTaskInput"
-            placeholder="Add a task and press Enter…"
+            placeholder={strings.tasks.addTaskPlaceholder}
             value={newTaskText}
             onChange={e => setNewTaskText(e.target.value)}
             autoComplete="off"
           />
           <button type="submit" className="btn-action primary">
-            Add
+            {strings.tasks.addTaskBtn}
           </button>
         </form>
       )}
@@ -222,12 +216,12 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId, inTimer = fa
         {!activeList ? (
           <div className="empty-state small">
             {inTimer
-              ? 'Select a task list from the dropdown above to focus on tasks during this session.'
-              : 'Select or create a list in the sidebar to get started.'}
+              ? strings.timer.selectTaskListPrompt
+              : strings.tasks.emptyListPrompt}
           </div>
         ) : activeList.tasks.length === 0 ? (
           <div className="empty-state small">
-            No tasks in this list yet. Add one above!
+            {strings.tasks.emptyLists}
           </div>
         ) : (
           activeList.tasks.map(task => (

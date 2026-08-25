@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { RewardCard } from './RewardCard';
 import { RewardsStats } from './RewardsStats';
 import { FilterGridLayout, FilterTabOption } from '../ui/FilterGridLayout';
+import { strings } from '../../constants/strings';
 
 const FREQUENCY_TABS: FilterTabOption[] = [
   { key: 'all', label: 'All' },
@@ -33,11 +34,11 @@ export const RewardsGrid: React.FC = () => {
       headerSlot={<RewardsStats />}
       actionButton={
         <button className="btn-action primary" id="addRewardBtn" onClick={handleAddReward}>
-          + New Reward
+          {strings.rewards.newRewardBtn}
         </button>
       }
       hasItems={filteredRewards.length > 0}
-      emptyMessage="No rewards here yet. Add a reward to celebrate your focus sessions and accomplishments!"
+      emptyMessage={strings.rewards.emptyReady}
     >
       {filteredRewards.map(reward => (
         <RewardCard key={reward.id} reward={reward} />

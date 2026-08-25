@@ -31,7 +31,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = name.trim() || 'Untitled Goal';
+    const finalName = name.trim() || strings.goals.untitledGoal;
     const finalReward = rewardId || null;
 
     if (goal) {
@@ -58,19 +58,19 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">Goal Name</label>
+        <label className="form-label">{strings.modals.goalNameLabel}</label>
         <input
           type="text"
           className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Read 10 books"
+          placeholder={strings.modals.goalNamePlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Frequency</label>
+      <div className="form-group form-group-spaced">
+        <label className="form-label">{strings.modals.frequencyLabel}</label>
         <select
           className="form-select"
           value={type}
@@ -84,7 +84,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         </select>
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
+      <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
         <select
           className="form-select"
@@ -100,12 +100,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         </select>
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {goal ? 'Save Changes' : 'Create Goal'}
+          {goal ? strings.common.saveChanges : strings.modals.createGoalBtn}
         </button>
       </div>
     </form>

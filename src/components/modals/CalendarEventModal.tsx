@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CalendarEvent } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface CalendarEventModalProps {
   event?: CalendarEvent | null;
@@ -26,7 +27,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalTitle = title.trim() || 'Scheduled Session';
+    const finalTitle = title.trim() || strings.modals.defaultEventTitle;
     const finalDuration = Math.max(5, Number(durationMins) || 45);
     const finalSessionId = sessionId || null;
 
@@ -62,20 +63,20 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">Title / Activity</label>
+        <label className="form-label">{strings.modals.titleActivityLabel}</label>
         <input
           type="text"
           className="form-input"
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="e.g. Morning Focus Session"
+          placeholder={strings.modals.titleActivityPlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="form-row" style={{ marginTop: '12px' }}>
+      <div className="form-row form-group-spaced">
         <div className="form-group">
-          <label className="form-label">Date</label>
+          <label className="form-label">{strings.modals.dateLabel}</label>
           <input
             type="date"
             className="form-input"
@@ -84,7 +85,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Start Time</label>
+          <label className="form-label">{strings.modals.startTimeLabel}</label>
           <input
             type="time"
             className="form-input"
@@ -94,9 +95,9 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         </div>
       </div>
 
-      <div className="form-row" style={{ marginTop: '12px' }}>
+      <div className="form-row form-group-spaced">
         <div className="form-group">
-          <label className="form-label">Duration (minutes)</label>
+          <label className="form-label">{strings.modals.durationLabel}</label>
           <input
             type="number"
             className="form-input"
@@ -108,7 +109,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Linked Session (optional)</label>
+          <label className="form-label">{strings.modals.linkedSessionLabel}</label>
           <select
             className="form-select"
             value={sessionId}
@@ -121,7 +122,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               }
             }}
           >
-            <option value="">— Standard Event —</option>
+            <option value="">{strings.modals.standardEventOption}</option>
             {state.sessions.map(s => (
               <option key={s.id} value={s.id}>
                 {s.name} ({s.focusMinutes}m)
@@ -131,33 +132,32 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         </div>
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Details / Notes</label>
+      <div className="form-group form-group-spaced">
+        <label className="form-label">{strings.modals.detailsLabel}</label>
         <textarea
           className="form-input form-textarea"
           value={details}
           onChange={e => setDetails(e.target.value)}
-          placeholder="Add specific task notes or goals for this block…"
+          placeholder={strings.modals.detailsPlaceholder}
           rows={3}
         />
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         {event && (
           <button
             type="button"
-            className="btn-action danger"
+            className="btn-action danger btn-action-auto-left"
             onClick={handleDelete}
-            style={{ marginRight: 'auto' }}
           >
-            Delete
+            {strings.common.delete}
           </button>
         )}
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {event ? 'Save Changes' : 'Schedule Event'}
+          {event ? strings.common.saveChanges : strings.calendar.scheduleSessionBtn}
         </button>
       </div>
     </form>

@@ -1,6 +1,8 @@
 import React from 'react';
-import { Goal } from '../../types';
+import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
+import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
 
 export interface GoalCardProps {
   goal: Goal;
@@ -18,7 +20,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     deleteLandmark
   } = useApp();
 
-  const goalName = goal.name || goal.title || 'Untitled Goal';
+  const goalName = goal.name || goal.title || strings.goals.untitledGoal;
   const goalType = goal.type || goal.frequency || 'daily';
   const landmarks = goal.landmarks || [];
   const hasLandmarks = landmarks.length > 0;
@@ -38,9 +40,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
   const handleDeleteGoal = () => {
     openModal('CONFIRM_DELETE', {
-      title: 'Delete Goal',
-      message: `Delete goal "${goalName}"?`,
-      confirmLabel: 'Delete Goal',
+      title: `${strings.common.delete} ${strings.tabs.goals}`,
+      message: `${strings.common.delete} "${goalName}"?`,
+      confirmLabel: `${strings.common.delete} ${strings.tabs.goals}`,
       onConfirm: () => deleteGoal(goal.id)
     });
   };
@@ -49,7 +51,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     openModal('NEW_LANDMARK', { goalId: goal.id });
   };
 
-  const handleEditLandmark = (lm: any) => {
+  const handleEditLandmark = (lm: Landmark) => {
     openModal('EDIT_LANDMARK', { goalId: goal.id, landmark: lm });
   };
 
@@ -72,23 +74,14 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
           </div>
         </div>
         <div className="goal-card-actions">
-          <button className="icon-btn xs" onClick={handleEditGoal} title="Edit">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
+          <button className="icon-btn xs" onClick={handleEditGoal} title={strings.common.edit}>
+            <IconEdit size={13} />
           </button>
-          <button className="icon-btn xs" onClick={() => duplicateGoal(goal.id)} title="Duplicate">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
+          <button className="icon-btn xs" onClick={() => duplicateGoal(goal.id)} title={strings.common.duplicate}>
+            <IconCopy size={13} />
           </button>
-          <button className="icon-btn xs danger" onClick={handleDeleteGoal} title="Delete">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-            </svg>
+          <button className="icon-btn xs danger" onClick={handleDeleteGoal} title={strings.common.delete}>
+            <IconTrash size={13} />
           </button>
         </div>
       </div>
@@ -96,7 +89,11 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
       {hasLandmarks && (
         <div className="goal-card-progress">
           <div className="goal-progress-row">
-            <span>{doneLandmarks} of {totalLandmarks} landmarks</span>
+            <span>
+              {strings.goals.landmarksCountLabel
+                .replace('{done}', String(doneLandmarks))
+                .replace('{total}', String(totalLandmarks))}
+            </span>
             <span>{pct}%</span>
           </div>
           <div className="goal-progress-track">
@@ -110,9 +107,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
       {hasLandmarks && (
         <div className="goal-landmarks">
-          <div className="landmarks-title">Landmarks</div>
+          <div className="landmarks-title">{strings.goals.landmarksTitle}</div>
           {landmarks.map(lm => {
-            const lmName = lm.name || lm.text || 'Untitled Landmark';
+            const lmName = lm.name || lm.text || strings.goals.untitledLandmark;
             const lmReward = lm.rewardId ? state.rewards.find(r => r.id === lm.rewardId) : null;
 
             return (
@@ -130,23 +127,14 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 <span className="landmark-text">{lmName}</span>
                 {lmReward && <span className="landmark-reward-tag">🎁 {lmReward.name}</span>}
                 <div className="landmark-actions">
-                  <button className="icon-btn xs" onClick={() => handleEditLandmark(lm)} title="Edit">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
+                  <button className="icon-btn xs" onClick={() => handleEditLandmark(lm)} title={strings.common.edit}>
+                    <IconEdit size={12} />
                   </button>
-                  <button className="icon-btn xs" onClick={() => duplicateLandmark(goal.id, lm.id)} title="Duplicate">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
+                  <button className="icon-btn xs" onClick={() => duplicateLandmark(goal.id, lm.id)} title={strings.common.duplicate}>
+                    <IconCopy size={12} />
                   </button>
-                  <button className="icon-btn xs danger" onClick={() => handleDeleteLandmark(lm.id)} title="Delete">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    </svg>
+                  <button className="icon-btn xs danger" onClick={() => handleDeleteLandmark(lm.id)} title={strings.common.delete}>
+                    <IconTrash size={12} />
                   </button>
                 </div>
               </div>
@@ -157,21 +145,20 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
       <div className="goal-card-footer">
         {!hasLandmarks ? (
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          <label className="goal-complete-toggle">
             <input
               type="checkbox"
-              className="task-check"
-              style={{ width: '16px', height: '16px' }}
+              className="task-check goal-complete-checkbox"
               checked={goal.completed}
               onChange={() => toggleGoal(goal.id)}
             />
-            Mark as complete
+            {strings.common.markComplete}
           </label>
         ) : (
           <div />
         )}
         <button className="add-landmark-btn" onClick={handleAddLandmark}>
-          + Add Landmark
+          {strings.goals.addLandmarkBtn}
         </button>
       </div>
     </div>

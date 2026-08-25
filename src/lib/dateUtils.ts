@@ -24,6 +24,13 @@ export function parseDateStr(str: string): Date {
 }
 
 /**
+ * Returns the number of days in a given month of a year (month is 0-indexed: 0 = Jan, 11 = Dec).
+ */
+export function getDaysInMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+/**
  * Returns an array of 7 'YYYY-MM-DD' date strings starting from Monday for the given dateStr week.
  */
 export function getWeekRange(dateStr: string): string[] {

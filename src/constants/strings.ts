@@ -1,5 +1,19 @@
 // SSoT String & UI Dictionary (No hardcoded strings in components)
 export const strings = {
+  common: {
+    cancel: 'Cancel',
+    save: 'Save',
+    saveChanges: 'Save Changes',
+    create: 'Create',
+    delete: 'Delete',
+    duplicate: 'Duplicate',
+    edit: 'Edit',
+    rename: 'Rename',
+    confirm: 'Confirm',
+    close: 'Close',
+    markComplete: 'Mark as complete',
+    dragToReorder: 'Drag to reorder'
+  },
   app: {
     title: 'Focus Space',
     tagline: 'Minimalist Time Tracker',
@@ -7,9 +21,13 @@ export const strings = {
   },
   status: {
     ready: 'Ready',
-    focusing: 'Focusing',
-    onBreak: 'On Break',
+    focusing: 'Focusing…',
+    onBreak: 'On a break',
     paused: 'Paused'
+  },
+  header: {
+    notifTooltip: 'Notification Settings',
+    soundToggleTooltip: 'Toggle sound'
   },
   tabs: {
     timer: 'Timer & Sessions',
@@ -32,7 +50,9 @@ export const strings = {
     sessionsTitle: 'Sessions',
     newSessionBtn: '+ New Session',
     resetTooltip: 'Reset Timer',
-    skipTooltip: 'Skip Phase'
+    skipTooltip: 'Skip Phase',
+    playTooltip: 'Start',
+    pauseTooltip: 'Pause'
   },
   agenda: {
     heading: "Today's Agenda",
@@ -40,10 +60,20 @@ export const strings = {
     timelineTitle: '📅 Today\'s Timeline',
     scheduleBtn: '+ Schedule for Today',
     emptyTimeline: 'No sessions scheduled for today yet.',
-    noUpcomingHero: 'No sessions left for today. Click "+ Schedule for Today" to add one!'
+    noUpcomingHero: 'No sessions left for today. Click "+ Schedule for Today" to add one!',
+    statusUpcoming: 'Upcoming',
+    statusLive: 'Live Now',
+    statusDone: 'Done',
+    jumpInBtn: 'Jump In',
+    jumpIntoSessionBtn: '▶️ Jump into Session',
+    nextSessionBadge: '⚡ Next Immediate Session',
+    startsAt: 'Starts at {time}',
+    minutesDuration: '{duration} minutes duration',
+    launchedToast: '🚀 Launched focus session: "{title}"!',
+    sessionsScheduledCount: '{count} session{plural} scheduled for today'
   },
   tasks: {
-    sidebarTitle: 'Task Lists',
+    sidebarTitle: 'Lists',
     newListBtn: '+ New List',
     selectListPrompt: 'Select or create a list to get started.',
     addTaskPlaceholder: 'Add a task and press Enter…',
@@ -51,7 +81,14 @@ export const strings = {
     tasksCount: 'tasks',
     renameTooltip: 'Rename List',
     duplicateTooltip: 'Duplicate List',
-    deleteTooltip: 'Delete List'
+    deleteTooltip: 'Delete List',
+    dragToReorder: 'Drag to reorder',
+    emptyLists: 'No lists yet.',
+    selectListPromptDropdown: '— Select a Task List for this Session —',
+    tasksRemaining: '{count} tasks remaining',
+    completedOf: '{done} of {total} completed',
+    emptyListPrompt: 'Select or create a list in the sidebar to start tracking tasks.',
+    completionTimeTooltip: 'Completion time'
   },
   calendar: {
     prevBtn: '← Prev',
@@ -62,7 +99,8 @@ export const strings = {
       week: 'Week',
       day: 'Day',
       month: 'Month'
-    }
+    },
+    quickAddPromptTime: '09:00'
   },
   stats: {
     avgSessionsDay: 'Avg Sessions / Day',
@@ -76,7 +114,12 @@ export const strings = {
   goals: {
     allFilter: 'All',
     newGoalBtn: '+ New Goal',
-    emptyGoals: 'No goals yet. Add your first goal to stay motivated!'
+    emptyGoals: 'No goals yet. Add your first goal to stay motivated!',
+    addLandmarkBtn: '+ Add Landmark',
+    landmarksTitle: 'Landmarks',
+    untitledGoal: 'Untitled Goal',
+    untitledLandmark: 'Untitled Landmark',
+    landmarksCountLabel: '{done} of {total} landmarks'
   },
   rewards: {
     readyToClaim: 'Ready to Claim',
@@ -92,7 +135,18 @@ export const strings = {
     linkGoalLabel: 'Link to Goal (optional)',
     noGoalLinked: '— No goal linked —',
     noReward: '— No reward —',
-    rewardOnCompletion: 'Reward on Completion (optional)'
+    rewardOnCompletion: 'Reward on Completion (optional)',
+    untitledReward: 'My Reward',
+    badgeSession: 'Session',
+    badgeGoal: 'Goal',
+    badgeLandmark: 'Landmark',
+    badgeManual: 'Manual',
+    badgeClaimed: 'Claimed'
+  },
+  sessions: {
+    deleteConfirmTitle: 'Delete Session',
+    deleteConfirmPrompt: 'Are you sure you want to delete session "{name}"?',
+    emptySessionsMsg: 'No sessions yet. Add one above.'
   },
   celebration: {
     rewardClaimed: 'Reward Claimed!',
@@ -106,7 +160,74 @@ export const strings = {
     soundLabel: 'Play chime sound on notification',
     browserPermLabel: 'Browser Permissions',
     requestPermBtn: 'Enable Push Notifications',
-    permGrantedMsg: '✅ Browser notification permissions granted!'
+    permGrantedMsg: '✅ Browser notification permissions granted!',
+    options: {
+      fiveMin: '5 minutes before',
+      tenMin: '10 minutes before',
+      fifteenMin: '15 minutes before',
+      thirtyMin: '30 minutes before'
+    }
+  },
+  modals: {
+    newSession: 'New Session',
+    editSession: 'Edit Session',
+    sessionNameLabel: 'Session Name',
+    sessionNamePlaceholder: 'e.g. Deep Work',
+    focusTimeLabel: 'Focus Time (minutes)',
+    breakTimeLabel: 'Break Time (minutes)',
+    createSessionBtn: 'Create Session',
+    untitledSession: 'Untitled Session',
+
+    newList: 'New Task List',
+    renameList: 'Rename List',
+    listNameLabel: 'List Name',
+    listNamePlaceholder: 'e.g. Work Tasks',
+    createListBtn: 'Create List',
+
+    newTask: 'New Task',
+    renameTask: 'Rename Task',
+    taskTextLabel: 'Task Text',
+    taskTextPlaceholder: 'e.g. Design header component',
+    addTaskBtn: 'Add Task',
+
+    scheduleEvent: 'Schedule Session',
+    editEvent: 'Edit Scheduled Session',
+    titleActivityLabel: 'Title / Activity',
+    titleActivityPlaceholder: 'e.g. Morning Focus Session',
+    dateLabel: 'Date',
+    startTimeLabel: 'Start Time',
+    durationLabel: 'Duration (minutes)',
+    linkedSessionLabel: 'Linked Session (optional)',
+    standardEventOption: '— Standard Event —',
+    detailsLabel: 'Details / Notes',
+    detailsPlaceholder: 'Add specific task notes or goals for this block…',
+    defaultEventTitle: 'Scheduled Session',
+
+    newGoal: 'New Goal',
+    editGoal: 'Edit Goal',
+    goalNameLabel: 'Goal Name',
+    goalNamePlaceholder: 'e.g. Read 10 books',
+    frequencyLabel: 'Frequency',
+    createGoalBtn: 'Create Goal',
+
+    newLandmark: 'Add Landmark',
+    editLandmark: 'Edit Landmark',
+    landmarkNameLabel: 'Landmark Name',
+    landmarkNamePlaceholder: 'e.g. Finish chapter 3',
+    addLandmarkBtn: 'Add Landmark',
+
+    newReward: 'New Reward',
+    editReward: 'Edit Reward',
+    rewardNameLabel: 'Reward Name',
+    rewardNamePlaceholder: 'e.g. Coffee break ☕',
+    descriptionLabel: 'Description (optional)',
+    descriptionPlaceholder: 'What is this reward?',
+    emojiLabel: 'Emoji / Icon',
+    frequencyPeriodLabel: 'Frequency / Period',
+    createRewardBtn: 'Create Reward',
+
+    confirmDeleteTitle: 'Confirm Delete',
+    confirmDeleteDefaultMsg: 'Are you sure you want to delete this item?'
   },
   auth: {
     serverUnreachable: 'Cannot reach the local app server. Start it with npm run dev and reload.',
@@ -127,7 +248,8 @@ export const strings = {
     switchToSetup: 'No account? Create the main account',
     signingIn: 'Signing in…',
     creating: 'Creating…',
-    restoringSession: 'Restoring session…'
+    restoringSession: 'Restoring session…',
+    mainAccountTooltip: 'Main account'
   },
   userMenu: {
     profile: 'Profile',

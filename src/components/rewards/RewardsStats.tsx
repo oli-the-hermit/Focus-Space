@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
 
 export const RewardsStats: React.FC = () => {
   const { state } = useApp();
@@ -12,15 +13,15 @@ export const RewardsStats: React.FC = () => {
     <div className="reward-stats" id="rewardStatsContainer">
       <div className="rstat">
         <span className="rstat-num" id="rstatReady">{readyCount}</span>
-        <span className="rstat-lbl">Ready</span>
+        <span className="rstat-lbl">{strings.rewards.readyToClaim}</span>
       </div>
       <div className="rstat">
         <span className="rstat-num" id="rstatLocked">{lockedCount}</span>
-        <span className="rstat-lbl">In Progress</span>
+        <span className="rstat-lbl">{strings.rewards.inProgress}</span>
       </div>
       <div className="rstat">
         <span className="rstat-num" id="rstatClaimed">{claimedCount}</span>
-        <span className="rstat-lbl">Claimed</span>
+        <span className="rstat-lbl">{strings.rewards.claimed}</span>
       </div>
     </div>
   );

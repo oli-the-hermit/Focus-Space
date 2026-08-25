@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
+import { strings } from '../../constants/strings';
+import { IconGrip, IconTrash } from '../ui/icons';
 
 export const ListSidebar: React.FC = () => {
   const { state, setActiveList, openModal, deleteList, reorderTaskLists } = useApp();
@@ -42,9 +44,9 @@ export const ListSidebar: React.FC = () => {
   const handleDeleteList = (e: React.MouseEvent, list: TaskList) => {
     e.stopPropagation();
     openModal('CONFIRM_DELETE', {
-      title: 'Delete Task List',
-      message: `Are you sure you want to delete "${list.name}"?`,
-      confirmLabel: 'Delete List',
+      title: `${strings.common.delete} ${strings.tasks.sidebarTitle}`,
+      message: `${strings.modals.confirmDeleteDefaultMsg.replace('item', `"${list.name}"`)}`,
+      confirmLabel: `${strings.common.delete} ${strings.tasks.sidebarTitle}`,
       onConfirm: () => deleteList(list.id)
     });
   };
@@ -52,15 +54,15 @@ export const ListSidebar: React.FC = () => {
   return (
     <div className="card tasks-sidebar">
       <div className="panel-card-header">
-        <span className="panel-card-title">Lists</span>
+        <span className="panel-card-title">{strings.tasks.sidebarTitle}</span>
         <button className="btn-action" id="addListBtn" onClick={handleCreateList}>
-          + New List
+          {strings.tasks.newListBtn}
         </button>
       </div>
 
       <div className="list-nav" id="listNav">
         {state.taskLists.length === 0 ? (
-          <div className="empty-state small">No lists yet.</div>
+          <div className="empty-state small">{strings.tasks.emptyLists}</div>
         ) : (
           state.taskLists.map(list => {
             const isActive = list.id === state.activeListId;
@@ -81,18 +83,15 @@ export const ListSidebar: React.FC = () => {
                 onDrop={e => handleDrop(e, list.id)}
                 onClick={() => setActiveList(list.id)}
               >
-                <span className="drag-handle" title="Drag to reorder">⋮⋮</span>
+                <IconGrip title={strings.tasks.dragToReorder} />
                 <span className="list-nav-item-name">{list.name}</span>
                 <span className="list-nav-count">{done}/{total}</span>
                 <button
                   className="icon-btn xs list-nav-item-del danger"
                   onClick={e => handleDeleteList(e, list)}
-                  title="Delete list"
+                  title={strings.tasks.deleteTooltip}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                  </svg>
+                  <IconTrash size={12} />
                 </button>
               </div>
             );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
 
 export const ProductivityChart: React.FC = () => {
   const { state } = useApp();
@@ -23,7 +24,7 @@ export const ProductivityChart: React.FC = () => {
   return (
     <div className="card stats-chart-card">
       <div className="panel-card-header">
-        <span className="panel-card-title">📅 Most Productive Days of the Week</span>
+        <span className="panel-card-title">{strings.stats.productiveDaysTitle}</span>
       </div>
 
       <div className="productive-days-chart" id="productiveDaysChart">

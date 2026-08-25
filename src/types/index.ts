@@ -170,9 +170,37 @@ export type ModalType =
   | 'EDIT_LANDMARK'
   | 'NEW_REWARD'
   | 'EDIT_REWARD'
-  | 'CONFIRM_DELETE';
+  | 'CONFIRM_DELETE'
+  | 'NOTIFICATIONS';
 
-export interface ActiveModal {
-  type: ModalType;
-  payload?: any;
+export interface ConfirmDeletePayload {
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
 }
+
+export interface ModalPayloadMap {
+  NEW_SESSION: undefined;
+  EDIT_SESSION: { session?: Session | null };
+  NEW_LIST: undefined;
+  RENAME_LIST: { list?: TaskList | null };
+  NEW_TASK: { listId: string };
+  RENAME_TASK: { listId: string; task?: Task | null };
+  SCHEDULE_EVENT: { date?: string; time?: string };
+  EDIT_EVENT: { event?: CalendarEvent | null };
+  NEW_GOAL: undefined;
+  EDIT_GOAL: { goal?: Goal | null };
+  NEW_LANDMARK: { goalId: string };
+  EDIT_LANDMARK: { goalId: string; landmark?: Landmark | null };
+  NEW_REWARD: undefined;
+  EDIT_REWARD: { reward?: Reward | null };
+  CONFIRM_DELETE: ConfirmDeletePayload;
+  NOTIFICATIONS: undefined;
+}
+
+export type ActiveModal = {
+  [K in ModalType]: ModalPayloadMap[K] extends undefined
+    ? { type: K; payload?: undefined }
+    : { type: K; payload: ModalPayloadMap[K] };
+}[ModalType];

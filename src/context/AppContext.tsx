@@ -14,6 +14,7 @@ import {
   CalendarView,
   NotificationSettings,
   ModalType,
+  ModalPayloadMap,
   ActiveModal,
   Profile,
   ThemeMode
@@ -29,6 +30,7 @@ import { api } from '../lib/api';
 import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../lib/crypto';
 import { strings } from '../constants/strings';
 import { getTodayStr } from '../lib/dateUtils';
+import { formatDuration } from '../lib/formatUtils';
 
 interface ToastItem {
   id: string;
@@ -46,7 +48,10 @@ interface AppContextType {
 
   // Modal System
   activeModal: ActiveModal | null;
-  openModal: (type: ModalType, payload?: any) => void;
+  openModal: <K extends ModalType>(
+    type: K,
+    ...args: ModalPayloadMap[K] extends undefined ? [payload?: undefined] : [payload: ModalPayloadMap[K]]
+  ) => void;
   closeModal: () => void;
 
   // Timer Actions
@@ -159,46 +164,42 @@ function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-function formatDuration(sec: number): string {
-  if (!sec || sec <= 0) return '0s';
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  if (m === 0) return `${s}s`;
-  if (s === 0) return `${m}m`;
-  return `${m}m ${s}s`;
-}
-
 // Normalizes a raw (possibly partial/legacy) state object into a valid AppState.
-function normalizeState(raw: any): AppState {
-  const sessions: Session[] = raw?.sessions?.length ? raw.sessions : DEFAULT_SESSIONS;
-  const activeSessionId = raw?.activeSessionId || sessions[0]?.id || 's1';
+function normalizeState(raw: unknown): AppState {
+  const r = (raw && typeof raw === 'object') ? (raw as Record<string, unknown>) : null;
+  const sessions: Session[] = Array.isArray(r?.sessions) && r!.sessions.length
+    ? (r!.sessions as Session[])
+    : DEFAULT_SESSIONS;
+  const activeSessionId = typeof r?.activeSessionId === 'string' ? r.activeSessionId : (sessions[0]?.id || 's1');
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
   const focusMins = activeSession?.focusMinutes || 25;
 
   return {
     sessions,
     activeSessionId,
-    taskLists: raw?.taskLists?.length ? raw.taskLists : DEFAULT_TASK_LISTS,
-    activeListId: raw?.activeListId || raw?.taskLists?.[0]?.id || DEFAULT_TASK_LISTS[0].id,
-    selectedListIdForTimer: raw?.selectedListIdForTimer || raw?.taskLists?.[0]?.id || DEFAULT_TASK_LISTS[0].id,
+    taskLists: Array.isArray(r?.taskLists) && r!.taskLists.length ? (r!.taskLists as TaskList[]) : DEFAULT_TASK_LISTS,
+    activeListId: (typeof r?.activeListId === 'string' ? r.activeListId : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
+    selectedListIdForTimer: (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
     activeActivityStartTime: null,
-    taskCompletionLogs: raw?.taskCompletionLogs || [],
-    sessionLogs: raw?.sessionLogs || [],
-    calendarEvents: raw?.calendarEvents || DEFAULT_CALENDAR_EVENTS,
-    calendarDate: raw?.calendarDate || getTodayStr(),
-    calendarView: raw?.calendarView || 'week',
-    notifications: raw?.notifications ?? { enabled: true, leadMinutes: 10, sound: true },
-    goals: raw?.goals?.length ? raw.goals : DEFAULT_GOALS,
-    rewards: raw?.rewards?.length ? raw.rewards : DEFAULT_REWARDS,
+    taskCompletionLogs: Array.isArray(r?.taskCompletionLogs) ? (r!.taskCompletionLogs as AppState['taskCompletionLogs']) : [],
+    sessionLogs: Array.isArray(r?.sessionLogs) ? (r!.sessionLogs as AppState['sessionLogs']) : [],
+    calendarEvents: Array.isArray(r?.calendarEvents) ? (r!.calendarEvents as CalendarEvent[]) : DEFAULT_CALENDAR_EVENTS,
+    calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
+    calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
+    notifications: (r?.notifications && typeof r.notifications === 'object') ? (r.notifications as NotificationSettings) : { enabled: true, leadMinutes: 10, sound: true },
+    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Goal[]) : DEFAULT_GOALS,
+    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Reward[]) : DEFAULT_REWARDS,
     timer: {
       phase: 'focus',
       status: 'idle',
       remaining: focusMins * 60,
       total: focusMins * 60,
-      sessionsCompletedToday: raw?.timer?.sessionsCompletedToday || 0
+      sessionsCompletedToday: typeof (r?.timer as Record<string, unknown> | undefined)?.sessionsCompletedToday === 'number'
+        ? ((r!.timer as Record<string, unknown>).sessionsCompletedToday as number)
+        : 0
     },
-    sound: raw?.sound ?? true,
-    theme: raw?.theme ?? 'system'
+    sound: typeof r?.sound === 'boolean' ? r.sound : true,
+    theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system'
   };
 }
 
@@ -364,9 +365,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 3500);
   };
 
-  const openModal = (type: ModalType, payload?: any) => {
-    setActiveModal({ type, payload });
-  };
+  const openModal = ((type: ModalType, payload?: unknown) => {
+    setActiveModal({ type, payload } as ActiveModal);
+  }) as AppContextType['openModal'];
 
   const closeModal = () => {
     setActiveModal(null);

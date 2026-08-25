@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
 
 export const NavigationTabs: React.FC = () => {
   const { activeTab, setActiveTab, state } = useApp();
@@ -17,7 +18,7 @@ export const NavigationTabs: React.FC = () => {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        Timer &amp; Sessions
+        {strings.tabs.timer}
       </button>
 
       <button
@@ -29,7 +30,7 @@ export const NavigationTabs: React.FC = () => {
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
-        Tasks
+        {strings.tabs.tasks}
       </button>
 
       <button
@@ -43,7 +44,7 @@ export const NavigationTabs: React.FC = () => {
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Calendar
+        {strings.tabs.calendar}
       </button>
 
       <button
@@ -56,7 +57,7 @@ export const NavigationTabs: React.FC = () => {
           <line x1="12" y1="20" x2="12" y2="4" />
           <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
-        Analytics &amp; Stats
+        {strings.tabs.stats}
       </button>
 
       <button
@@ -69,7 +70,7 @@ export const NavigationTabs: React.FC = () => {
           <circle cx="12" cy="12" r="6" />
           <circle cx="12" cy="12" r="2" />
         </svg>
-        Goals &amp; Landmarks
+        {strings.tabs.goals}
       </button>
 
       <button
@@ -84,7 +85,7 @@ export const NavigationTabs: React.FC = () => {
           <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
           <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
         </svg>
-        Rewards
+        {strings.tabs.rewards}
         {readyRewardsCount > 0 ? (
           <span className="nav-badge" id="rewardBadge">{readyRewardsCount}</span>
         ) : (

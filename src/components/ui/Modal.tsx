@@ -40,11 +40,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
     <div className="modal-backdrop" id="modalBackdrop" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className={`modal ${wide ? 'wide' : ''}`}
         id="modal"
         role="dialog"
         aria-modal="true"
-        style={{ maxWidth: wide ? '560px' : '440px' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">

@@ -587,7 +587,6 @@ a { color: var(--accent); text-decoration: none; }
   padding: 9px 10px;
   border-radius: var(--radius-sm);
   transition: background var(--transition);
-  group: '';
 }
 .task-row:hover { background: var(--bg); }
 .task-row.done { opacity: 0.55; }
@@ -930,7 +929,6 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 .rewards-sections { display: flex; flex-direction: column; gap: 28px; }
-.rewards-section {}
 .section-title {
   font-size: 0.88rem;
   font-weight: 700;

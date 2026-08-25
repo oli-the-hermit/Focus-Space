@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface ListModalProps {
   list?: TaskList | null;
@@ -27,23 +28,23 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">List Name</label>
+        <label className="form-label">{strings.modals.listNameLabel}</label>
         <input
           type="text"
           className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Work Tasks"
+          placeholder={strings.modals.listNamePlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {list ? 'Save' : 'Create List'}
+          {list ? strings.common.save : strings.modals.createListBtn}
         </button>
       </div>
     </form>

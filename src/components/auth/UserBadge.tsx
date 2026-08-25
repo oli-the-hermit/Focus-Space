@@ -63,7 +63,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSetti
             <span className="user-avatar-initials">{initials(profile.displayName)}</span>
           )}
           {profile.role === 'owner' && (
-            <span className="user-role-dot" title="Main account" />
+            <span className="user-role-dot" title={strings.auth.mainAccountTooltip} />
           )}
         </span>
         <span className="user-badge-name">{profile.displayName}</span>

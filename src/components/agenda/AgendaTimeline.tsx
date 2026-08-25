@@ -2,12 +2,14 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { CalendarEvent } from '../../types';
 import { getTodayStr } from '../../lib/dateUtils';
+import { strings } from '../../constants/strings';
+import { IconTrash } from '../ui/icons';
 
 export const AgendaTimeline: React.FC = () => {
   const {
     state,
     deleteCalendarEvent,
-    addCalendarEvent,
+    openModal,
     setActiveSession,
     setSelectedListForTimer,
     setActiveTab,
@@ -25,15 +27,9 @@ export const AgendaTimeline: React.FC = () => {
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const handleAddSchedule = () => {
-    const title = prompt('Schedule Session Title:');
-    if (!title || !title.trim()) return;
-    const time = prompt('Start time (HH:mm):', '09:00');
-
-    addCalendarEvent({
-      title: title.trim(),
+    openModal('SCHEDULE_EVENT', {
       date: todayStr,
-      startTime: time || '09:00',
-      durationMins: 25
+      time: strings.calendar.quickAddPromptTime
     });
   };
 
@@ -43,36 +39,36 @@ export const AgendaTimeline: React.FC = () => {
     setActiveTab('timer');
     resetTimer();
     toggleTimer();
-    showToast(`🚀 Launched focus session: "${ev.title}"!`);
+    showToast(strings.agenda.launchedToast.replace('{title}', ev.title));
   };
 
   return (
     <div className="card agenda-list-card">
       <div className="panel-card-header">
-        <span className="panel-card-title">📅 Today's Timeline</span>
+        <span className="panel-card-title">{strings.agenda.timelineTitle}</span>
         <button className="btn-action" id="agendaAddBtn" onClick={handleAddSchedule}>
-          + Schedule for Today
+          {strings.agenda.scheduleBtn}
         </button>
       </div>
 
       <div className="agenda-events-list" id="agendaEventsList">
         {todayEvents.length === 0 ? (
-          <div className="empty-state small">No sessions scheduled for today yet.</div>
+          <div className="empty-state small">{strings.agenda.emptyTimeline}</div>
         ) : (
           todayEvents.map(ev => {
             const [h, m] = ev.startTime.split(':').map(Number);
             const startMins = h * 60 + m;
             const endMins = startMins + ev.durationMins;
 
-            let statusLabel = 'Upcoming';
-            let statusStyle = {};
+            let statusLabel: string = strings.agenda.statusUpcoming;
+            let statusClass = 'status-upcoming';
 
             if (nowMinutes >= startMins && nowMinutes < endMins) {
-              statusLabel = 'Live Now';
-              statusStyle = { color: 'var(--success)', fontWeight: 700 };
+              statusLabel = strings.agenda.statusLive;
+              statusClass = 'status-live';
             } else if (nowMinutes >= endMins) {
-              statusLabel = 'Done';
-              statusStyle = { color: 'var(--text-muted)' };
+              statusLabel = strings.agenda.statusDone;
+              statusClass = 'status-done';
             }
 
             const taskList = state.taskLists.find(l => l.id === ev.taskListId);
@@ -80,7 +76,7 @@ export const AgendaTimeline: React.FC = () => {
             return (
               <div key={ev.id} className="agenda-item-card">
                 <div className="agenda-item-left">
-                  <div className="agenda-item-time" style={statusStyle}>
+                  <div className={`agenda-item-time ${statusClass}`}>
                     {ev.startTime} · {statusLabel}
                   </div>
                   <div className="agenda-item-title">{ev.title}</div>
@@ -90,20 +86,19 @@ export const AgendaTimeline: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="agenda-actions-wrap">
                   <button
-                    className="btn-action primary"
-                    style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+                    className="btn-action primary agenda-jump-in-btn"
                     onClick={() => handleJumpIn(ev)}
                   >
-                    Jump In
+                    {strings.agenda.jumpInBtn}
                   </button>
                   <button
                     className="icon-btn xs danger"
                     onClick={() => deleteCalendarEvent(ev.id)}
-                    title="Delete"
+                    title={strings.common.delete}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    <IconTrash size={12} />
                   </button>
                 </div>
               </div>

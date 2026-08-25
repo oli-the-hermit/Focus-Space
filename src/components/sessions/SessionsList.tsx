@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { SessionItem } from './SessionItem';
 import { Session } from '../../types';
+import { strings } from '../../constants/strings';
 
 export const SessionsList: React.FC = () => {
   const {
@@ -53,9 +54,9 @@ export const SessionsList: React.FC = () => {
 
   const handleDeleteSession = (session: Session) => {
     openModal('CONFIRM_DELETE', {
-      title: 'Delete Session',
-      message: `Are you sure you want to delete session "${session.name}"?`,
-      confirmLabel: 'Delete Session',
+      title: strings.sessions.deleteConfirmTitle,
+      message: strings.sessions.deleteConfirmPrompt.replace('{name}', session.name),
+      confirmLabel: strings.common.delete,
       onConfirm: () => deleteSession(session.id)
     });
   };
@@ -63,15 +64,15 @@ export const SessionsList: React.FC = () => {
   return (
     <div className="card panel-card">
       <div className="panel-card-header">
-        <span className="panel-card-title">Sessions</span>
+        <span className="panel-card-title">{strings.timer.sessionsTitle}</span>
         <button className="btn-action" id="addSessionBtn" onClick={handleAddSession}>
-          + New Session
+          {strings.timer.newSessionBtn}
         </button>
       </div>
 
       <div className="sessions-list" id="sessionsList">
         {state.sessions.length === 0 ? (
-          <div className="empty-state small">No sessions yet. Add one above.</div>
+          <div className="empty-state small">{strings.sessions.emptySessionsMsg}</div>
         ) : (
           state.sessions.map(session => (
             <SessionItem

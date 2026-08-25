@@ -1,19 +1,14 @@
 import React from 'react';
 import { Reward } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
+import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
 
 export interface RewardCardProps {
   reward: Reward;
   showClaim?: boolean;
   isClaimed?: boolean;
 }
-
-const TRIGGER_LABELS: Record<string, string> = {
-  session: 'Session',
-  landmark: 'Landmark',
-  goal: 'Goal',
-  manual: 'Manual'
-};
 
 export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isClaimed }) => {
   const { openModal, duplicateReward, deleteReward, claimReward } = useApp();
@@ -31,9 +26,9 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
 
   const handleDelete = () => {
     openModal('CONFIRM_DELETE', {
-      title: 'Delete Reward',
-      message: `Delete reward "${reward.name}"?`,
-      confirmLabel: 'Delete Reward',
+      title: `${strings.common.delete} ${strings.rewards.badgeGoal}`,
+      message: `${strings.common.delete} "${reward.name}"?`,
+      confirmLabel: `${strings.common.delete} ${strings.rewards.badgeGoal}`,
       onConfirm: () => deleteReward(reward.id)
     });
   };
@@ -51,53 +46,44 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
             <span className={`goal-type-badge badge-${rewardFrequency}`}>
               {rewardFrequency.charAt(0).toUpperCase() + rewardFrequency.slice(1)}
             </span>
-            {hasSessionLink && <span className="reward-trigger-badge">Session</span>}
-            {hasGoalLink && <span className="reward-trigger-badge">Goal</span>}
-            {isLandmark && <span className="reward-trigger-badge">Landmark</span>}
+            {hasSessionLink && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
+            {hasGoalLink && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
+            {isLandmark && <span className="reward-trigger-badge">{strings.rewards.badgeLandmark}</span>}
             {!hasSessionLink && !hasGoalLink && !isLandmark && (
-              <span className="reward-trigger-badge">Manual</span>
+              <span className="reward-trigger-badge">{strings.rewards.badgeManual}</span>
             )}
             {claimed && (
-              <span className="reward-trigger-badge" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
-                Claimed
+              <span className="reward-trigger-badge claimed">
+                {strings.rewards.badgeClaimed}
               </span>
             )}
           </div>
         </div>
         <div className="reward-card-actions">
           {!claimed && (
-            <button className="icon-btn xs" onClick={handleEdit} title="Edit">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
+            <button className="icon-btn xs" onClick={handleEdit} title={strings.common.edit}>
+              <IconEdit size={13} />
             </button>
           )}
-          <button className="icon-btn xs" onClick={() => duplicateReward(reward.id)} title="Duplicate">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
+          <button className="icon-btn xs" onClick={() => duplicateReward(reward.id)} title={strings.common.duplicate}>
+            <IconCopy size={13} />
           </button>
-          <button className="icon-btn xs danger" onClick={handleDelete} title="Delete">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-            </svg>
+          <button className="icon-btn xs danger" onClick={handleDelete} title={strings.common.delete}>
+            <IconTrash size={13} />
           </button>
         </div>
       </div>
 
       {(reward.description || reward.desc) && (
-        <div className="reward-card-desc" style={{ marginTop: '8px', color: 'var(--text-secondary)', fontSize: '0.86rem' }}>
+        <div className="reward-card-desc">
           {reward.description || reward.desc}
         </div>
       )}
 
       {ready && !claimed && (
-        <div style={{ marginTop: '12px' }}>
+        <div className="reward-claim-container">
           <button className="claim-btn" onClick={() => claimReward(reward.id)}>
-            🎉 Claim Reward
+            {strings.rewards.claimBtn}
           </button>
         </div>
       )}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserBadge } from '../auth/UserBadge';
 import { UserMenuModal } from '../auth/UserMenuModal';
+import { strings } from '../../constants/strings';
 
 export interface BrandHeaderProps {
   onOpenNotifications?: () => void;
@@ -16,17 +17,17 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({ onOpenNotifications })
   const isPaused = state.timer.status === 'paused';
 
   let statusDotClass = 'status-dot idle';
-  let statusText = 'Ready';
+  let statusText: string = strings.status.ready;
 
   if (isRunning) {
     statusDotClass = `status-dot ${isBreak ? 'break' : 'running'}`;
-    statusText = isBreak ? 'On a break' : 'Focusing…';
+    statusText = isBreak ? strings.status.onBreak : strings.status.focusing;
   } else if (isPaused) {
     statusDotClass = 'status-dot paused';
-    statusText = 'Paused';
+    statusText = strings.status.paused;
   } else {
     statusDotClass = 'status-dot idle';
-    statusText = 'Ready';
+    statusText = strings.status.ready;
   }
 
   return (
@@ -46,7 +47,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({ onOpenNotifications })
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        <span className="brand-name">Focus Space</span>
+        <span className="brand-name">{strings.app.title}</span>
       </div>
 
       <div className="header-status" id="headerStatus">
@@ -59,7 +60,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({ onOpenNotifications })
           <button
             className="tool-btn"
             id="notifSettingsBtn"
-            title="Notification Settings"
+            title={strings.header.notifTooltip}
             onClick={onOpenNotifications}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -72,7 +73,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({ onOpenNotifications })
         <button
           className="tool-btn"
           id="soundToggleBtn"
-          title="Toggle sound"
+          title={strings.header.soundToggleTooltip}
           onClick={toggleSound}
         >
           {state.sound ? (

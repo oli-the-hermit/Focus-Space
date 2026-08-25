@@ -41,7 +41,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = name.trim() || 'My Reward';
+    const finalName = name.trim() || strings.rewards.untitledReward;
     const finalEmoji = emoji.trim() || '🎁';
     const finalSessionId = linkedSessionId || null;
     const finalGoalId = linkedGoalId || null;
@@ -93,31 +93,31 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">Reward Name</label>
+        <label className="form-label">{strings.modals.rewardNameLabel}</label>
         <input
           type="text"
           className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Coffee break ☕"
+          placeholder={strings.modals.rewardNamePlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Description (optional)</label>
+      <div className="form-group form-group-spaced">
+        <label className="form-label">{strings.modals.descriptionLabel}</label>
         <textarea
           className="form-input form-textarea"
           value={description}
           onChange={e => setDescription(e.target.value)}
-          placeholder="What is this reward?"
+          placeholder={strings.modals.descriptionPlaceholder}
           rows={2}
         />
       </div>
 
-      <div className="form-row" style={{ marginTop: '12px' }}>
+      <div className="form-row form-group-spaced">
         <div className="form-group">
-          <label className="form-label">Emoji / Icon</label>
+          <label className="form-label">{strings.modals.emojiLabel}</label>
           <input
             type="text"
             className="form-input"
@@ -128,7 +128,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Frequency / Period</label>
+          <label className="form-label">{strings.modals.frequencyPeriodLabel}</label>
           <select
             className="form-select"
             value={frequency}
@@ -143,7 +143,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         </div>
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
+      <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.linkSessionLabel}</label>
         <select
           className="form-select"
@@ -159,7 +159,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         </select>
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
+      <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.linkGoalLabel}</label>
         <select
           className="form-select"
@@ -175,12 +175,12 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         </select>
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {reward ? 'Save Changes' : 'Create Reward'}
+          {reward ? strings.common.saveChanges : strings.modals.createRewardBtn}
         </button>
       </div>
     </form>

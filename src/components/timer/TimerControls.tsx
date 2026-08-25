@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimerStatus } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface TimerControlsProps {
   status: TimerStatus;
@@ -18,13 +19,23 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
 
   return (
     <div className="timer-controls">
-      <button className="ctrl-btn secondary" id="resetBtn" onClick={onReset} title="Reset">
+      <button
+        className="ctrl-btn secondary"
+        id="resetBtn"
+        onClick={onReset}
+        title={strings.timer.resetTooltip}
+      >
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="1 4 1 10 7 10" />
           <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
         </svg>
       </button>
-      <button className="ctrl-btn primary" id="playPauseBtn" onClick={onToggle} title={isRunning ? 'Pause' : 'Start'}>
+      <button
+        className="ctrl-btn primary"
+        id="playPauseBtn"
+        onClick={onToggle}
+        title={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
+      >
         {isRunning ? (
           <svg className="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="4" width="4" height="16" />
@@ -36,7 +47,12 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           </svg>
         )}
       </button>
-      <button className="ctrl-btn secondary" id="skipBtn" onClick={onSkip} title="Skip phase">
+      <button
+        className="ctrl-btn secondary"
+        id="skipBtn"
+        onClick={onSkip}
+        title={strings.timer.skipTooltip}
+      >
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polygon points="5 4 15 12 5 20 5 4" />
           <line x1="19" y1="5" x2="19" y2="19" />

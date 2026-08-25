@@ -14,7 +14,6 @@ cypress/screenshots/
 cypress/videos/
 test-results/
 .playwright/
-documentation/
 
 # Production & Build Outputs
 build/

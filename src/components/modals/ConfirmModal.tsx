@@ -1,4 +1,5 @@
 import React from 'react';
+import { strings } from '../../constants/strings';
 
 export interface ConfirmModalProps {
   title?: string;
@@ -10,18 +11,18 @@ export interface ConfirmModalProps {
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
-  confirmLabel = 'Delete',
+  confirmLabel = strings.common.delete,
   onConfirm,
   onClose
 }) => {
   return (
     <div>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', marginBottom: '20px', lineHeight: 1.5 }}>
+      <p className="confirm-modal-message">
         {message}
       </p>
       <div className="modal-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button
           type="button"

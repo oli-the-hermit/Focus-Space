@@ -30,7 +30,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = name.trim() || 'Untitled Session';
+    const finalName = name.trim() || strings.modals.untitledSession;
     const focus = Math.max(1, Number(focusMinutes) || 25);
     const brk = Math.max(1, Number(breakMinutes) || 5);
     const finalReward = rewardId || null;
@@ -56,20 +56,20 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">Session Name</label>
+        <label className="form-label">{strings.modals.sessionNameLabel}</label>
         <input
           type="text"
           className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Deep Work"
+          placeholder={strings.modals.sessionNamePlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="form-row" style={{ marginTop: '12px' }}>
+      <div className="form-row form-group-spaced">
         <div className="form-group">
-          <label className="form-label">Focus Time (minutes)</label>
+          <label className="form-label">{strings.modals.focusTimeLabel}</label>
           <input
             type="number"
             className="form-input"
@@ -80,7 +80,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Break Time (minutes)</label>
+          <label className="form-label">{strings.modals.breakTimeLabel}</label>
           <input
             type="number"
             className="form-input"
@@ -92,7 +92,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
         </div>
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
+      <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
         <select
           className="form-select"
@@ -108,12 +108,12 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
         </select>
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {session ? 'Save Changes' : 'Create Session'}
+          {session ? strings.common.saveChanges : strings.modals.createSessionBtn}
         </button>
       </div>
     </form>

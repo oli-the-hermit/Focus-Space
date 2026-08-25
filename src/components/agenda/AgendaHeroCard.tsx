@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { getTodayStr } from '../../lib/dateUtils';
+import { strings } from '../../constants/strings';
 
 export const AgendaHeroCard: React.FC = () => {
   const { state, setActiveSession, setActiveTab, toggleTimer } = useApp();
@@ -14,7 +15,7 @@ export const AgendaHeroCard: React.FC = () => {
     return (
       <div className="card agenda-hero-card">
         <div className="empty-state">
-          No sessions left for today. Click "+ Schedule for Today" to add one!
+          {strings.agenda.noUpcomingHero}
         </div>
       </div>
     );
@@ -31,23 +32,23 @@ export const AgendaHeroCard: React.FC = () => {
   return (
     <div className="card agenda-hero-card">
       <div className="agenda-hero-badge">
-        <span>⚡ Next Immediate Session</span>
+        <span>{strings.agenda.nextSessionBadge}</span>
       </div>
 
       <h3 className="agenda-hero-title">{nextEvent.title}</h3>
 
       <div className="agenda-hero-meta">
         <div className="agenda-meta-item">
-          🕒 Starts at {nextEvent.startTime}
+          🕒 {strings.agenda.startsAt.replace('{time}', nextEvent.startTime)}
         </div>
         <div className="agenda-meta-item">
-          ⏱️ {nextEvent.durationMins} minutes duration
+          ⏱️ {strings.agenda.minutesDuration.replace('{duration}', String(nextEvent.durationMins))}
         </div>
       </div>
 
       <div className="agenda-hero-actions">
         <button className="btn-jump-in" onClick={handleStartSession}>
-          ▶️ Jump into Session
+          {strings.agenda.jumpIntoSessionBtn}
         </button>
       </div>
     </div>

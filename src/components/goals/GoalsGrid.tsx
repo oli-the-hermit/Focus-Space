@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { GoalCard } from './GoalCard';
 import { FilterGridLayout, FilterTabOption } from '../ui/FilterGridLayout';
+import { strings } from '../../constants/strings';
 
 const FREQUENCY_TABS: FilterTabOption[] = [
   { key: 'all', label: 'All' },
@@ -31,11 +32,11 @@ export const GoalsGrid: React.FC = () => {
       onTabChange={setFilter}
       actionButton={
         <button className="btn-action primary" id="addGoalBtn" onClick={handleAddGoal}>
-          + New Goal
+          {strings.goals.newGoalBtn}
         </button>
       }
       hasItems={filteredGoals.length > 0}
-      emptyMessage="No goals here yet. Add your first goal to stay motivated!"
+      emptyMessage={strings.goals.emptyGoals}
     >
       {filteredGoals.map(goal => (
         <GoalCard key={goal.id} goal={goal} />

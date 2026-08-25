@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { strings } from '../../constants/strings';
 
 export const CelebrationOverlay: React.FC = () => {
   const { activeCelebrationReward, dismissCelebration } = useApp();
@@ -19,18 +20,17 @@ export const CelebrationOverlay: React.FC = () => {
           {activeCelebrationReward.emoji || activeCelebrationReward.icon || '🎉'}
         </div>
         <h2 className="celebration-title" id="celebrationTitle">
-          Reward Claimed!
+          {strings.celebration.rewardClaimed}
         </h2>
         <p className="celebration-desc" id="celebrationDesc">
-          {activeCelebrationReward.description || activeCelebrationReward.desc || "You've earned your reward."}
+          {activeCelebrationReward.description || activeCelebrationReward.desc || strings.celebration.desc}
         </p>
         <button
-          className="btn-action primary"
+          className="btn-action primary celebration-confirm-btn"
           id="closeCelebrationBtn"
           onClick={dismissCelebration}
-          style={{ padding: '10px 24px' }}
         >
-          Awesome!
+          {strings.celebration.awesomeBtn}
         </button>
       </div>
     </div>

@@ -20,26 +20,17 @@ import { RewardsGrid } from './components/rewards/RewardsGrid';
 import { CelebrationOverlay } from './components/rewards/CelebrationOverlay';
 
 import { ModalManager } from './components/modals/ModalManager';
-import { Modal } from './components/ui/Modal';
+import { NotificationModal } from './components/modals/NotificationModal';
 import { TwoColumnLayout } from './components/ui/TwoColumnLayout';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { strings } from './constants/strings';
-
-function formatDuration(sec: number): string {
-  if (!sec || sec <= 0) return '0s';
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  if (m === 0) return `${s}s`;
-  if (s === 0) return `${m}m`;
-  return `${m}m ${s}s`;
-}
+import { formatDuration } from './lib/formatUtils';
 
 export const AppContent: React.FC = () => {
   const {
     state,
     activeTab,
     toasts,
-    updateNotifications,
     authStatus
   } = useApp();
 
@@ -48,8 +39,8 @@ export const AppContent: React.FC = () => {
   if (authStatus === 'loading') {
     return (
       <div className="auth-screen">
-        <div className="auth-card" style={{ padding: '48px 32px' }}>
-          <div className="auth-logo" style={{ animation: 'pulse 1.8s infinite ease-in-out' }}>
+        <div className="auth-card auth-loading-card">
+          <div className="auth-logo auth-loading-logo">
             <svg
               width="30"
               height="30"
@@ -64,7 +55,7 @@ export const AppContent: React.FC = () => {
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
-          <p className="auth-subtitle" style={{ margin: 0 }}>
+          <p className="auth-subtitle auth-loading-subtitle">
             {strings.auth.restoringSession}
           </p>
         </div>
@@ -123,10 +114,10 @@ export const AppContent: React.FC = () => {
         {/* ── TAB: STATS ────────────────────────────────────── */}
         <section className={`tab-page ${activeTab === 'stats' ? 'active' : ''}`} id="tab-stats">
           <div className="stats-overview-grid">
-            <StatCard icon="⏱️" value={avgSessions} label="Avg Sessions / Day" />
-            <StatCard icon="⏳" value={formatDuration(avgWorkedSecs)} label="Avg Worked Time / Day" />
-            <StatCard icon="✅" value={avgTasks} label="Avg Tasks Completed / Day" />
-            <StatCard icon="⚡" value={formatDuration(avgTaskSec)} label="Avg Time per Task" />
+            <StatCard icon="⏱️" value={avgSessions} label={strings.stats.avgSessionsDay} />
+            <StatCard icon="⏳" value={formatDuration(avgWorkedSecs)} label={strings.stats.avgWorkedDay} />
+            <StatCard icon="✅" value={avgTasks} label={strings.stats.avgTasksCompletedDay} />
+            <StatCard icon="⚡" value={formatDuration(avgTaskSec)} label={strings.stats.avgTimePerTask} />
           </div>
 
           <div className="stats-row">
@@ -161,57 +152,10 @@ export const AppContent: React.FC = () => {
       <ModalManager />
 
       {/* Notification Settings Modal */}
-      <Modal isOpen={isNotifModalOpen} title={strings.notifications.modalTitle} onClose={() => setIsNotifModalOpen(false)}>
-        <div className="form-group">
-          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="checkbox"
-              checked={state.notifications.enabled}
-              onChange={e => updateNotifications({ enabled: e.target.checked })}
-            />
-            {strings.notifications.enableLabel}
-          </label>
-        </div>
-
-        <div className="form-group" style={{ marginTop: '12px' }}>
-          <label className="form-label">{strings.notifications.leadTimeLabel}</label>
-          <select
-            className="form-select"
-            value={state.notifications.leadMinutes}
-            onChange={e => updateNotifications({ leadMinutes: Number(e.target.value) })}
-          >
-            <option value={5}>5 minutes before</option>
-            <option value={10}>10 minutes before</option>
-            <option value={15}>15 minutes before</option>
-            <option value={30}>30 minutes before</option>
-          </select>
-        </div>
-
-        <div className="form-group" style={{ marginTop: '12px' }}>
-          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="checkbox"
-              checked={state.notifications.sound}
-              onChange={e => updateNotifications({ sound: e.target.checked })}
-            />
-            {strings.notifications.soundLabel}
-          </label>
-        </div>
-
-        <div className="modal-actions" style={{ marginTop: '20px' }}>
-          <button
-            className="btn-action primary"
-            onClick={() => {
-              if ('Notification' in window) {
-                Notification.requestPermission();
-              }
-              setIsNotifModalOpen(false);
-            }}
-          >
-            {strings.notifications.requestPermBtn}
-          </button>
-        </div>
-      </Modal>
+      <NotificationModal
+        isOpen={isNotifModalOpen}
+        onClose={() => setIsNotifModalOpen(false)}
+      />
     </div>
   );
 };

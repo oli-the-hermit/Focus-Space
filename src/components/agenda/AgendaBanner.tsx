@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { getTodayStr } from '../../lib/dateUtils';
+import { strings } from '../../constants/strings';
 
 export const AgendaBanner: React.FC = () => {
   const { state } = useApp();
@@ -26,6 +27,10 @@ export const AgendaBanner: React.FC = () => {
     minute: '2-digit'
   });
 
+  const countStr = strings.agenda.sessionsScheduledCount
+    .replace('{count}', String(todayEvents.length))
+    .replace('{plural}', todayEvents.length === 1 ? '' : 's');
+
   return (
     <div className="agenda-header-banner card">
       <div className="agenda-banner-left">
@@ -33,7 +38,7 @@ export const AgendaBanner: React.FC = () => {
           {fullDateStr}
         </h2>
         <div className="agenda-subheading" id="agendaSubheading">
-          {todayEvents.length} session{todayEvents.length === 1 ? '' : 's'} scheduled for today
+          {countStr}
         </div>
       </div>
 

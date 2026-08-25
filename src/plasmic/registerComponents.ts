@@ -1,3 +1,4 @@
+import React from 'react';
 import { StatusDot } from '../components/ui/StatusDot';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Badge } from '../components/ui/Badge';
@@ -40,7 +41,7 @@ import { CelebrationOverlay } from '../components/rewards/CelebrationOverlay';
  * Registers the entire Focus Space component suite for drag-and-drop visual building.
  */
 export interface PlasmicRegistry {
-  registerComponent: (component: any, meta: any) => void;
+  registerComponent: <P>(component: React.ComponentType<P>, meta: Record<string, unknown>) => void;
 }
 
 export function registerAllPlasmicComponents(plasmic: PlasmicRegistry) {

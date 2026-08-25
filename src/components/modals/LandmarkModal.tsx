@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Landmark } from '../../types';
+import { strings } from '../../constants/strings';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -16,7 +17,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = name.trim() || 'Untitled Landmark';
+    const finalName = name.trim() || strings.goals.untitledLandmark;
     const finalReward = rewardId || null;
 
     if (landmark) {
@@ -39,39 +40,39 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label className="form-label">Landmark Name</label>
+        <label className="form-label">{strings.modals.landmarkNameLabel}</label>
         <input
           type="text"
           className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="e.g. Finish chapter 3"
+          placeholder={strings.modals.landmarkNamePlaceholder}
           autoFocus
         />
       </div>
 
-      <div className="form-group" style={{ marginTop: '12px' }}>
-        <label className="form-label">Reward on Completion (optional)</label>
+      <div className="form-group form-group-spaced">
+        <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
         <select
           className="form-select"
           value={rewardId}
           onChange={e => setRewardId(e.target.value)}
         >
-          <option value="">— No reward —</option>
+          <option value="">{strings.rewards.noReward}</option>
           {state.rewards.map(r => (
             <option key={r.id} value={r.id}>
-              {r.name}
+              {r.emoji || r.icon ? `${r.emoji || r.icon} ` : ''}{r.name}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '20px' }}>
+      <div className="modal-actions modal-form-actions">
         <button type="button" className="btn-action" onClick={onClose}>
-          Cancel
+          {strings.common.cancel}
         </button>
         <button type="submit" className="btn-action primary">
-          {landmark ? 'Save' : 'Add Landmark'}
+          {landmark ? strings.common.save : strings.modals.addLandmarkBtn}
         </button>
       </div>
     </form>
