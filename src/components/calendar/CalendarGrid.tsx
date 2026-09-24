@@ -5,6 +5,10 @@ import { formatDateStr, getDaysInMonth, getWeekRange, parseDateStr, getTodayStr 
 import { strings } from '../../constants/strings';
 import { IconCopy, IconTrash } from '../ui/icons';
 
+const FIRST_HOUR = 7;
+const LAST_HOUR = 22;
+const MONTH_VISIBLE_EVENTS = 3;
+
 export const CalendarGrid: React.FC = () => {
   const {
     state,
@@ -12,7 +16,9 @@ export const CalendarGrid: React.FC = () => {
     addCalendarEvent,
     updateCalendarEvent,
     deleteCalendarEvent,
-    duplicateCalendarEvent
+    duplicateCalendarEvent,
+    setCalendarDate,
+    setCalendarView
   } = useApp();
 
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
@@ -51,6 +57,11 @@ export const CalendarGrid: React.FC = () => {
     }
     setDraggedEventId(null);
     setDragOverSlot(null);
+  };
+
+  const openDayView = (date: string) => {
+    setCalendarDate(date);
+    setCalendarView('day');
   };
 
   const handleQuickAdd = (date: string, time: string) => {
@@ -102,17 +113,27 @@ export const CalendarGrid: React.FC = () => {
       gridCells.push({ dayNum: i, dStr, isCurrentMonth: false });
     }
 
+    const rowCount = gridCells.length / 7;
+
     return (
-      <div className="card calendar-container">
+      <div className="card calendar-container is-month">
         <div className="cal-month-header-row" id="calendarGridHeader">
           {dayNames.map(d => (
             <div key={d} className="cal-month-header-cell">{d}</div>
           ))}
         </div>
-        <div className="cal-month-grid" id="calendarGridBody">
+        <div
+          className="cal-month-grid"
+          id="calendarGridBody"
+          style={{ gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
+        >
           {gridCells.map((cell, idx) => {
             const isToday = cell.dStr === todayStr;
-            const dayEvents = state.calendarEvents.filter(e => e.date === cell.dStr);
+            const dayEvents = state.calendarEvents
+              .filter(e => e.date === cell.dStr)
+              .sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const visibleEvents = dayEvents.slice(0, MONTH_VISIBLE_EVENTS);
+            const hiddenCount = dayEvents.length - visibleEvents.length;
             const isDragOver = dragOverSlot === `month_${cell.dStr}`;
 
             return (
@@ -125,23 +146,36 @@ export const CalendarGrid: React.FC = () => {
                 onDrop={e => handleDropOnSlot(e, cell.dStr, strings.calendar.quickAddPromptTime)}
               >
                 <div className="cal-month-cell-day">
-                  {cell.dayNum}
+                  <span>{cell.dayNum}</span>
                 </div>
                 <div className="cal-month-events-list">
-                  {dayEvents.map(ev => (
+                  {visibleEvents.map(ev => (
                     <div
                       key={ev.id}
                       className="cal-month-event-pill"
                       draggable={true}
+                      title={`${ev.startTime} ${ev.title}`}
                       onDragStart={e => handleDragStart(e, ev.id)}
                       onClick={e => {
                         e.stopPropagation();
                         handleEditEvent(ev);
                       }}
                     >
-                      ⏰ {ev.startTime} {ev.title}
+                      <span className="cal-month-event-time">{ev.startTime}</span> {ev.title}
                     </div>
                   ))}
+                  {hiddenCount > 0 && (
+                    <button
+                      type="button"
+                      className="cal-month-more"
+                      onClick={e => {
+                        e.stopPropagation();
+                        openDayView(cell.dStr);
+                      }}
+                    >
+                      {strings.calendar.moreEvents.replace('{count}', String(hiddenCount))}
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -152,14 +186,22 @@ export const CalendarGrid: React.FC = () => {
   }
 
   // 2. WEEK & DAY VIEWS
+  // Rows share the available height (1fr each); events are placed in percent of
+  // the day column, so the grid fills the viewport without any JS measuring.
   const activeDays = view === 'week' ? weekDays : [state.calendarDate];
   const hours: number[] = [];
-  for (let h = 7; h <= 22; h++) hours.push(h);
+  for (let h = FIRST_HOUR; h <= LAST_HOUR; h++) hours.push(h);
+  const hourCount = hours.length;
+
+  const now = new Date();
+  const nowHours = now.getHours() + now.getMinutes() / 60;
+  const nowPct = ((nowHours - FIRST_HOUR) / hourCount) * 100;
+  const showNowLine = nowPct >= 0 && nowPct <= 100;
 
   return (
     <div className="card calendar-container">
       <div className={`calendar-grid-header ${view === 'day' ? 'day-view' : ''}`} id="calendarGridHeader">
-        <div className="cal-header-cell">Time</div>
+        <div className="cal-header-cell cal-header-cell--time" />
         {activeDays.map(dStr => {
           const dObj = parseDateStr(dStr);
           const dayLabel = dayNames[dObj.getDay() === 0 ? 6 : dObj.getDay() - 1];
@@ -174,20 +216,28 @@ export const CalendarGrid: React.FC = () => {
         })}
       </div>
 
-      <div className={`calendar-grid-body ${view === 'day' ? 'day-view' : ''}`} id="calendarGridBody">
+      <div
+        className={`calendar-grid-body ${view === 'day' ? 'day-view' : ''}`}
+        id="calendarGridBody"
+        style={{ '--hour-count': hourCount } as React.CSSProperties}
+      >
         <div className="cal-time-col">
           {hours.map(h => (
             <div key={h} className="cal-time-cell">
-              {String(h).padStart(2, '0')}:00
+              <span>{String(h).padStart(2, '0')}:00</span>
             </div>
           ))}
         </div>
 
         {activeDays.map(dStr => {
           const dayEvents = state.calendarEvents.filter(e => e.date === dStr);
+          const isToday = dStr === todayStr;
 
           return (
-            <div key={dStr} className="cal-day-col" data-date={dStr}>
+            <div key={dStr} className={`cal-day-col ${isToday ? 'is-today' : ''}`} data-date={dStr}>
+              {isToday && showNowLine && (
+                <div className="cal-now-line" style={{ top: `${nowPct}%` }} aria-hidden="true" />
+              )}
               {hours.map(h => {
                 const timeStr = `${String(h).padStart(2, '0')}:00`;
                 const slotKey = `${dStr}_${timeStr}`;
@@ -209,18 +259,18 @@ export const CalendarGrid: React.FC = () => {
 
               {dayEvents.map(ev => {
                 const [h, m] = ev.startTime.split(':').map(Number);
-                const topPx = (h - 7) * 52 + (m / 60) * 52;
-                const heightPx = Math.max(36, (ev.durationMins / 60) * 52);
+                const topPct = (((h || 0) - FIRST_HOUR + (m || 0) / 60) / hourCount) * 100;
+                const heightPct = (ev.durationMins / 60 / hourCount) * 100;
                 const session = state.sessions.find(s => s.id === ev.sessionId);
                 const isDragging = draggedEventId === ev.id;
 
                 return (
                   <div
                     key={ev.id}
-                    className={`cal-event-card draggable-item ${isDragging ? 'dragging' : ''}`}
+                    className={`cal-event-card draggable-item ${isDragging ? 'dragging' : ''} ${session ? 'is-session' : ''}`}
                     draggable={true}
                     data-eid={ev.id}
-                    style={{ top: `${topPx}px`, height: `${heightPx}px` }}
+                    style={{ top: `${topPct}%`, height: `${heightPct}%` }}
                     onDragStart={e => handleDragStart(e, ev.id)}
                     onClick={e => {
                       e.stopPropagation();
@@ -229,7 +279,7 @@ export const CalendarGrid: React.FC = () => {
                   >
                     <div className="cal-event-title">{ev.title}</div>
                     <div className="cal-event-time">
-                      ⏰ {ev.startTime} ({ev.durationMins}')
+                      {ev.startTime} · {ev.durationMins}′
                       {session ? ` · ${session.name}` : ''}
                     </div>
                     <div className="cal-event-actions">

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from './context/AppContext';
-import { BrandHeader } from './components/header/BrandHeader';
-import { NavigationTabs } from './components/header/NavigationTabs';
+import { NavRail } from './components/shell/NavRail';
+import { TopBar } from './components/shell/TopBar';
 
-import { TimerCard } from './components/timer/TimerCard';
+import { PlayerCard } from './components/timer/PlayerCard';
 import { TaskListCard } from './components/tasks/TaskListCard';
+import { SessionTaskLists } from './components/tasks/SessionTaskLists';
 import { ListSidebar } from './components/tasks/ListSidebar';
 import { SessionsList } from './components/sessions/SessionsList';
 
@@ -23,8 +24,10 @@ import { ModalManager } from './components/modals/ModalManager';
 import { NotificationModal } from './components/modals/NotificationModal';
 import { TwoColumnLayout } from './components/ui/TwoColumnLayout';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { MiniPlayerProvider } from './mini/MiniPlayerProvider';
 import { strings } from './constants/strings';
 import { formatDuration } from './lib/formatUtils';
+import { IconCheck, IconClock, IconTimer } from './components/ui/icons';
 
 export const AppContent: React.FC = () => {
   const {
@@ -81,81 +84,85 @@ export const AppContent: React.FC = () => {
   const avgTaskSec = state.taskCompletionLogs.length > 0 ? Math.round(totalTaskDuration / state.taskCompletionLogs.length) : 0;
 
   return (
-    <div className="app-wrapper">
-      <BrandHeader onOpenNotifications={() => setIsNotifModalOpen(true)} />
-      <NavigationTabs />
+    <MiniPlayerProvider>
+      <div className="app-shell">
+        <NavRail />
 
-      <main className="app-main">
-        {/* ── TAB: TIMER & SESSIONS ─────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'timer' ? 'active' : ''}`} id="tab-timer">
-          <TwoColumnLayout
-            className="timer-layout-container"
-            sidebar={<TimerCard />}
-            content={<TaskListCard inTimer={true} />}
-            secondarySidebar={<SessionsList />}
-          />
-        </section>
+        <div className="app-column">
+          <TopBar onOpenNotifications={() => setIsNotifModalOpen(true)} />
 
-        {/* ── TAB: TASKS ────────────────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'tasks' ? 'active' : ''}`} id="tab-tasks">
-          <TwoColumnLayout
-            className="tasks-layout-container"
-            sidebar={<ListSidebar />}
-            content={<TaskListCard />}
-          />
-        </section>
+          <main className="app-main">
+            {/* ── TAB: TIMER & SESSIONS ─────────────────────────── */}
+            <section className={`tab-page ${activeTab === 'timer' ? 'active' : ''}`} id="tab-timer">
+              <div className="timer-layout">
+                <aside className="timer-layout-player"><PlayerCard /></aside>
+                <div className="timer-layout-tasks"><SessionTaskLists /></div>
+                <aside className="timer-layout-queue"><SessionsList /></aside>
+              </div>
+            </section>
 
-        {/* ── TAB: CALENDAR ─────────────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'calendar' ? 'active' : ''}`} id="tab-calendar">
-          <CalendarTopbar />
-          <CalendarGrid />
-        </section>
+            {/* ── TAB: TASKS ────────────────────────────────────── */}
+            <section className={`tab-page ${activeTab === 'tasks' ? 'active' : ''}`} id="tab-tasks">
+              <TwoColumnLayout
+                className="tasks-layout-container"
+                sidebar={<ListSidebar />}
+                content={<TaskListCard />}
+              />
+            </section>
 
-        {/* ── TAB: STATS ────────────────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'stats' ? 'active' : ''}`} id="tab-stats">
-          <div className="stats-overview-grid">
-            <StatCard icon="⏱️" value={avgSessions} label={strings.stats.avgSessionsDay} />
-            <StatCard icon="⏳" value={formatDuration(avgWorkedSecs)} label={strings.stats.avgWorkedDay} />
-            <StatCard icon="✅" value={avgTasks} label={strings.stats.avgTasksCompletedDay} />
-            <StatCard icon="⚡" value={formatDuration(avgTaskSec)} label={strings.stats.avgTimePerTask} />
-          </div>
+            {/* ── TAB: CALENDAR ─────────────────────────────────── */}
+            <section className={`tab-page tab-page--fill ${activeTab === 'calendar' ? 'active' : ''}`} id="tab-calendar">
+              <CalendarTopbar />
+              <CalendarGrid />
+            </section>
 
-          <div className="stats-row">
-            <ProductivityChart />
-            <CompletionLogs />
-          </div>
-        </section>
+            {/* ── TAB: STATS ────────────────────────────────────── */}
+            <section className={`tab-page ${activeTab === 'stats' ? 'active' : ''}`} id="tab-stats">
+              <div className="stats-overview-grid">
+                <StatCard icon={<IconTimer size={20} />} value={avgSessions} label={strings.stats.avgSessionsDay} />
+                <StatCard icon={<IconClock size={20} />} value={formatDuration(avgWorkedSecs)} label={strings.stats.avgWorkedDay} />
+                <StatCard icon={<IconCheck size={20} />} value={avgTasks} label={strings.stats.avgTasksCompletedDay} />
+                <StatCard icon={<IconClock size={20} />} value={formatDuration(avgTaskSec)} label={strings.stats.avgTimePerTask} accent />
+              </div>
 
-        {/* ── TAB: GOALS & LANDMARKS ────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'goals' ? 'active' : ''}`} id="tab-goals">
-          <GoalsGrid />
-        </section>
+              <div className="stats-row">
+                <ProductivityChart />
+                <CompletionLogs />
+              </div>
+            </section>
 
-        {/* ── TAB: REWARDS ──────────────────────────────────── */}
-        <section className={`tab-page ${activeTab === 'rewards' ? 'active' : ''}`} id="tab-rewards">
-          <RewardsGrid />
-        </section>
-      </main>
+            {/* ── TAB: GOALS & LANDMARKS ────────────────────────── */}
+            <section className={`tab-page ${activeTab === 'goals' ? 'active' : ''}`} id="tab-goals">
+              <GoalsGrid />
+            </section>
 
-      {/* Celebration & Toast Overlays */}
-      <CelebrationOverlay />
+            {/* ── TAB: REWARDS ──────────────────────────────────── */}
+            <section className={`tab-page ${activeTab === 'rewards' ? 'active' : ''}`} id="tab-rewards">
+              <RewardsGrid />
+            </section>
+          </main>
+        </div>
 
-      <div className="toast-container" id="toastContainer">
-        {toasts.map(t => (
-          <div key={t.id} className="toast">
-            {t.message}
-          </div>
-        ))}
+        {/* Celebration & Toast Overlays */}
+        <CelebrationOverlay />
+
+        <div className="toast-container" id="toastContainer" role="status" aria-live="polite">
+          {toasts.map(t => (
+            <div key={t.id} className="toast">
+              {t.message}
+            </div>
+          ))}
+        </div>
+
+        {/* Modal Manager for all dynamic modals */}
+        <ModalManager />
+
+        {/* Notification Settings Modal */}
+        <NotificationModal
+          isOpen={isNotifModalOpen}
+          onClose={() => setIsNotifModalOpen(false)}
+        />
       </div>
-
-      {/* Modal Manager for all dynamic modals */}
-      <ModalManager />
-
-      {/* Notification Settings Modal */}
-      <NotificationModal
-        isOpen={isNotifModalOpen}
-        onClose={() => setIsNotifModalOpen(false)}
-      />
-    </div>
+    </MiniPlayerProvider>
   );
 };

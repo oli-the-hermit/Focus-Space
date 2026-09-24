@@ -24,6 +24,18 @@ export function parseDateStr(str: string): Date {
 }
 
 /**
+ * Whole calendar days from `fromStr` to `toStr` ('YYYY-MM-DD'); negative when `toStr` is earlier.
+ */
+export function daysBetween(fromStr: string, toStr: string): number {
+  const from = parseDateStr(fromStr);
+  const to = parseDateStr(toStr);
+  // Date.UTC sidesteps DST shifts that would make a local-midnight diff off by an hour.
+  const utcFrom = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const utcTo = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((utcTo - utcFrom) / 86400000);
+}
+
+/**
  * Returns the number of days in a given month of a year (month is 0-indexed: 0 = Jan, 11 = Dec).
  */
 export function getDaysInMonth(year: number, month: number): number {

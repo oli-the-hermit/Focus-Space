@@ -40,6 +40,7 @@ export interface Session {
   focusMinutes: number;
   breakMinutes: number;
   rewardId?: string | null;
+  taskListIds?: string[];
 }
 
 export interface CalendarEvent {
@@ -61,6 +62,8 @@ export interface Landmark {
   completed: boolean;
   rewardId?: string | null;
   rewardName?: string;
+  startDate?: string | null; // YYYY-MM-DD
+  dueDate?: string | null; // YYYY-MM-DD
 }
 
 export interface Goal {
@@ -74,6 +77,8 @@ export interface Goal {
   completed: boolean;
   rewardId?: string | null;
   landmarks: Landmark[];
+  startDate?: string | null; // YYYY-MM-DD
+  dueDate?: string | null; // YYYY-MM-DD
 }
 
 export interface Reward {
@@ -181,7 +186,7 @@ export interface ConfirmDeletePayload {
 }
 
 export interface ModalPayloadMap {
-  NEW_SESSION: undefined;
+  NEW_SESSION: { taskListIds?: string[] } | undefined;
   EDIT_SESSION: { session?: Session | null };
   NEW_LIST: undefined;
   RENAME_LIST: { list?: TaskList | null };
@@ -200,7 +205,7 @@ export interface ModalPayloadMap {
 }
 
 export type ActiveModal = {
-  [K in ModalType]: ModalPayloadMap[K] extends undefined
-    ? { type: K; payload?: undefined }
+  [K in ModalType]: undefined extends ModalPayloadMap[K]
+    ? { type: K; payload?: ModalPayloadMap[K] }
     : { type: K; payload: ModalPayloadMap[K] };
 }[ModalType];

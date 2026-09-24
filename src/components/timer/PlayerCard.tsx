@@ -1,0 +1,160 @@
+import React from 'react';
+import { useApp } from '../../context/AppContext';
+import { useMiniPlayer } from '../../mini/MiniPlayerProvider';
+import { strings } from '../../constants/strings';
+import { formatClock } from '../../lib/formatUtils';
+import { getActiveSession, getCurrentTask, getPhaseTimes } from '../../lib/timerSnapshot';
+import {
+  IconGift,
+  IconMiniPlayer,
+  IconPause,
+  IconPlay,
+  IconReset,
+  IconSkip,
+  IconSoundOff,
+  IconSoundOn
+} from '../ui/icons';
+
+/**
+ * The timer, laid out like a music player: artwork tile with the countdown,
+ * session as the "track", the current task as the "artist", a scrubber and
+ * transport controls.
+ */
+export const PlayerCard: React.FC = () => {
+  const { state, toggleTimer, resetTimer, skipPhase, toggleSound } = useApp();
+  const mini = useMiniPlayer();
+
+  const session = getActiveSession(state);
+  const { total, remaining } = getPhaseTimes(state, session);
+  const elapsed = Math.max(0, total - remaining);
+  const pct = total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
+
+  const isBreak = state.timer.phase === 'break';
+  const isRunning = state.timer.status === 'running';
+  const currentTask = getCurrentTask(state, session);
+  const reward = session?.rewardId ? state.rewards.find(r => r.id === session.rewardId) : null;
+
+  const nextPhaseLabel = isBreak ? strings.timer.focusPhase : strings.timer.breakPhase;
+  const nextPhaseMins = isBreak ? (session?.focusMinutes || 25) : (session?.breakMinutes || 5);
+
+  return (
+    <div className={`card player-card ${isBreak ? 'is-break' : 'is-focus'} ${isRunning ? 'is-running' : ''}`}>
+      <div className="player-head">
+        <span className="overline">{strings.timer.nowPlaying}</span>
+        <span className={`phase-chip ${isBreak ? 'is-break' : ''}`}>
+          {isBreak ? strings.timer.breakPhase : strings.timer.focusPhase}
+        </span>
+      </div>
+
+      <div className="player-art" aria-live="off">
+        <span className="player-art-phase">
+          {isBreak ? strings.timer.breakPhase : strings.timer.focusPhase}
+        </span>
+        <span className="player-art-time" role="timer" aria-label={`${formatClock(remaining)} remaining`}>
+          {formatClock(remaining)}
+        </span>
+        <span className="player-art-foot">
+          {strings.timer.completedToday.replace('{count}', String(state.timer.sessionsCompletedToday))}
+        </span>
+      </div>
+
+      <div className="player-track">
+        <h2 className="player-title" title={session?.name}>{session ? session.name : strings.timer.noSession}</h2>
+        <p className="player-subtitle" title={currentTask || ''}>{currentTask || strings.timer.noOpenTasks}</p>
+      </div>
+
+      <div className="player-scrubber">
+        <div
+          className="scrubber-track"
+          role="progressbar"
+          aria-label={strings.timer.sessionProgress}
+          aria-valuenow={Math.round(pct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className="scrubber-fill" style={{ width: `${pct}%` }} />
+          <div className="scrubber-knob" style={{ left: `${pct}%` }} />
+        </div>
+        <div className="scrubber-times">
+          <span>{formatClock(elapsed)}</span>
+          <span className="scrubber-pct">{Math.round(pct)}%</span>
+          <span>{formatClock(total)}</span>
+        </div>
+      </div>
+
+      <div className="player-controls">
+        <button
+          type="button"
+          className={`ctrl-btn ghost ${state.sound ? 'is-on' : ''}`}
+          onClick={toggleSound}
+          title={state.sound ? strings.timer.soundOnTooltip : strings.timer.soundOffTooltip}
+          aria-label={strings.header.soundToggleTooltip}
+          aria-pressed={state.sound}
+        >
+          {state.sound ? <IconSoundOn size={19} /> : <IconSoundOff size={19} />}
+        </button>
+        <button
+          type="button"
+          className="ctrl-btn secondary"
+          id="resetBtn"
+          onClick={resetTimer}
+          title={strings.timer.resetTooltip}
+          aria-label={strings.timer.resetTooltip}
+        >
+          <IconReset size={20} />
+        </button>
+        <button
+          type="button"
+          className="ctrl-btn primary"
+          id="playPauseBtn"
+          onClick={toggleTimer}
+          title={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
+          aria-label={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
+        >
+          {isRunning ? <IconPause size={28} /> : <IconPlay size={28} />}
+        </button>
+        <button
+          type="button"
+          className="ctrl-btn secondary"
+          id="skipBtn"
+          onClick={skipPhase}
+          title={strings.timer.skipTooltip}
+          aria-label={strings.timer.skipTooltip}
+        >
+          <IconSkip size={20} />
+        </button>
+        <button
+          type="button"
+          className={`ctrl-btn ghost ${mini.isOpen ? 'is-on' : ''}`}
+          onClick={mini.toggle}
+          disabled={!mini.supported}
+          title={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
+          aria-label={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
+          aria-pressed={mini.isOpen}
+        >
+          <IconMiniPlayer size={19} />
+        </button>
+      </div>
+
+      <div className="player-foot">
+        <div className="player-foot-row">
+          <span className="player-foot-label">{strings.timer.upNext}</span>
+          <span className="player-foot-value">
+            {nextPhaseLabel} · {formatClock(nextPhaseMins * 60)}
+          </span>
+        </div>
+        {reward && (
+          <div className="player-foot-row" id="sessionRewardHint">
+            <span className="player-foot-label">
+              <IconGift size={14} />
+              {strings.timer.rewardOnCompletion.replace(':', '')}
+            </span>
+            <span className="player-foot-value" title={reward.name}>
+              {reward.emoji || reward.icon || '🎁'} {reward.name}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

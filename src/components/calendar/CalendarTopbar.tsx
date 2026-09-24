@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatDateStr, getTodayStr, getWeekRange, parseDateStr } from '../../lib/dateUtils';
 import { strings } from '../../constants/strings';
+import { IconChevronLeft, IconChevronRight } from '../ui/icons';
 
 export const CalendarTopbar: React.FC = () => {
   const { state, setCalendarView, setCalendarDate, openModal } = useApp();
@@ -59,9 +60,15 @@ export const CalendarTopbar: React.FC = () => {
   return (
     <div className="calendar-topbar">
       <div className="cal-nav-group">
-        <button className="btn-action" id="calPrevBtn" onClick={handlePrev}>{strings.calendar.prevBtn}</button>
-        <button className="btn-action" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</button>
-        <button className="btn-action" id="calNextBtn" onClick={handleNext}>{strings.calendar.nextBtn}</button>
+        <button className="btn-action tonal" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</button>
+        <div className="cal-step-group">
+          <button className="icon-btn" id="calPrevBtn" onClick={handlePrev} aria-label={strings.calendar.prevBtn} title={strings.calendar.prevBtn}>
+            <IconChevronLeft size={20} />
+          </button>
+          <button className="icon-btn" id="calNextBtn" onClick={handleNext} aria-label={strings.calendar.nextBtn} title={strings.calendar.nextBtn}>
+            <IconChevronRight size={20} />
+          </button>
+        </div>
         <span className="cal-title-date" id="calDateTitle">
           {dateTitleText}
         </span>

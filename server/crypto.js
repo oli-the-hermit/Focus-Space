@@ -6,14 +6,18 @@ const SALT_BYTES = 16;
 
 // ── Password hashing (PBKDF2-SHA256) ─────────────────────────────
 export function hashPassword(password, saltHex) {
-  const salt = saltHex ? Buffer.from(saltHex, 'hex') : crypto.randomBytes(SALT_BYTES);
-  const hash = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, KEY_LEN, 'sha256');
-  return { salt: salt.toString('hex'), hash: hash.toString('hex') };
+  return new Promise((resolve, reject) => {
+    const salt = saltHex ? Buffer.from(saltHex, 'hex') : crypto.randomBytes(SALT_BYTES);
+    crypto.pbkdf2(password, salt, PBKDF2_ITERATIONS, KEY_LEN, 'sha256', (err, derivedKey) => {
+      if (err) return reject(err);
+      resolve({ salt: salt.toString('hex'), hash: derivedKey.toString('hex') });
+    });
+  });
 }
 
-export function verifyPassword(password, saltHex, expectedHash) {
+export async function verifyPassword(password, saltHex, expectedHash) {
   try {
-    const { hash } = hashPassword(password, saltHex);
+    const { hash } = await hashPassword(password, saltHex);
     const a = Buffer.from(hash, 'hex');
     const b = Buffer.from(expectedHash, 'hex');
     return a.length === b.length && crypto.timingSafeEqual(a, b);

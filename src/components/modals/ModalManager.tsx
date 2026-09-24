@@ -28,12 +28,14 @@ export const ModalManager: React.FC = () => {
   switch (activeModal.type) {
     case 'NEW_SESSION':
       title = strings.modals.newSession;
-      content = <SessionModal onClose={closeModal} />;
+      content = <SessionModal initialTaskListIds={activeModal.payload?.taskListIds} onClose={closeModal} />;
+      wide = true;
       break;
 
     case 'EDIT_SESSION':
       title = strings.modals.editSession;
       content = <SessionModal session={activeModal.payload?.session} onClose={closeModal} />;
+      wide = true;
       break;
 
     case 'NEW_LIST':
@@ -133,7 +135,15 @@ export const ModalManager: React.FC = () => {
   }
 
   return (
-    <Modal isOpen={!!activeModal} title={title} wide={wide} onClose={closeModal}>
+    <Modal
+      // Remount per modal so form state never leaks from one dialog into the next.
+      key={activeModal.type}
+      isOpen={!!activeModal}
+      title={title}
+      wide={wide}
+      dismissible={activeModal.type === 'CONFIRM_DELETE'}
+      onClose={closeModal}
+    >
       {content}
     </Modal>
   );

@@ -1,0 +1,145 @@
+/* ═══════════════════════════════════════════════════════════
+   Focus Space — design tokens
+   Flat Material: surfaces are separated by tonal steps, not borders,
+   gradients, transparency or decorative shadows. The only shadow is
+   --elev-overlay, used on floating layers (menus, popovers, modals).
+   Dark is the default; light is a full parallel set.
+ ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surfaces: bg < 1 < 2 < 3 < 4 */
+  --bg:               #0E0F11;
+  --surface-1:        #16181B;
+  --surface-2:        #1E2024;
+  --surface-3:        #272A2F;
+  --surface-4:        #31343A;
+
+  /* Text */
+  --text-1:           #F1F2EC;
+  --text-2:           #A9ACA4;
+  --text-3:           #6F736B;
+
+  /* Accent */
+  --accent:           #D1DD23;
+  --accent-hover:     #DDE84A;
+  --on-accent:        #1A1D00;
+  --on-accent-2:      #4A5200;      /* secondary text on accent fills */
+  --accent-container: #3A3F0A;
+  --on-accent-container: #E8F07A;
+  --accent-text:      #D1DD23;      /* accent used as text/icon colour */
+
+  /* Break phase */
+  --break:            #5EC8B8;
+  --break-hover:      #7AD6C8;
+  --on-break:         #00201C;
+  --on-break-2:       #0E4F46;
+  --break-container:  #103B36;
+  --on-break-container: #A6EEE2;
+
+  /* Status */
+  --danger:           #FF8A7A;
+  --danger-container: #4A1A14;
+  --on-danger:        #3B0A05;
+  --warning:          #F2B654;
+  --warning-container:#46330C;
+  --success:          #8BD48B;
+  --success-container:#173D1D;
+  --live:             #FF6B5B;
+
+  /* Inverse (toasts) */
+  --inverse-surface:  #E8E9E2;
+  --inverse-on-surface:#1A1C17;
+
+  /* Structure */
+  --grid-line:        #1E2024;
+  --scrim:            rgb(6 7 8 / 72%);
+  --elev-overlay:     0 12px 32px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 35%);
+  --focus-ring:       #D1DD23;
+
+  /* Field backgrounds shift one step inside tonal containers */
+  --field-bg:         var(--surface-2);
+  --field-hover:      var(--surface-3);
+  --row-hover:        var(--surface-2);
+
+  --radius-xs:        6px;
+  --radius-sm:        10px;
+  --radius-md:        14px;
+  --radius-lg:        20px;
+  --radius-xl:        28px;
+  --radius-pill:      999px;
+
+  --space-2xs:        2px;
+  --space-xs:         4px;
+  --space-sm:         8px;
+  --space-md:         12px;
+  --space-base:       16px;
+  --space-lg:         20px;
+  --space-xl:         24px;
+  --space-2xl:        32px;
+  --space-3xl:        48px;
+
+  --rail-width:       88px;
+  --topbar-height:    68px;
+
+  --modal-max-width:      520px;
+  --modal-max-width-wide: 620px;
+
+  --z-sticky:         20;
+  --z-modal:          500;
+  --z-celebration:    800;
+  --z-popover:        1000;
+  --z-toast:          1100;
+
+  --font:             'Geist', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
+  --transition:       0.16s ease;
+  --transition-md:    0.26s cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg:               #EDEEE8;
+  --surface-1:        #FFFFFF;
+  --surface-2:        #F3F4EE;
+  --surface-3:        #E7E9E1;
+  --surface-4:        #DADDD3;
+
+  --text-1:           #1A1C17;
+  --text-2:           #50544A;
+  --text-3:           #8A8E83;
+
+  --accent:           #D1DD23;
+  --accent-hover:     #C3CF14;
+  --on-accent:        #1A1D00;
+  --on-accent-2:      #4A5200;
+  --accent-container: #EEF3B8;
+  --on-accent-container: #3B4100;
+  --accent-text:      #5B6300;
+
+  --break:            #5EC8B8;
+  --break-hover:      #4DB8A8;
+  --on-break:         #00201C;
+  --on-break-2:       #0E4F46;
+  --break-container:  #CBF1EA;
+  --on-break-container: #00443C;
+
+  --danger:           #B3261E;
+  --danger-container: #FBE3DF;
+  --on-danger:        #FFFFFF;
+  --warning:          #8A5A00;
+  --warning-container:#FBEBCB;
+  --success:          #2E7D32;
+  --success-container:#DDF1DD;
+  --live:             #D93A2B;
+
+  --inverse-surface:  #2E302B;
+  --inverse-on-surface:#F1F2EC;
+
+  --grid-line:        #EDEEE8;
+  --scrim:            rgb(26 28 23 / 40%);
+  --elev-overlay:     0 12px 32px rgb(26 28 23 / 16%), 0 2px 8px rgb(26 28 23 / 10%);
+  --focus-ring:       #5B6300;
+
+  color-scheme: light;
+}

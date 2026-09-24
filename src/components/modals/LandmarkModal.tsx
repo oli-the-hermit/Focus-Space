@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Landmark } from '../../types';
 import { strings } from '../../constants/strings';
+import { Select } from '../ui/Select';
+import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -14,34 +16,42 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
 
   const [name, setName] = useState(landmark ? (landmark.name || landmark.text || '') : '');
   const [rewardId, setRewardId] = useState<string>(landmark?.rewardId || '');
+  const [startDate, setStartDate] = useState(landmark?.startDate || '');
+  const [dueDate, setDueDate] = useState(landmark?.dueDate || '');
+  const datesInvalid = isDateRangeInvalid(startDate, dueDate);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (datesInvalid) return;
     const finalName = name.trim() || strings.goals.untitledLandmark;
     const finalReward = rewardId || null;
+    const dates = { startDate: startDate || null, dueDate: dueDate || null };
 
     if (landmark) {
       updateLandmark(goalId, landmark.id, {
         name: finalName,
         text: finalName,
-        rewardId: finalReward
+        rewardId: finalReward,
+        ...dates
       });
     } else {
       addLandmark(goalId, {
         name: finalName,
         text: finalName,
         completed: false,
-        rewardId: finalReward
+        rewardId: finalReward,
+        ...dates
       });
     }
     onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
-        <label className="form-label">{strings.modals.landmarkNameLabel}</label>
+        <label className="form-label" htmlFor="landmarkName">{strings.modals.landmarkNameLabel}</label>
         <input
+          id="landmarkName"
           type="text"
           className="form-input"
           value={name}
@@ -51,27 +61,37 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         />
       </div>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
-        <select
-          className="form-select"
+      <DateRangeFields
+        idPrefix="landmark"
+        startDate={startDate}
+        dueDate={dueDate}
+        onStartChange={setStartDate}
+        onDueChange={setDueDate}
+      />
+
+      <div className="form-group">
+        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+        <Select
           value={rewardId}
-          onChange={e => setRewardId(e.target.value)}
-        >
-          <option value="">{strings.rewards.noReward}</option>
-          {state.rewards.map(r => (
-            <option key={r.id} value={r.id}>
-              {r.emoji || r.icon ? `${r.emoji || r.icon} ` : ''}{r.name}
-            </option>
-          ))}
-        </select>
+          onChange={val => setRewardId(val)}
+          placeholder={strings.rewards.noReward}
+          ariaLabel={strings.rewards.rewardOnCompletion}
+          options={[
+            { value: '', label: strings.rewards.noReward },
+            ...state.rewards.map(r => ({
+              value: r.id,
+              label: r.name,
+              icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>
+            }))
+          ]}
+        />
       </div>
 
-      <div className="modal-actions modal-form-actions">
+      <div className="modal-actions">
         <button type="button" className="btn-action" onClick={onClose}>
           {strings.common.cancel}
         </button>
-        <button type="submit" className="btn-action primary">
+        <button type="submit" className="btn-action primary" disabled={datesInvalid}>
           {landmark ? strings.common.save : strings.modals.addLandmarkBtn}
         </button>
       </div>

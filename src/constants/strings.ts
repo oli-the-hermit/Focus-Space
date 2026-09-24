@@ -29,6 +29,15 @@ export const strings = {
     notifTooltip: 'Notification Settings',
     soundToggleTooltip: 'Toggle sound'
   },
+  rail: {
+    timer: 'Timer',
+    tasks: 'Tasks',
+    calendar: 'Calendar',
+    stats: 'Stats',
+    goals: 'Goals',
+    rewards: 'Rewards',
+    navLabel: 'Main navigation'
+  },
   tabs: {
     timer: 'Timer & Sessions',
     agenda: "Today's Agenda",
@@ -52,7 +61,34 @@ export const strings = {
     resetTooltip: 'Reset Timer',
     skipTooltip: 'Skip Phase',
     playTooltip: 'Start',
-    pauseTooltip: 'Pause'
+    pauseTooltip: 'Pause',
+    nowPlaying: 'Now playing',
+    upNext: 'Up next',
+    completedToday: '{count} completed today',
+    noOpenTasks: 'No open tasks',
+    miniPlayerOpen: 'Open mini player',
+    miniPlayerClose: 'Close mini player',
+    soundOnTooltip: 'Sound on',
+    soundOffTooltip: 'Sound off',
+    sessionTasksTitle: 'Session tasks',
+    addAnotherList: 'Add another task list',
+    pickListPlaceholder: 'Choose a task list…',
+    noSessionListsTitle: 'No task list for this session yet',
+    noSessionListsHint: 'Pick a list or create a new one. Lists are saved, so any session can reuse them.',
+    listInUse: 'In this session',
+    collapseList: 'Collapse list',
+    expandList: 'Expand list',
+    moreListActions: 'List actions',
+    sessionActions: 'Session actions'
+  },
+  mini: {
+    pin: 'Pin position',
+    unpin: 'Unpin position',
+    alwaysOnTopOn: 'Always on top: on',
+    alwaysOnTopOff: 'Always on top: off',
+    expand: 'Open Focus Space',
+    close: 'Close (timer keeps running)',
+    waiting: 'Connecting to Focus Space…'
   },
   agenda: {
     heading: "Today's Agenda",
@@ -88,19 +124,22 @@ export const strings = {
     tasksRemaining: '{count} tasks remaining',
     completedOf: '{done} of {total} completed',
     emptyListPrompt: 'Select or create a list in the sidebar to start tracking tasks.',
+    emptyTasks: 'No tasks yet. Add your first one above.',
+    tasksLeft: '{count} left',
     completionTimeTooltip: 'Completion time'
   },
   calendar: {
-    prevBtn: '← Prev',
+    prevBtn: 'Previous',
     todayBtn: 'Today',
-    nextBtn: 'Next →',
+    nextBtn: 'Next',
     scheduleSessionBtn: '+ Schedule Session',
     views: {
       week: 'Week',
       day: 'Day',
       month: 'Month'
     },
-    quickAddPromptTime: '09:00'
+    quickAddPromptTime: '09:00',
+    moreEvents: '+{count} more'
   },
   stats: {
     avgSessionsDay: 'Avg Sessions / Day',
@@ -119,7 +158,13 @@ export const strings = {
     landmarksTitle: 'Landmarks',
     untitledGoal: 'Untitled Goal',
     untitledLandmark: 'Untitled Landmark',
-    landmarksCountLabel: '{done} of {total} landmarks'
+    landmarksCountLabel: '{done} of {total} landmarks',
+    dueOn: 'Due {date}',
+    startsOn: 'Starts {date}',
+    startsIn: 'starts in {count} day{s}',
+    daysLeft: '{count} day{s} left',
+    dueToday: 'due today',
+    overdue: 'overdue {count} day{s}'
   },
   rewards: {
     readyToClaim: 'Ready to Claim',
@@ -227,7 +272,32 @@ export const strings = {
     createRewardBtn: 'Create Reward',
 
     confirmDeleteTitle: 'Confirm Delete',
-    confirmDeleteDefaultMsg: 'Are you sure you want to delete this item?'
+    confirmDeleteDefaultMsg: 'Are you sure you want to delete this item?',
+
+    focusLabel: 'Focus',
+    breakLabel: 'Break',
+    minutesSuffix: 'min',
+    taskListsLabel: 'Task lists',
+    addTaskListPlaceholder: 'Add a task list…',
+    newTaskListOption: 'New task list',
+    newTaskListPlaceholder: 'List name, then Enter',
+    noTaskListsHint: 'No lists yet. Attached lists show under the player on the timer page.',
+    removeFromSession: 'Remove from session',
+    createRewardOption: 'Create new reward',
+    newRewardPlaceholder: 'Reward name, then Enter',
+    newRewardTitle: 'New reward',
+    pickExistingReward: 'Pick existing instead',
+    assignSessionLabel: 'Assign to session (optional)',
+    noSessionOption: 'No session',
+    createSessionOption: 'Create new session',
+    createListAndSessionBtn: 'Create list & set up session',
+    newSessionOption: 'New session',
+    newSessionPlaceholder: 'Session name, then Enter',
+    startDateLabel: 'Start date',
+    dueDateLabel: 'Estimated completion',
+    optionalHint: 'Optional',
+    noDatePlaceholder: 'No date',
+    dateOrderError: 'Completion can’t be before the start date.'
   },
   auth: {
     serverUnreachable: 'Cannot reach the local app server. Start it with npm run dev and reload.',

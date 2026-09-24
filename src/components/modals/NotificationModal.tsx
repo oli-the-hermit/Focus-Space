@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { Modal } from '../ui/Modal';
+import { Select } from '../ui/Select';
 import { strings } from '../../constants/strings';
 
 export interface NotificationModalProps {
@@ -19,7 +20,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
   };
 
   return (
-    <Modal isOpen={isOpen} title={strings.notifications.modalTitle} onClose={onClose}>
+    <Modal isOpen={isOpen} title={strings.notifications.modalTitle} onClose={onClose} dismissible>
       <div className="form-group">
         <label className="form-label notif-checkbox-label">
           <input
@@ -33,16 +34,16 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
 
       <div className="form-group form-group-spaced">
         <label className="form-label">{strings.notifications.leadTimeLabel}</label>
-        <select
-          className="form-select"
+        <Select<number>
           value={state.notifications.leadMinutes}
-          onChange={e => updateNotifications({ leadMinutes: Number(e.target.value) })}
-        >
-          <option value={5}>{strings.notifications.options.fiveMin}</option>
-          <option value={10}>{strings.notifications.options.tenMin}</option>
-          <option value={15}>{strings.notifications.options.fifteenMin}</option>
-          <option value={30}>{strings.notifications.options.thirtyMin}</option>
-        </select>
+          onChange={val => updateNotifications({ leadMinutes: val })}
+          options={[
+            { value: 5, label: strings.notifications.options.fiveMin },
+            { value: 10, label: strings.notifications.options.tenMin },
+            { value: 15, label: strings.notifications.options.fifteenMin },
+            { value: 30, label: strings.notifications.options.thirtyMin }
+          ]}
+        />
       </div>
 
       <div className="form-group form-group-spaced">

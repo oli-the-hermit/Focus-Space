@@ -3,6 +3,7 @@ import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
+import { ScheduleBadge } from './ScheduleBadge';
 
 export interface GoalCardProps {
   goal: Goal;
@@ -72,6 +73,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
               <span className="goal-reward-badge">🎁 {linkedReward.name}</span>
             )}
           </div>
+          <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
         </div>
         <div className="goal-card-actions">
           <button className="icon-btn xs" onClick={handleEditGoal} title={strings.common.edit}>
@@ -125,6 +127,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                   onChange={() => toggleLandmark(goal.id, lm.id)}
                 />
                 <span className="landmark-text">{lmName}</span>
+                <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
                 {lmReward && <span className="landmark-reward-tag">🎁 {lmReward.name}</span>}
                 <div className="landmark-actions">
                   <button className="icon-btn xs" onClick={() => handleEditLandmark(lm)} title={strings.common.edit}>

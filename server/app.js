@@ -22,15 +22,15 @@ function validatePassword(v) {
   return typeof v === 'string' && v.length >= 8 && v.length <= 128;
 }
 function validateIv(v) {
-  if (typeof v !== 'string' || v.length === 0) return false;
+  if (typeof v !== 'string' || v.length === 0 || v.length > 24) return false;
   return Buffer.from(v, 'base64').length === 12;
 }
 function validateCipher(v) {
-  if (typeof v !== 'string' || v.length === 0) return false;
+  if (typeof v !== 'string' || v.length === 0 || v.length > MAX_BLOB_BYTES * 2) return false;
   return Buffer.from(v, 'base64').length <= MAX_BLOB_BYTES;
 }
 function validateSalt(v) {
-  if (typeof v !== 'string') return false;
+  if (typeof v !== 'string' || v.length !== 32) return false;
   return Buffer.from(v, 'hex').length === 16;
 }
 
@@ -62,6 +62,16 @@ function recordSuccess(key) {
 function delay(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
+// Cleanup expired lockouts periodically to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of attempts.entries()) {
+    if (entry.blockedUntil && entry.blockedUntil <= now) {
+      attempts.delete(key);
+    }
+  }
+}, 60_000).unref();
 
 // ── Middleware ───────────────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -160,7 +170,7 @@ function createApp() {
       const existing = db.prepare('SELECT COUNT(*) AS n FROM profiles').get().n;
       if (existing > 0) return res.status(409).json({ error: 'Main account already exists' });
 
-      const { salt, hash } = hashPassword(password);
+      const { salt, hash } = await hashPassword(password);
       const now = Date.now();
       const info = db
         .prepare(
@@ -188,7 +198,14 @@ function createApp() {
       if (isBlocked(key)) return res.status(429).json({ error: 'Too many failed attempts. Try again in 30 seconds.' });
 
       const row = getDb().prepare('SELECT * FROM profiles WHERE username = ? COLLATE NOCASE').get(username);
-      const ok = row ? verifyPassword(password, row.salt, row.password_hash) : false;
+      
+      let ok = false;
+      if (row) {
+        ok = await verifyPassword(password, row.salt, row.password_hash);
+      } else {
+        // Dummy hash to normalize response timing and prevent user enumeration
+        await hashPassword(password, '00000000000000000000000000000000');
+      }
 
       if (!ok) {
         recordFailure(key);
@@ -284,10 +301,14 @@ function createApp() {
   app.put('/api/profile/password', requireAuth, async (req, res, next) => {
     try {
       const { currentPassword, newPassword, salt, iv, cipher } = req.body || {};
+      if (typeof currentPassword !== 'string') {
+        return res.status(400).json({ error: 'Current password is required' });
+      }
       const db = getDb();
       const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
 
-      if (!verifyPassword(currentPassword || '', row.salt, row.password_hash)) {
+      const isCurrentValid = await verifyPassword(currentPassword || '', row.salt, row.password_hash);
+      if (!isCurrentValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
         return res.status(401).json({ error: 'Current password is incorrect' });
       }
@@ -298,7 +319,7 @@ function createApp() {
         return res.status(400).json({ error: 'Re-encrypted data payload is required' });
       }
 
-      const { hash } = hashPassword(newPassword, salt);
+      const { hash } = await hashPassword(newPassword, salt);
       db.prepare('UPDATE profiles SET salt = ?, password_hash = ?, data_iv = ?, data_cipher = ?, updated_at = ? WHERE id = ?')
         .run(salt, hash, iv, cipher, Date.now(), row.id);
 
@@ -316,11 +337,16 @@ function createApp() {
   app.delete('/api/profile', requireAuth, async (req, res, next) => {
     try {
       const { password } = req.body || {};
+      if (typeof password !== 'string') {
+        return res.status(400).json({ error: 'Password is required' });
+      }
       if (req.profile.role === 'owner') {
         return res.status(403).json({ error: 'The main account cannot delete itself' });
       }
       const row = getDb().prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
-      if (!verifyPassword(password || '', row.salt, row.password_hash)) {
+      
+      const isPasswordValid = await verifyPassword(password || '', row.salt, row.password_hash);
+      if (!isPasswordValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
         return res.status(401).json({ error: 'Password is incorrect' });
       }
@@ -337,7 +363,7 @@ function createApp() {
     res.json({ profiles: rows.map(publicProfile) });
   });
 
-  app.post('/api/profiles', requireAuth, requireOwner, (req, res, next) => {
+  app.post('/api/profiles', requireAuth, requireOwner, async (req, res, next) => {
     try {
       const { username, displayName, password } = req.body || {};
       if (!validateUsername(username)) return res.status(400).json({ error: 'Username must be 3-24 characters (letters, digits, . _ -)' });
@@ -351,7 +377,7 @@ function createApp() {
       }
       assertUniqueUsername(username);
 
-      const { salt, hash } = hashPassword(password);
+      const { salt, hash } = await hashPassword(password);
       const now = Date.now();
       const info = db
         .prepare(
@@ -401,9 +427,14 @@ function createApp() {
   app.post('/api/reset-profiles', requireAuth, requireOwner, async (req, res, next) => {
     try {
       const { password } = req.body || {};
+      if (typeof password !== 'string') {
+        return res.status(400).json({ error: 'Password is required' });
+      }
       const db = getDb();
       const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
-      if (!verifyPassword(password || '', row.salt, row.password_hash)) {
+      
+      const isPasswordValid = await verifyPassword(password || '', row.salt, row.password_hash);
+      if (!isPasswordValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
         return res.status(401).json({ error: 'Password is incorrect' });
       }
@@ -422,6 +453,9 @@ function createApp() {
   // ── Error handler ─────────────────────────────────────────────
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
+    if (err.status === 400 && err.type === 'entity.parse.failed') {
+      return res.status(400).json({ error: 'Invalid JSON payload' });
+    }
     if (err.status) return res.status(err.status).json({ error: err.message });
     if (err.type === 'entity.too.large') return res.status(413).json({ error: 'Payload too large' });
     console.error('Unhandled error:', err);

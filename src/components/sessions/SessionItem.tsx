@@ -2,7 +2,7 @@ import React from 'react';
 import { Session } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconEdit, IconCopy, IconTrash, IconGrip } from '../ui/icons';
+import { IconEdit, IconCopy, IconTrash, IconGrip, IconGift, IconList, IconEqualizer } from '../ui/icons';
 
 export interface SessionItemProps {
   session: Session;
@@ -19,6 +19,10 @@ export interface SessionItemProps {
   isDragOver: boolean;
 }
 
+/**
+ * Queue card. The name owns the whole first row (ellipsis at the right edge);
+ * actions sit on the meta row and only show on hover/focus so they never crop it.
+ */
 export const SessionItem: React.FC<SessionItemProps> = ({
   session,
   isActive,
@@ -35,58 +39,79 @@ export const SessionItem: React.FC<SessionItemProps> = ({
 }) => {
   const { state } = useApp();
   const reward = session.rewardId ? state.rewards.find(r => r.id === session.rewardId) : null;
+  const listCount = (session.taskListIds || []).filter(id => state.taskLists.some(l => l.id === id)).length;
+  const isPlaying = isActive && state.timer.status === 'running';
+
+  const stop = (fn: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fn();
+  };
 
   return (
     <div
       className={`session-item draggable-item ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
       draggable={true}
       data-id={session.id}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
       onDragStart={e => onDragStart(e, session.id)}
       onDragOver={e => onDragOver(e, session.id)}
       onDragLeave={onDragLeave}
       onDrop={e => onDrop(e, session.id)}
       onClick={() => onSelect(session.id)}
+      onKeyDown={e => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+          e.preventDefault();
+          onSelect(session.id);
+        }
+      }}
     >
-      <IconGrip title={strings.common.dragToReorder} />
-      <div className="session-item-dot" />
-      <div className="session-info">
-        <div className="session-name">{session.name}</div>
-        <div className="session-meta">
-          {session.focusMinutes}' {strings.timer.focusPhase.toLowerCase()} · {session.breakMinutes}' {strings.timer.breakPhase.toLowerCase()}
-          {reward ? ` · 🎁 ${reward.name}` : ''}
-        </div>
+      <IconGrip title={strings.common.dragToReorder} className="drag-handle session-grip" />
+
+      <div className="session-name-row">
+        {isActive && <IconEqualizer playing={isPlaying} />}
+        <span className="session-name" title={session.name}>{session.name}</span>
       </div>
-      <div className="session-actions">
-        <button
-          className="icon-btn xs"
-          onClick={e => {
-            e.stopPropagation();
-            onEdit(session);
-          }}
-          title={strings.common.edit}
-        >
-          <IconEdit size={13} />
-        </button>
-        <button
-          className="icon-btn xs"
-          onClick={e => {
-            e.stopPropagation();
-            onDuplicate(session.id);
-          }}
-          title={strings.common.duplicate}
-        >
-          <IconCopy size={13} />
-        </button>
-        <button
-          className="icon-btn xs danger"
-          onClick={e => {
-            e.stopPropagation();
-            onDelete(session);
-          }}
-          title={strings.common.delete}
-        >
-          <IconTrash size={13} />
-        </button>
+
+      <div className="session-meta-row">
+        <div className="session-meta">
+          <span className="session-meta-item">
+            {session.focusMinutes}′ {strings.timer.focusPhase.toLowerCase()} · {session.breakMinutes}′ {strings.timer.breakPhase.toLowerCase()}
+          </span>
+          {listCount > 0 && (
+            <span className="session-meta-item" title={`${listCount} ${strings.modals.taskListsLabel.toLowerCase()}`}>
+              <IconList size={13} /> {listCount}
+            </span>
+          )}
+          {reward && (
+            <span className="session-meta-item" title={reward.name}>
+              <IconGift size={13} />
+            </span>
+          )}
+        </div>
+
+        <div className="session-actions">
+          <button className="icon-btn xs" onClick={stop(() => onEdit(session))} title={strings.common.edit} aria-label={strings.common.edit}>
+            <IconEdit size={14} />
+          </button>
+          <button
+            className="icon-btn xs"
+            onClick={stop(() => onDuplicate(session.id))}
+            title={strings.common.duplicate}
+            aria-label={strings.common.duplicate}
+          >
+            <IconCopy size={14} />
+          </button>
+          <button
+            className="icon-btn xs danger"
+            onClick={stop(() => onDelete(session))}
+            title={strings.common.delete}
+            aria-label={strings.common.delete}
+          >
+            <IconTrash size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );

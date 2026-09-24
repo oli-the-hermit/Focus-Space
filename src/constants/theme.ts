@@ -1,41 +1,44 @@
 // SSoT Design Tokens (Plasmic & Component Design System)
+// Mirrors the dark theme in src/styles/tokens.css — keep both in sync.
 export const theme = {
   colors: {
-    bg: '#F8F9FA',
-    bgCard: '#FFFFFF',
-    bgCardSolid: '#FFFFFF',
-    bgCardHover: '#F1F5F9',
-    border: '#E3E6E3',
-    borderLight: '#EDEEED',
-    borderFocus: '#1A73E8',
-    
-    primary: '#1A73E8',
-    primaryHover: '#1557B0',
-    primaryGlow: 'rgba(26, 115, 232, 0.18)',
-    
-    secondary: '#5E6360',
-    secondaryHover: '#334155',
+    bg: '#0E0F11',
+    bgCard: '#16181B',
+    bgCardSolid: '#16181B',
+    bgCardHover: '#1E2024',
+    surface2: '#1E2024',
+    surface3: '#272A2F',
+    surface4: '#31343A',
 
-    textMain: '#1F1F1F',
-    textMuted: '#9AA19C',
-    textDim: '#ABABAB',
+    primary: '#D1DD23',
+    primaryHover: '#DDE84A',
+    onPrimary: '#1A1D00',
+    primaryContainer: '#3A3F0A',
+    onPrimaryContainer: '#E8F07A',
 
-    statusIdle: '#9AA19C',
-    statusFocus: '#1A73E8',
-    statusBreak: '#188038',
-    statusPaused: '#B06000',
+    secondary: '#A9ACA4',
+    secondaryHover: '#F1F2EC',
 
-    danger: '#C5221F',
-    dangerHover: '#A51D1A',
-    success: '#188038',
-    warning: '#B06000',
+    textMain: '#F1F2EC',
+    textMuted: '#A9ACA4',
+    textDim: '#6F736B',
 
-    ringTrack: '#E3E6E3',
-    ringFocusProgress: '#1A73E8',
-    ringBreakProgress: '#188038'
+    statusIdle: '#6F736B',
+    statusFocus: '#D1DD23',
+    statusBreak: '#5EC8B8',
+    statusPaused: '#F2B654',
+
+    danger: '#FF8A7A',
+    dangerHover: '#FFA597',
+    success: '#8BD48B',
+    warning: '#F2B654',
+
+    ringTrack: '#272A2F',
+    ringFocusProgress: '#D1DD23',
+    ringBreakProgress: '#5EC8B8'
   },
   typography: {
-    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+    fontFamily: "'Geist', 'Segoe UI Variable', system-ui, -apple-system, sans-serif",
     fontSizeXs: '0.75rem',
     fontSizeSm: '0.875rem',
     fontSizeBase: '1rem',
@@ -43,18 +46,20 @@ export const theme = {
     fontSizeXl: '1.25rem',
     fontSize2Xl: '1.5rem',
     fontSize3Xl: '2.5rem',
-    fontSizeDigits: '2.6rem'
+    fontSizeDigits: '5.4rem'
   },
   borderRadius: {
-    sm: '8px',
+    sm: '10px',
     md: '14px',
     lg: '20px',
+    xl: '28px',
     pill: '999px'
   },
+  // Flat system: only floating overlays are elevated.
   shadows: {
-    sm: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-    md: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)',
-    lg: '0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06)'
+    sm: 'none',
+    md: 'none',
+    lg: '0 12px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.35)'
   }
 } as const;
 

@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
 import { strings } from '../../constants/strings';
+import { Select } from '../ui/Select';
 
 export interface ListModalProps {
   list?: TaskList | null;
   onClose: () => void;
 }
 
+// Sentinel for "create a new session for this list" — never a real session id.
+const NEW_SESSION = '__new_session__';
+
 export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
-  const { createList, renameList } = useApp();
+  const { state, createList, renameList, setSessionTaskLists, openModal } = useApp();
   const [name, setName] = useState(list ? list.name : '');
+  const [sessionChoice, setSessionChoice] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,17 +24,31 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
 
     if (list) {
       renameList(list.id, val);
-    } else {
-      createList(val);
+      onClose();
+      return;
+    }
+
+    const newListId = createList(val);
+
+    if (sessionChoice === NEW_SESSION) {
+      // Hand off to the session dialog with this list preselected (still changeable there).
+      openModal('NEW_SESSION', { taskListIds: [newListId] });
+      return;
+    }
+
+    if (sessionChoice) {
+      const target = state.sessions.find(s => s.id === sessionChoice);
+      if (target) setSessionTaskLists(target.id, [...(target.taskListIds || []), newListId]);
     }
     onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
-        <label className="form-label">{strings.modals.listNameLabel}</label>
+        <label className="form-label" htmlFor="listName">{strings.modals.listNameLabel}</label>
         <input
+          id="listName"
           type="text"
           className="form-input"
           value={name}
@@ -39,12 +58,36 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
         />
       </div>
 
-      <div className="modal-actions modal-form-actions">
+      {!list && (
+        <div className="form-group">
+          <span className="form-label">{strings.modals.assignSessionLabel}</span>
+          <Select
+            value={sessionChoice}
+            onChange={setSessionChoice}
+            ariaLabel={strings.modals.assignSessionLabel}
+            options={[
+              { value: '', label: strings.modals.noSessionOption },
+              ...state.sessions.map(s => ({
+                value: s.id,
+                label: s.name,
+                meta: `${s.focusMinutes}′ · ${s.breakMinutes}′`
+              })),
+              { value: NEW_SESSION, label: `+ ${strings.modals.createSessionOption}`, searchText: strings.modals.createSessionOption }
+            ]}
+          />
+        </div>
+      )}
+
+      <div className="modal-actions">
         <button type="button" className="btn-action" onClick={onClose}>
           {strings.common.cancel}
         </button>
-        <button type="submit" className="btn-action primary">
-          {list ? strings.common.save : strings.modals.createListBtn}
+        <button type="submit" className="btn-action primary" disabled={!name.trim()}>
+          {list
+            ? strings.common.save
+            : sessionChoice === NEW_SESSION
+              ? strings.modals.createListAndSessionBtn
+              : strings.modals.createListBtn}
         </button>
       </div>
     </form>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Goal, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
+import { Select } from '../ui/Select';
+import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 
 export interface GoalModalProps {
   goal?: Goal | null;
@@ -15,6 +17,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
 
   const [name, setName] = useState(goal ? (goal.name || goal.title || '') : '');
   const [type, setType] = useState<GoalFrequency>(goal ? (goal.type || goal.frequency || 'daily') : 'daily');
+  const [startDate, setStartDate] = useState(goal?.startDate || '');
+  const [dueDate, setDueDate] = useState(goal?.dueDate || '');
 
   const initialRewardId = () => {
     if (goal?.rewardId) return goal.rewardId;
@@ -28,11 +32,14 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   };
 
   const [rewardId, setRewardId] = useState<string>(initialRewardId);
+  const datesInvalid = isDateRangeInvalid(startDate, dueDate);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (datesInvalid) return;
     const finalName = name.trim() || strings.goals.untitledGoal;
     const finalReward = rewardId || null;
+    const dates = { startDate: startDate || null, dueDate: dueDate || null };
 
     if (goal) {
       updateGoal(goal.id, {
@@ -40,7 +47,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         title: finalName,
         type,
         frequency: type,
-        rewardId: finalReward
+        rewardId: finalReward,
+        ...dates
       });
     } else {
       addGoal({
@@ -49,17 +57,19 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         type,
         frequency: type,
         rewardId: finalReward,
-        landmarks: []
+        landmarks: [],
+        ...dates
       });
     }
     onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
-        <label className="form-label">{strings.modals.goalNameLabel}</label>
+        <label className="form-label" htmlFor="goalName">{strings.modals.goalNameLabel}</label>
         <input
+          id="goalName"
           type="text"
           className="form-input"
           value={name}
@@ -69,42 +79,50 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         />
       </div>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.modals.frequencyLabel}</label>
-        <select
-          className="form-select"
+      <div className="form-group">
+        <span className="form-label">{strings.modals.frequencyLabel}</span>
+        <Select
           value={type}
-          onChange={e => setType(e.target.value as GoalFrequency)}
-        >
-          {GOAL_TYPES.map(t => (
-            <option key={t} value={t}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </option>
-          ))}
-        </select>
+          onChange={val => setType(val as GoalFrequency)}
+          ariaLabel={strings.modals.frequencyLabel}
+          options={GOAL_TYPES.map(t => ({
+            value: t,
+            label: t.charAt(0).toUpperCase() + t.slice(1)
+          }))}
+        />
       </div>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
-        <select
-          className="form-select"
+      <DateRangeFields
+        idPrefix="goal"
+        startDate={startDate}
+        dueDate={dueDate}
+        onStartChange={setStartDate}
+        onDueChange={setDueDate}
+      />
+
+      <div className="form-group">
+        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+        <Select
           value={rewardId}
-          onChange={e => setRewardId(e.target.value)}
-        >
-          <option value="">{strings.rewards.noReward}</option>
-          {state.rewards.map(r => (
-            <option key={r.id} value={r.id}>
-              {r.emoji || r.icon ? `${r.emoji || r.icon} ` : ''}{r.name}
-            </option>
-          ))}
-        </select>
+          onChange={val => setRewardId(val)}
+          placeholder={strings.rewards.noReward}
+          ariaLabel={strings.rewards.rewardOnCompletion}
+          options={[
+            { value: '', label: strings.rewards.noReward },
+            ...state.rewards.map(r => ({
+              value: r.id,
+              label: r.name,
+              icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>
+            }))
+          ]}
+        />
       </div>
 
-      <div className="modal-actions modal-form-actions">
+      <div className="modal-actions">
         <button type="button" className="btn-action" onClick={onClose}>
           {strings.common.cancel}
         </button>
-        <button type="submit" className="btn-action primary">
+        <button type="submit" className="btn-action primary" disabled={datesInvalid}>
           {goal ? strings.common.saveChanges : strings.modals.createGoalBtn}
         </button>
       </div>

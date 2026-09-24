@@ -50,7 +50,7 @@ interface AppContextType {
   activeModal: ActiveModal | null;
   openModal: <K extends ModalType>(
     type: K,
-    ...args: ModalPayloadMap[K] extends undefined ? [payload?: undefined] : [payload: ModalPayloadMap[K]]
+    ...args: undefined extends ModalPayloadMap[K] ? [payload?: ModalPayloadMap[K]] : [payload: ModalPayloadMap[K]]
   ) => void;
   closeModal: () => void;
 
@@ -59,6 +59,10 @@ interface AppContextType {
   resetTimer: () => void;
   skipPhase: () => void;
   toggleSound: () => void;
+  /** Re-reads the wall clock and completes the phase if it has elapsed. */
+  syncTimer: () => void;
+  /** Epoch ms at which the running phase ends, or null when not running. */
+  getTimerTargetEnd: () => number | null;
 
   // Drag & Drop Reordering
   reorderSessions: (sourceId: string, targetId: string) => void;
@@ -68,14 +72,15 @@ interface AppContextType {
 
   // Sessions CRUD
   setActiveSession: (id: string) => void;
-  createSession: (session: Omit<Session, 'id'>) => void;
+  createSession: (session: Omit<Session, 'id'>) => string;
   updateSession: (id: string, session: Partial<Session>) => void;
   duplicateSession: (id: string) => void;
   deleteSession: (id: string) => void;
+  setSessionTaskLists: (sessionId: string, listIds: string[]) => void;
 
   // Lists CRUD
   setActiveList: (id: string) => void;
-  createList: (name: string) => void;
+  createList: (name: string, options?: { activate?: boolean }) => string;
   renameList: (id: string, name: string) => void;
   duplicateList: (id: string) => void;
   deleteList: (id: string) => void;
@@ -109,7 +114,7 @@ interface AppContextType {
   toggleLandmark: (goalId: string, landmarkId: string) => void;
 
   // Rewards CRUD
-  addReward: (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }) => void;
+  addReward: (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }) => string;
   updateReward: (id: string, reward: Partial<Reward>) => void;
   duplicateReward: (id: string) => void;
   deleteReward: (id: string) => void;
@@ -174,12 +179,28 @@ function normalizeState(raw: unknown): AppState {
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
   const focusMins = activeSession?.focusMinutes || 25;
 
+  const taskLists: TaskList[] = Array.isArray(r?.taskLists) && r!.taskLists.length ? (r!.taskLists as TaskList[]) : DEFAULT_TASK_LISTS;
+  const selectedListIdForTimer = (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id;
+
+  // Sessions own their task lists. Legacy data had a single global timer list:
+  // the active session inherits it, the others start empty.
+  const listIds = new Set(taskLists.map(l => l.id));
+  const migratedSessions = sessions.map(s => {
+    if (Array.isArray(s.taskListIds)) {
+      return { ...s, taskListIds: s.taskListIds.filter(id => listIds.has(id)) };
+    }
+    const inherit = s.id === activeSessionId && selectedListIdForTimer && listIds.has(selectedListIdForTimer)
+      ? [selectedListIdForTimer]
+      : [];
+    return { ...s, taskListIds: inherit };
+  });
+
   return {
-    sessions,
+    sessions: migratedSessions,
     activeSessionId,
-    taskLists: Array.isArray(r?.taskLists) && r!.taskLists.length ? (r!.taskLists as TaskList[]) : DEFAULT_TASK_LISTS,
+    taskLists,
     activeListId: (typeof r?.activeListId === 'string' ? r.activeListId : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
-    selectedListIdForTimer: (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
+    selectedListIdForTimer,
     activeActivityStartTime: null,
     taskCompletionLogs: Array.isArray(r?.taskCompletionLogs) ? (r!.taskCompletionLogs as AppState['taskCompletionLogs']) : [],
     sessionLogs: Array.isArray(r?.sessionLogs) ? (r!.sessionLogs as AppState['sessionLogs']) : [],
@@ -670,29 +691,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [state.timer.status, state.timer.phase, state.activeSessionId]);
 
+  // Re-reads the wall clock; completes the phase if it already elapsed
+  const syncTimer = () => {
+    if (state.timer.status === 'running' && targetEndTimeRef.current) {
+      const now = Date.now();
+      const remainingSecs = Math.max(0, Math.ceil((targetEndTimeRef.current - now) / 1000));
+      if (remainingSecs <= 0) {
+        targetEndTimeRef.current = null;
+        try {
+          localStorage.removeItem(TIMER_RUN_KEY);
+        } catch {}
+        handlePhaseComplete(false);
+      } else {
+        setState(prev => {
+          if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
+          return {
+            ...prev,
+            timer: { ...prev.timer, remaining: remainingSecs }
+          };
+        });
+      }
+    }
+  };
+
+  const getTimerTargetEnd = () => targetEndTimeRef.current;
+
   // Sync timer immediately on tab visibility / focus change
   useEffect(() => {
-    const handleSync = () => {
-      if (state.timer.status === 'running' && targetEndTimeRef.current) {
-        const now = Date.now();
-        const remainingSecs = Math.max(0, Math.ceil((targetEndTimeRef.current - now) / 1000));
-        if (remainingSecs <= 0) {
-          targetEndTimeRef.current = null;
-          try {
-            localStorage.removeItem(TIMER_RUN_KEY);
-          } catch {}
-          handlePhaseComplete(false);
-        } else {
-          setState(prev => {
-            if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
-            return {
-              ...prev,
-              timer: { ...prev.timer, remaining: remainingSecs }
-            };
-          });
-        }
-      }
-    };
+    const handleSync = () => syncTimer();
 
     document.addEventListener('visibilitychange', handleSync);
     window.addEventListener('focus', handleSync);
@@ -882,14 +908,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return {
         ...prev,
         activeSessionId: id,
+        selectedListIdForTimer: s?.taskListIds?.[0] ?? prev.selectedListIdForTimer,
         activeActivityStartTime: null,
         timer: { ...prev.timer, phase: 'focus', status: 'idle', remaining: dur, total: dur }
       };
     });
   };
 
-  const createSession = (session: Omit<Session, 'id'>) => {
-    const newSession: Session = { ...session, id: uid() };
+  const createSession = (session: Omit<Session, 'id'>): string => {
+    const newSession: Session = { ...session, taskListIds: session.taskListIds ? [...session.taskListIds] : [], id: uid() };
     setState(prev => {
       const updatedRewards = newSession.rewardId
         ? prev.rewards.map(r =>
@@ -907,6 +934,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
     showToast(`Session "${newSession.name}" created.`);
+    return newSession.id;
   };
 
   const updateSession = (id: string, session: Partial<Session>) => {
@@ -953,7 +981,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => {
       const target = prev.sessions.find(s => s.id === id);
       if (!target) return prev;
-      const dup: Session = { ...target, id: uid(), name: `${target.name} (Copy)` };
+      const dup: Session = {
+        ...target,
+        id: uid(),
+        name: `${target.name} (Copy)`,
+        taskListIds: [...(target.taskListIds || [])]
+      };
       return { ...prev, sessions: [...prev.sessions, dup] };
     });
     showToast('Session duplicated.');
@@ -995,20 +1028,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Session deleted.');
   };
 
+  // Silent on purpose: called from inline pickers, where a toast per change is noise.
+  const setSessionTaskLists = (sessionId: string, listIds: string[]) => {
+    const unique = Array.from(new Set(listIds));
+    setState(prev => ({
+      ...prev,
+      sessions: prev.sessions.map(s => (s.id === sessionId ? { ...s, taskListIds: unique } : s)),
+      selectedListIdForTimer: prev.activeSessionId === sessionId ? (unique[0] || null) : prev.selectedListIdForTimer
+    }));
+  };
+
   // ══════════════════════════════════════════════════════════════════════
   // LISTS
   // ══════════════════════════════════════════════════════════════════════
   const setActiveList = (id: string) => setState(prev => ({ ...prev, activeListId: id }));
 
-  const createList = (name: string) => {
+  const createList = (name: string, options: { activate?: boolean } = {}): string => {
+    const { activate = true } = options;
     const newList: TaskList = { id: uid(), name, tasks: [] };
     setState(prev => ({
       ...prev,
       taskLists: [...prev.taskLists, newList],
-      activeListId: newList.id,
+      activeListId: activate ? newList.id : prev.activeListId,
       selectedListIdForTimer: prev.selectedListIdForTimer || newList.id
     }));
     showToast(`List "${name}" created.`);
+    return newList.id;
   };
 
   const renameList = (id: string, name: string) => {
@@ -1039,6 +1084,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return {
         ...prev,
         taskLists: filtered,
+        sessions: prev.sessions.map(s =>
+          s.taskListIds?.includes(id) ? { ...s, taskListIds: s.taskListIds.filter(x => x !== id) } : s
+        ),
         activeListId: filtered[0]?.id || null,
         selectedListIdForTimer:
           prev.selectedListIdForTimer === id ? (filtered[0]?.id || null) : prev.selectedListIdForTimer
@@ -1462,7 +1510,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ══════════════════════════════════════════════════════════════════════
   // REWARDS
   // ══════════════════════════════════════════════════════════════════════
-  const addReward = (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }) => {
+  const addReward = (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }): string => {
     const linkedSession = reward.linkedSessionId || (reward.trigger === 'session' ? reward.linkedId : null);
     const linkedGoal = reward.linkedGoalId || (reward.trigger === 'goal' ? reward.linkedId : null);
     const inferredTrigger: Reward['trigger'] = reward.trigger || (linkedSession ? 'session' : linkedGoal ? 'goal' : 'manual');
@@ -1500,6 +1548,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
     showToast(`Reward "${newReward.name}" created.`);
+    return newReward.id;
   };
 
   const updateReward = (id: string, reward: Partial<Reward>) => {
@@ -1641,6 +1690,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetTimer,
         skipPhase,
         toggleSound,
+        syncTimer,
+        getTimerTargetEnd,
         reorderSessions,
         reorderTaskLists,
         reorderTasks,
@@ -1650,6 +1701,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSession,
         duplicateSession,
         deleteSession,
+        setSessionTaskLists,
         setActiveList,
         createList,
         renameList,

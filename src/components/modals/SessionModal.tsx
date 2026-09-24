@@ -2,18 +2,32 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Session } from '../../types';
 import { strings } from '../../constants/strings';
+import { Select } from '../ui/Select';
+import { Stepper } from '../ui/Stepper';
+import { IconClose, IconList } from '../ui/icons';
 
 export interface SessionModalProps {
   session?: Session | null;
+  /** Lists preselected for a new session (e.g. when created from the New List dialog). */
+  initialTaskListIds?: string[];
   onClose: () => void;
 }
 
-export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) => {
-  const { state, createSession, updateSession } = useApp();
+interface RewardDraft {
+  name: string;
+  emoji: string;
+  description: string;
+}
+
+export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTaskListIds, onClose }) => {
+  const { state, createSession, updateSession, createList, addReward } = useApp();
 
   const [name, setName] = useState(session ? session.name : '');
   const [focusMinutes, setFocusMinutes] = useState(session ? session.focusMinutes : 25);
   const [breakMinutes, setBreakMinutes] = useState(session ? session.breakMinutes : 5);
+  const [taskListIds, setTaskListIds] = useState<string[]>(
+    session ? (session.taskListIds || []) : (initialTaskListIds || [])
+  );
 
   const initialRewardId = () => {
     if (session?.rewardId) return session.rewardId;
@@ -27,37 +41,64 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
   };
 
   const [rewardId, setRewardId] = useState<string>(initialRewardId);
+  // A reward typed here is only created on submit, so cancelling leaves nothing behind.
+  const [rewardDraft, setRewardDraft] = useState<RewardDraft | null>(null);
+
+  const listsById = new Map(state.taskLists.map(l => [l.id, l]));
+  const attachedLists = taskListIds.map(id => listsById.get(id)).filter(Boolean) as typeof state.taskLists;
+  const availableLists = state.taskLists.filter(l => !taskListIds.includes(l.id));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalName = name.trim() || strings.modals.untitledSession;
     const focus = Math.max(1, Number(focusMinutes) || 25);
     const brk = Math.max(1, Number(breakMinutes) || 5);
-    const finalReward = rewardId || null;
+    const draft = rewardDraft && rewardDraft.name.trim() ? rewardDraft : null;
+    const finalReward = draft ? null : (rewardId || null);
 
+    const payload = {
+      name: finalName,
+      focusMinutes: focus,
+      breakMinutes: brk,
+      rewardId: finalReward,
+      taskListIds: attachedLists.map(l => l.id)
+    };
+
+    let sessionId: string;
     if (session) {
-      updateSession(session.id, {
-        name: finalName,
-        focusMinutes: focus,
-        breakMinutes: brk,
-        rewardId: finalReward
-      });
+      updateSession(session.id, payload);
+      sessionId = session.id;
     } else {
-      createSession({
-        name: finalName,
-        focusMinutes: focus,
-        breakMinutes: brk,
-        rewardId: finalReward
+      sessionId = createSession(payload);
+    }
+
+    if (draft) {
+      const emoji = draft.emoji.trim() || '🎁';
+      addReward({
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        desc: draft.description.trim(),
+        emoji,
+        icon: emoji,
+        frequency: 'daily',
+        type: 'daily',
+        trigger: 'session',
+        linkedSessionId: sessionId,
+        linkedId: sessionId,
+        linkedGoalId: null,
+        status: 'locked',
+        claimedAt: null
       });
     }
     onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
-        <label className="form-label">{strings.modals.sessionNameLabel}</label>
+        <label className="form-label" htmlFor="sessionName">{strings.modals.sessionNameLabel}</label>
         <input
+          id="sessionName"
           type="text"
           className="form-input"
           value={name}
@@ -67,48 +108,139 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, onClose }) 
         />
       </div>
 
-      <div className="form-row form-group-spaced">
+      <div className="form-row">
         <div className="form-group">
-          <label className="form-label">{strings.modals.focusTimeLabel}</label>
-          <input
-            type="number"
-            className="form-input"
+          <label className="form-label" htmlFor="sessionFocus">{strings.modals.focusLabel}</label>
+          <Stepper
+            id="sessionFocus"
             value={focusMinutes}
-            onChange={e => setFocusMinutes(Number(e.target.value))}
+            onChange={setFocusMinutes}
             min={1}
             max={240}
+            step={5}
+            suffix={strings.modals.minutesSuffix}
           />
         </div>
         <div className="form-group">
-          <label className="form-label">{strings.modals.breakTimeLabel}</label>
-          <input
-            type="number"
-            className="form-input"
+          <label className="form-label" htmlFor="sessionBreak">{strings.modals.breakLabel}</label>
+          <Stepper
+            id="sessionBreak"
             value={breakMinutes}
-            onChange={e => setBreakMinutes(Number(e.target.value))}
+            onChange={setBreakMinutes}
             min={1}
             max={120}
+            step={5}
+            suffix={strings.modals.minutesSuffix}
           />
         </div>
       </div>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.rewards.rewardOnCompletion}</label>
-        <select
-          className="form-select"
-          value={rewardId}
-          onChange={e => setRewardId(e.target.value)}
-        >
-          <option value="">{strings.rewards.noReward}</option>
-          {state.rewards.map(r => (
-            <option key={r.id} value={r.id}>
-              {r.emoji || r.icon ? `${r.emoji || r.icon} ` : ''}{r.name}
-            </option>
-          ))}
-        </select>
+      <div className="form-group">
+        <span className="form-label">{strings.modals.taskListsLabel}</span>
+        {attachedLists.length > 0 ? (
+          <div className="chip-set">
+            {attachedLists.map(list => (
+              <span key={list.id} className="input-chip">
+                <IconList size={14} />
+                <span className="input-chip-label">{list.name}</span>
+                <span className="input-chip-meta">{list.tasks.filter(t => !t.completed).length}</span>
+                <button
+                  type="button"
+                  className="input-chip-remove"
+                  onClick={() => setTaskListIds(ids => ids.filter(id => id !== list.id))}
+                  aria-label={`${strings.modals.removeFromSession}: ${list.name}`}
+                >
+                  <IconClose size={13} strokeWidth={2.4} />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="form-hint">{strings.modals.noTaskListsHint}</p>
+        )}
+        <Select
+          value=""
+          onChange={val => val && setTaskListIds(ids => [...ids, val])}
+          placeholder={strings.modals.addTaskListPlaceholder}
+          ariaLabel={strings.modals.addTaskListPlaceholder}
+          options={availableLists.map(l => ({
+            value: l.id,
+            label: l.name,
+            meta: `${l.tasks.filter(t => !t.completed).length} left`
+          }))}
+          createOption={{
+            label: strings.modals.newTaskListOption,
+            placeholder: strings.modals.newTaskListPlaceholder,
+            onCreate: listName => {
+              const newId = createList(listName, { activate: false });
+              setTaskListIds(ids => [...ids, newId]);
+            }
+          }}
+        />
       </div>
 
-      <div className="modal-actions modal-form-actions">
+      <div className="form-group">
+        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+        {rewardDraft ? (
+          <div className="inline-subform">
+            <div className="inline-subform-head">
+              <span className="inline-subform-title">{strings.modals.newRewardTitle}</span>
+              <button type="button" className="btn-text" onClick={() => setRewardDraft(null)}>
+                {strings.modals.pickExistingReward}
+              </button>
+            </div>
+            <div className="form-row form-row--emoji">
+              <input
+                type="text"
+                className="form-input emoji-input"
+                value={rewardDraft.emoji}
+                onChange={e => setRewardDraft({ ...rewardDraft, emoji: e.target.value })}
+                maxLength={4}
+                aria-label={strings.modals.emojiLabel}
+              />
+              <input
+                type="text"
+                className="form-input"
+                value={rewardDraft.name}
+                onChange={e => setRewardDraft({ ...rewardDraft, name: e.target.value })}
+                placeholder={strings.modals.rewardNamePlaceholder}
+                aria-label={strings.modals.rewardNameLabel}
+              />
+            </div>
+            <textarea
+              className="form-input form-textarea"
+              value={rewardDraft.description}
+              onChange={e => setRewardDraft({ ...rewardDraft, description: e.target.value })}
+              placeholder={strings.modals.descriptionPlaceholder}
+              aria-label={strings.modals.descriptionLabel}
+              rows={2}
+            />
+          </div>
+        ) : (
+          <Select
+            value={rewardId}
+            onChange={val => setRewardId(val)}
+            placeholder={strings.rewards.noReward}
+            ariaLabel={strings.rewards.rewardOnCompletion}
+            options={[
+              { value: '', label: strings.rewards.noReward },
+              ...state.rewards.map(r => ({
+                value: r.id,
+                label: r.name,
+                icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>,
+                meta: r.status === 'claimed' ? strings.rewards.badgeClaimed : undefined
+              }))
+            ]}
+            createOption={{
+              label: strings.modals.createRewardOption,
+              placeholder: strings.modals.newRewardPlaceholder,
+              onCreate: rewardName => setRewardDraft({ name: rewardName, emoji: '🎁', description: '' })
+            }}
+          />
+        )}
+      </div>
+
+      <div className="modal-actions">
         <button type="button" className="btn-action" onClick={onClose}>
           {strings.common.cancel}
         </button>

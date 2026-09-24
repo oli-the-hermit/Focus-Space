@@ -6,5 +6,5 @@ export interface BadgeProps {
 }
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary' }) => {
-  return <span className={`nav-badge badge-${variant}`}>{children}</span>;
+  return <span className={`chip ${variant === 'primary' ? 'chip--accent' : ''} badge-${variant}`}>{children}</span>;
 };

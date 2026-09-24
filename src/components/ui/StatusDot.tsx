@@ -7,9 +7,11 @@ export interface StatusDotProps {
 
 export const StatusDot: React.FC<StatusDotProps> = ({ status = 'idle', label }) => {
   return (
-    <div className="header-status">
-      <span className={`status-dot ${status}`} />
-      {label && <span>{label}</span>}
+    <div className={`status-chip is-${status}`}>
+      <span className="status-chip-main">
+        <span className={`status-dot ${status}`} />
+        {label && <span>{label}</span>}
+      </span>
     </div>
   );
 };

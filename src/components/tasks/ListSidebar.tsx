@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
 import { strings } from '../../constants/strings';
-import { IconGrip, IconTrash } from '../ui/icons';
+import { IconGrip, IconPlus, IconTrash } from '../ui/icons';
 
 export const ListSidebar: React.FC = () => {
   const { state, setActiveList, openModal, deleteList, reorderTaskLists } = useApp();
@@ -55,8 +55,9 @@ export const ListSidebar: React.FC = () => {
     <div className="card tasks-sidebar">
       <div className="panel-card-header">
         <span className="panel-card-title">{strings.tasks.sidebarTitle}</span>
-        <button className="btn-action" id="addListBtn" onClick={handleCreateList}>
-          {strings.tasks.newListBtn}
+        <button className="btn-action tonal sm" id="addListBtn" onClick={handleCreateList}>
+          <IconPlus size={15} strokeWidth={2.4} />
+          {strings.tasks.newListBtn.replace('+ ', '')}
         </button>
       </div>
 

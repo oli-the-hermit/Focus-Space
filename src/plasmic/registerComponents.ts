@@ -5,12 +5,11 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { StatCard } from '../components/ui/StatCard';
 
-import { BrandHeader } from '../components/header/BrandHeader';
-import { NavigationTabs } from '../components/header/NavigationTabs';
+import { NavRail } from '../components/shell/NavRail';
+import { TopBar } from '../components/shell/TopBar';
 
-import { TimerRing } from '../components/timer/TimerRing';
 import { TimerControls } from '../components/timer/TimerControls';
-import { TimerCard } from '../components/timer/TimerCard';
+import { PlayerCard } from '../components/timer/PlayerCard';
 
 import { TaskItem } from '../components/tasks/TaskItem';
 import { TaskListCard } from '../components/tasks/TaskListCard';
@@ -119,33 +118,21 @@ export function registerAllPlasmicComponents(plasmic: PlasmicRegistry) {
   });
 
   // Header & Navigation
-  plasmic.registerComponent(BrandHeader, {
-    name: 'BrandHeader',
-    displayName: 'App Brand Header',
+  plasmic.registerComponent(TopBar, {
+    name: 'TopBar',
+    displayName: 'App Top Bar',
     category: 'Focus Space Layout',
     props: {}
   });
 
-  plasmic.registerComponent(NavigationTabs, {
-    name: 'NavigationTabs',
-    displayName: 'Navigation Tabs',
+  plasmic.registerComponent(NavRail, {
+    name: 'NavRail',
+    displayName: 'Navigation Rail',
     category: 'Focus Space Layout',
     props: {}
   });
 
   // Timer & Focus
-  plasmic.registerComponent(TimerRing, {
-    name: 'TimerRing',
-    displayName: 'Timer Circular Ring',
-    category: 'Focus Space Timer',
-    props: {
-      remainingSec: { type: 'number', defaultValue: 1500 },
-      totalSec: { type: 'number', defaultValue: 1500 },
-      sessionName: { type: 'string', defaultValue: 'Deep Work' },
-      phase: { type: 'choice', options: ['focus', 'break'], defaultValue: 'focus' }
-    }
-  });
-
   plasmic.registerComponent(TimerControls, {
     name: 'TimerControls',
     displayName: 'Timer Action Controls',
@@ -155,9 +142,9 @@ export function registerAllPlasmicComponents(plasmic: PlasmicRegistry) {
     }
   });
 
-  plasmic.registerComponent(TimerCard, {
-    name: 'TimerCard',
-    displayName: 'Timer Main Card',
+  plasmic.registerComponent(PlayerCard, {
+    name: 'PlayerCard',
+    displayName: 'Timer Player Card',
     category: 'Focus Space Timer',
     props: {}
   });

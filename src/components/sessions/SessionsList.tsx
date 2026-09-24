@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { SessionItem } from './SessionItem';
 import { Session } from '../../types';
 import { strings } from '../../constants/strings';
+import { IconPlus } from '../ui/icons';
 
 export const SessionsList: React.FC = () => {
   const {
@@ -62,11 +63,12 @@ export const SessionsList: React.FC = () => {
   };
 
   return (
-    <div className="card panel-card">
+    <div className="card panel-card sessions-panel">
       <div className="panel-card-header">
         <span className="panel-card-title">{strings.timer.sessionsTitle}</span>
-        <button className="btn-action" id="addSessionBtn" onClick={handleAddSession}>
-          {strings.timer.newSessionBtn}
+        <button className="btn-action tonal sm" id="addSessionBtn" onClick={handleAddSession}>
+          <IconPlus size={15} strokeWidth={2.4} />
+          {strings.timer.newSessionBtn.replace('+ ', '')}
         </button>
       </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Reward, RewardTrigger, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
+import { Select } from '../ui/Select';
 
 export interface RewardModalProps {
   reward?: Reward | null;
@@ -11,7 +12,7 @@ export interface RewardModalProps {
 const FREQUENCY_OPTIONS: GoalFrequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'custom'];
 
 export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => {
-  const { state, addReward, updateReward } = useApp();
+  const { state, addReward, updateReward, createSession } = useApp();
 
   const [name, setName] = useState(reward ? reward.name : '');
   const [description, setDescription] = useState(reward ? (reward.description || reward.desc || '') : '');
@@ -91,7 +92,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
         <label className="form-label">{strings.modals.rewardNameLabel}</label>
         <input
@@ -120,7 +121,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
           <label className="form-label">{strings.modals.emojiLabel}</label>
           <input
             type="text"
-            className="form-input"
+            className="form-input emoji-input"
             value={emoji}
             onChange={e => setEmoji(e.target.value)}
             placeholder="🎁"
@@ -129,50 +130,57 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         </div>
         <div className="form-group">
           <label className="form-label">{strings.modals.frequencyPeriodLabel}</label>
-          <select
-            className="form-select"
+          <Select
             value={frequency}
-            onChange={e => setFrequency(e.target.value as GoalFrequency)}
-          >
-            {FREQUENCY_OPTIONS.map(f => (
-              <option key={f} value={f}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </option>
-            ))}
-          </select>
+            onChange={val => setFrequency(val as GoalFrequency)}
+            options={FREQUENCY_OPTIONS.map(f => ({
+              value: f,
+              label: f.charAt(0).toUpperCase() + f.slice(1)
+            }))}
+          />
         </div>
       </div>
 
       <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.linkSessionLabel}</label>
-        <select
-          className="form-select"
+        <Select
           value={linkedSessionId}
-          onChange={e => setLinkedSessionId(e.target.value)}
-        >
-          <option value="">{strings.rewards.noSessionLinked}</option>
-          {state.sessions.map(s => (
-            <option key={s.id} value={s.id}>
-              {s.name} ({s.focusMinutes}m)
-            </option>
-          ))}
-        </select>
+          onChange={val => setLinkedSessionId(val)}
+          placeholder={strings.rewards.noSessionLinked}
+          ariaLabel={strings.rewards.linkSessionLabel}
+          options={[
+            { value: '', label: strings.rewards.noSessionLinked },
+            ...state.sessions.map(s => ({
+              value: s.id,
+              label: s.name,
+              meta: `${s.focusMinutes}m`
+            }))
+          ]}
+          createOption={{
+            label: strings.modals.newSessionOption,
+            placeholder: strings.modals.newSessionPlaceholder,
+            onCreate: sessionName => {
+              const newId = createSession({ name: sessionName, focusMinutes: 25, breakMinutes: 5, rewardId: null });
+              setLinkedSessionId(newId);
+            }
+          }}
+        />
       </div>
 
       <div className="form-group form-group-spaced">
         <label className="form-label">{strings.rewards.linkGoalLabel}</label>
-        <select
-          className="form-select"
+        <Select
           value={linkedGoalId}
-          onChange={e => setLinkedGoalId(e.target.value)}
-        >
-          <option value="">{strings.rewards.noGoalLinked}</option>
-          {state.goals.map(g => (
-            <option key={g.id} value={g.id}>
-              {g.name || g.title}
-            </option>
-          ))}
-        </select>
+          onChange={val => setLinkedGoalId(val)}
+          placeholder={strings.rewards.noGoalLinked}
+          options={[
+            { value: '', label: strings.rewards.noGoalLinked },
+            ...state.goals.map(g => ({
+              value: g.id,
+              label: g.name || g.title
+            }))
+          ]}
+        />
       </div>
 
       <div className="modal-actions modal-form-actions">
