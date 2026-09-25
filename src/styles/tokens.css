@@ -90,7 +90,8 @@
   --z-popover:        1000;
   --z-toast:          1100;
 
-  --font:             'Geist', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
+  /* Self-hosted via @fontsource-variable/geist (imported in main.tsx), so it works offline */
+  --font:             'Geist Variable', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
   --transition:       0.16s ease;
   --transition-md:    0.26s cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);

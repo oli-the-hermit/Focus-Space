@@ -38,7 +38,7 @@ export const theme = {
     ringBreakProgress: '#5EC8B8'
   },
   typography: {
-    fontFamily: "'Geist', 'Segoe UI Variable', system-ui, -apple-system, sans-serif",
+    fontFamily: "'Geist Variable', 'Segoe UI Variable', system-ui, -apple-system, sans-serif",
     fontSizeXs: '0.75rem',
     fontSizeSm: '0.875rem',
     fontSizeBase: '1rem',

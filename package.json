@@ -9,11 +9,13 @@
     "start": "npm run build && node server/index.js --static",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "dev:web": "vite",
     "tauri": "tauri",
     "desktop": "tauri dev",
     "desktop:build": "tauri build"
   },
   "dependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
     "@tauri-apps/api": "^2.11.1",
     "better-sqlite3": "^13.0.3",
     "express": "^5.2.1",

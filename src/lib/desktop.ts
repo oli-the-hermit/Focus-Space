@@ -9,6 +9,8 @@
 import type { TimerSnapshot } from './timerSnapshot';
 
 export const MINI_WINDOW_LABEL = 'mini';
+/** URL hash that makes `main.tsx` render the mini player instead of the app. */
+export const MINI_WINDOW_HASH = '#mini';
 export const EVT_TIMER_STATE = 'fs:timer-state';
 export const EVT_TIMER_COMMAND = 'fs:timer-command';
 
@@ -78,11 +80,9 @@ export async function openDesktopMini(onDestroyed: () => void): Promise<void> {
 
   const prefs = loadMiniPrefs();
   const hasPosition = typeof prefs.x === 'number' && typeof prefs.y === 'number';
-  // Absolute URL: the app may be served from an external origin (the local Express server).
-  const url = new URL('/?view=mini', window.location.origin).href;
-
   const mini = new WebviewWindow(MINI_WINDOW_LABEL, {
-    url,
+    // App-relative, so it resolves to the dev server or the bundled UI alike.
+    url: `index.html${MINI_WINDOW_HASH}`,
     title: 'Focus Space · Mini player',
     width: MINI_WIDTH,
     height: MINI_HEIGHT,

@@ -1,7 +1,7 @@
 [package]
 name = "focus-space"
 version = "1.0.0"
-description = "Focus Space desktop shell"
+description = "Focus Space desktop app"
 authors = ["sanmilano"]
 license = ""
 repository = ""
@@ -15,11 +15,32 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.6.3" }
+tauri-build = { version = "2.6.3", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
-tauri = { version = "2.11.6" }
+tauri = { version = "2.11.6", features = [] }
 tauri-plugin-log = "2"
+tauri-plugin-single-instance = "2"
+# Local backend (port of server/): SQLite compiled in, so end users need nothing installed.
+rusqlite = { version = "0.32", features = ["bundled"] }
+pbkdf2 = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+rand = "0.8"
+subtle = "2.6"
+
+# PBKDF2 runs 310k iterations per login; optimize dependencies even in dev/test
+# builds so logging in doesn't take seconds while developing.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

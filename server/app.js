@@ -1,3 +1,5 @@
+// KEEP IN SYNC with src-tauri/src/backend/ (the desktop app's Rust port of this API).
+// Routes, validation, status codes and error messages must match in both.
 import express from 'express';
 import { getDb } from './db.js';
 import { hashPassword, verifyPassword, generateToken, hashToken } from './crypto.js';
