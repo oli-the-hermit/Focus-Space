@@ -1,0 +1,97 @@
+{
+  "$comment": "Guardrails for the SSoT refactor (documentation/refactor-plan.md). Every design value comes from src/styles/tokens.css. Rules start as warnings and become errors as each phase lands.",
+  "plugins": [
+    "stylelint-declaration-strict-value"
+  ],
+  "rules": {
+    "color-no-hex": [
+      true,
+      {
+        "severity": "warning"
+      }
+    ],
+    "function-disallowed-list": [
+      [
+        "rgb",
+        "rgba",
+        "hsl",
+        "hsla"
+      ],
+      {
+        "severity": "warning",
+        "message": "Colors come from tokens.css."
+      }
+    ],
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "/color$/",
+        "background",
+        "fill",
+        "stroke",
+        "font-size",
+        "font-weight",
+        "line-height",
+        "letter-spacing",
+        "border-radius",
+        "z-index",
+        "box-shadow",
+        "gap",
+        "row-gap",
+        "column-gap",
+        "padding",
+        "/^padding-/",
+        "margin",
+        "/^margin-/"
+      ],
+      {
+        "severity": "warning",
+        "expandShorthand": true,
+        "ignoreFunctions": false,
+        "ignoreValues": [
+          "0",
+          "auto",
+          "inherit",
+          "initial",
+          "unset",
+          "none",
+          "normal",
+          "transparent",
+          "currentColor",
+          "currentcolor",
+          "/^-?\\d*\\.?\\d+%$/",
+          "/^calc\\(/",
+          "/^min\\(/",
+          "/^max\\(/",
+          "/^clamp\\(/",
+          "/^color-mix\\(/"
+        ]
+      }
+    ],
+    "declaration-property-value-disallowed-list": [
+      {
+        "/^transition/": [
+          "/(^|[\\s,])\\d*\\.?\\d+m?s\\b/"
+        ],
+        "/^animation/": [
+          "/(^|[\\s,])\\d*\\.?\\d+m?s\\b/"
+        ]
+      },
+      {
+        "severity": "warning",
+        "message": "Use the --dur-* / --ease-* motion tokens."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/styles/tokens.css"
+      ],
+      "rules": {
+        "color-no-hex": null,
+        "function-disallowed-list": null,
+        "scale-unlimited/declaration-strict-value": null
+      }
+    }
+  ]
+}
