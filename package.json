@@ -17,7 +17,9 @@
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run lint:css && npm run test",
+    "audit:strings": "node scripts/audit/unused-strings.ts",
+    "audit:css": "node scripts/audit/unused-css.ts",
+    "check": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run audit:strings && npm run audit:css",
     "visual:capture": "node scripts/visual/capture.ts",
     "visual:baseline": "node scripts/visual/capture.ts --out documentation/visual/baseline",
     "visual:diff": "node scripts/visual/diff.ts"

@@ -9,7 +9,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT) || 4000;
 const HOST = '127.0.0.1';
-let db;
 
 // Optionally serve the built frontend (production mode): node server/index.js --static
 // or set NODE_ENV=production
@@ -17,7 +16,7 @@ const serveStatic =
   process.argv.includes('--static') || process.env.NODE_ENV === 'production';
 
 try {
-  db = initDb();
+  initDb();
 } catch (err) {
   console.error('Failed to initialize database:', err);
   process.exit(1);

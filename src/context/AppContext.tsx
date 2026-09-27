@@ -11,7 +11,6 @@ import {
   Reward,
   CalendarEvent,
   TimerPhase,
-  TimerStatus,
   CalendarView,
   NotificationSettings,
   ModalType,
@@ -631,7 +630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         osc.start(ctx.currentTime + i * 0.18);
         osc.stop(ctx.currentTime + i * 0.18 + 0.55);
       });
-    } catch (e) {}
+    } catch {}
   };
 
   const ringBell = () => {

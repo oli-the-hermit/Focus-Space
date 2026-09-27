@@ -122,7 +122,6 @@ h1, h2, h3, h4 { font-weight: 650; letter-spacing: -0.015em; }
 .btn-action.danger:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
 
 .btn-action.sm { height: 34px; padding: 0 14px; font-size: 0.85rem; gap: 6px; }
-.btn-action-auto-left { margin-right: auto; }
 
 .btn-text {
   display: inline-flex;

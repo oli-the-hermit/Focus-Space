@@ -46,17 +46,6 @@
 .form-textarea { height: auto; min-height: 84px; padding: 12px 14px; resize: vertical; line-height: 1.5; }
 .emoji-input { text-align: center; font-size: 1.3rem; padding: 0 4px; }
 
-/* Checkbox label rows (notification settings) */
-.form-label.notif-checkbox-label {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-1);
-  cursor: pointer;
-}
-
 /* ── Chips inside forms ─────────────────────────────────── */
 .chip-set { display: flex; flex-wrap: wrap; gap: 8px; }
 .input-chip {

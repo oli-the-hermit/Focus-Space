@@ -23,7 +23,6 @@ type Creator = 'session' | 'list' | 'task' | 'schedule' | 'goal' | 'reward';
 /** Which "new …" action belongs to each page; it's listed first there. */
 const PRIMARY: Record<TabType, Creator> = {
   timer: 'session',
-  agenda: 'schedule',
   tasks: 'task',
   calendar: 'schedule',
   stats: 'session',

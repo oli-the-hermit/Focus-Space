@@ -15,7 +15,6 @@ export const CalendarGrid: React.FC = () => {
   const {
     state,
     openModal,
-    addCalendarEvent,
     updateCalendarEvent,
     deleteCalendarEvent,
     duplicateCalendarEvent,

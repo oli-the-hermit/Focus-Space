@@ -1,4 +1,4 @@
-export type TabType = 'timer' | 'agenda' | 'tasks' | 'calendar' | 'stats' | 'goals' | 'rewards';
+export type TabType = 'timer' | 'tasks' | 'calendar' | 'stats' | 'goals' | 'rewards';
 export type TimerPhase = 'focus' | 'break';
 export type TimerStatus = 'idle' | 'running' | 'paused';
 export type CalendarView = 'week' | 'day' | 'month';

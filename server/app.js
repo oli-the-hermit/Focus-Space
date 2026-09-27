@@ -453,8 +453,8 @@ function createApp() {
   });
 
   // ── Error handler ─────────────────────────────────────────────
-  // eslint-disable-next-line no-unused-vars
-  app.use((err, req, res, next) => {
+  // Express only treats a handler as an error handler when it declares all four arguments.
+  app.use((err, req, res, _next) => {
     if (err.status === 400 && err.type === 'entity.parse.failed') {
       return res.status(400).json({ error: 'We couldn’t save that change. Your data is safe, so please try again.' });
     }

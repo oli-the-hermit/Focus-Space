@@ -26,9 +26,6 @@ export default tseslint.config(
       'src-tauri/**',
       'documentation/**',
       'npm/**',
-      'original-mockup/**',
-      'app.js',
-      'styles.css',
       'public/**'
     ]
   },

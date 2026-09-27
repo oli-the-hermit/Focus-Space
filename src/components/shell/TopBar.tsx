@@ -11,7 +11,6 @@ import { WindowControls } from './WindowControls';
 
 const PAGE_TITLES: Record<TabType, string> = {
   timer: strings.tabs.timer,
-  agenda: strings.tabs.agenda,
   tasks: strings.tabs.tasks,
   calendar: strings.tabs.calendar,
   stats: strings.tabs.stats,

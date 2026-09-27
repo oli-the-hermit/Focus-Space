@@ -682,23 +682,6 @@
 .seg-option:hover { color: var(--text-1); background: var(--surface-3); }
 .seg-option.active { background: var(--accent); color: var(--on-accent); }
 
-.profile-avatar-row { display: flex; align-items: center; gap: 16px; }
-.profile-avatar-lg {
-  width: 72px;
-  height: 72px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 1.5rem;
-  font-weight: 700;
-  overflow: hidden;
-}
-.profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
-.profile-avatar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-
 .profile-list { display: flex; flex-direction: column; gap: 6px; }
 .profile-row {
   display: flex;

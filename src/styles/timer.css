@@ -175,10 +175,7 @@
 .ctrl-btn.ghost.is-on { color: var(--phase-text, var(--accent-text)); }
 .ctrl-btn.primary { width: 76px; height: 76px; background: var(--phase, var(--accent)); color: var(--on-phase, var(--on-accent)); }
 .ctrl-btn.primary:hover:not(:disabled) { background: var(--phase-hover, var(--accent-hover)); }
-.ctrl-btn.primary .icon-play,
 .ctrl-btn.primary svg { margin-left: 0; }
-
-.timer-controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
 
 /* Up next / reward */
 .player-foot {
