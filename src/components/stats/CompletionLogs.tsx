@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatDuration } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
+import { IconCheck } from '../ui/icons';
 
 export const CompletionLogs: React.FC = () => {
   const { state } = useApp();
@@ -25,14 +26,14 @@ export const CompletionLogs: React.FC = () => {
             return (
               <div key={log.id} className="log-item">
                 <div className="log-item-left">
-                  <span>✅</span>
+                  <IconCheck size={16} />
                   <span className="log-item-text">{log.taskText}</span>
                   <span className="log-item-tag">
                     [{log.listName || 'List'}]
                   </span>
                 </div>
                 <div className="log-item-right-wrap">
-                  <span className="log-item-time">⏱️ {formatDuration(log.durationSeconds)}</span>
+                  <span className="log-item-time">{formatDuration(log.durationSeconds)}</span>
                   <span className="log-item-timestamp">{dStr}</span>
                 </div>
               </div>

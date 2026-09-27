@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Landmark } from '../../types';
 import { strings } from '../../constants/strings';
@@ -46,6 +48,8 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
     onClose();
   };
 
+  const dirty = useDirty([name, rewardId, startDate, dueDate]);
+
   return (
     <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
@@ -87,14 +91,12 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         />
       </div>
 
-      <div className="modal-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary" disabled={datesInvalid}>
-          {landmark ? strings.common.save : strings.modals.addLandmarkBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryDisabled={datesInvalid}
+        primaryLabel={landmark ? strings.common.save : strings.modals.addLandmarkBtn}
+      />
     </form>
   );
 };

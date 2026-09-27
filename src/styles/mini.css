@@ -1,5 +1,10 @@
 /* ═══════════════════════════════════════════════════════════
    Mini player (Tauri window or Document Picture-in-Picture)
+
+   One markup, three layouts chosen by the window's size:
+     compact  (default)  timer tile | title, scrubber, controls
+     portrait (tall)     column: window controls, progress ring, title, controls
+     large    (big)      big timer panel | title, tiles, scrubber, controls
  ═══════════════════════════════════════════════════════════ */
 
 html.mini-root,
@@ -11,14 +16,19 @@ html.mini-root #root {
   background: var(--surface-1);
 }
 
+.mini-shell {
+  height: 100vh;
+  container: mini / size;
+}
+
 .mini-player {
   --phase: var(--accent);
   --on-phase: var(--on-accent);
   --phase-text: var(--accent-text);
   position: relative;
-  height: 100vh;
+  height: 100%;
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr);
+  grid-template-columns: clamp(96px, 30cqw, 150px) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   background: var(--surface-1);
@@ -33,7 +43,10 @@ html.mini-root #root {
   --phase-text: var(--break);
 }
 
+/* ── Timer tile ─────────────────────────────────────────── */
 .mini-art {
+  position: relative;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,19 +55,39 @@ html.mini-root #root {
   border-radius: var(--radius-md);
   background: var(--surface-2);
   color: var(--phase-text);
-  transition: background var(--transition-md), color var(--transition-md);
+  transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard);
 }
 .mini-player.is-running .mini-art { background: var(--phase); color: var(--on-phase); }
-.mini-art-phase { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.mini-art-phase {
+  position: relative;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
 .mini-art-time {
-  font-size: 1.85rem;
+  position: relative;
+  font-size: clamp(1.5rem, 20cqh, 2.4rem);
   font-weight: 650;
   line-height: 1;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
 }
+.mini-art-sub { display: none; }
 
-.mini-main { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.mini-ring { display: none; }
+.mini-ring circle { fill: none; stroke-width: 5; }
+.mini-ring-track { stroke: var(--surface-3); }
+.mini-ring-fill {
+  stroke: var(--phase);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.5s linear, stroke var(--dur-3) var(--ease-standard);
+}
+
+/* ── Right column ───────────────────────────────────────── */
+.mini-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
 
 .mini-top { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
 .mini-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-top: 1px; }
@@ -87,7 +120,9 @@ html.mini-root #root {
 .mini-win-btn:hover { background: var(--surface-2); color: var(--text-1); }
 .mini-win-btn.is-on { background: var(--accent-container); color: var(--on-accent-container); }
 
-.mini-scrubber .scrubber-track { height: 4px; background: var(--surface-3); }
+.mini-cards { display: none; }
+
+.mini-scrubber .scrubber-track { height: 6px; background: var(--surface-3); }
 .mini-scrubber .scrubber-fill { background: var(--phase); }
 
 .mini-bottom { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
@@ -102,12 +137,158 @@ html.mini-root #root {
   border-radius: 50%;
   background: var(--surface-2);
   color: var(--text-1);
-  transition: background var(--transition);
+  transition: background var(--transition), transform var(--dur-1) var(--ease-standard);
 }
 .mini-ctrl:hover { background: var(--surface-3); }
-.mini-ctrl--play { width: 42px; height: 42px; background: var(--phase); color: var(--on-phase); }
+.mini-ctrl:active { transform: scale(0.92); }
+.mini-ctrl--play {
+  width: 42px;
+  height: 42px;
+  background: var(--phase);
+  color: var(--on-phase);
+  transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard), transform var(--dur-1) var(--ease-standard);
+}
 .mini-ctrl--play:hover { background: var(--phase); filter: brightness(1.08); }
 
 .mini-player.is-waiting { display: flex; align-items: center; justify-content: center; }
 .mini-waiting { font-size: 0.87rem; color: var(--text-2); }
 .mini-close-solo { position: absolute; top: 8px; right: 8px; }
+
+/* Very narrow compact: drop the elapsed/total labels before anything else. */
+@container mini (max-width: 330px) {
+  .mini-time-small { display: none; }
+  .mini-bottom { justify-content: center; }
+}
+
+/* ── Portrait: a column, like a phone music player ─────── */
+@container mini (orientation: portrait) and (min-height: 300px) {
+  .mini-player {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'controls'
+      'art'
+      'titles'
+      'bottom';
+    gap: 14px;
+    padding: 12px 16px 18px;
+  }
+  /* Flatten the wrappers so their children can be placed on the grid. */
+  .mini-main,
+  .mini-top { display: contents; }
+  .mini-window-controls { grid-area: controls; justify-self: end; }
+  .mini-art {
+    grid-area: art;
+    justify-self: center;
+    align-self: center;
+    width: min(100%, 100cqh - 190px);
+    max-width: 320px;
+    aspect-ratio: 1;
+    height: auto;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--phase-text);
+  }
+  .mini-player.is-running .mini-art { background: var(--surface-2); color: var(--phase-text); }
+  .mini-ring { display: block; position: absolute; inset: 6%; width: 88%; height: 88%; }
+  .mini-art-time { font-size: clamp(1.8rem, 13cqw, 3.4rem); }
+  .mini-art-sub {
+    display: block;
+    position: relative;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .mini-titles { grid-area: titles; align-items: center; text-align: center; padding: 0 4px; }
+  .mini-title { font-size: 1.05rem; max-width: 100%; }
+  .mini-subtitle { max-width: 100%; }
+  .mini-scrubber { display: none; }
+  .mini-bottom { grid-area: bottom; justify-content: center; }
+  .mini-time-small { display: none; }
+  .mini-controls { gap: 18px; }
+  .mini-ctrl { width: 44px; height: 44px; }
+  .mini-ctrl--play { width: 60px; height: 60px; }
+}
+
+/* ── Large: the space above the timeline becomes tiles ── */
+@container mini (min-width: 560px) and (min-height: 260px) {
+  .mini-player {
+    grid-template-columns: clamp(180px, 32cqw, 300px) minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+  }
+  .mini-art { border-radius: var(--radius-lg); gap: 8px; }
+  .mini-art-time { font-size: clamp(2.4rem, 11cqw, 4.2rem); }
+  .mini-art-phase { font-size: 0.72rem; }
+  .mini-art-sub {
+    display: block;
+    position: relative;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .mini-main { gap: 12px; }
+  .mini-title { font-size: 1.1rem; }
+  .mini-subtitle { font-size: 0.85rem; }
+
+  .mini-cards {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+  .mini-tile {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .mini-tile--progress { background: var(--accent-container); color: var(--on-accent-container); }
+  .mini-player.is-break .mini-tile--progress { background: var(--break-container); color: var(--on-break-container); }
+  .mini-tile--tasks { grid-column: 1 / -1; justify-content: flex-start; }
+  .mini-tile-label { font-size: 0.72rem; font-weight: 600; color: var(--text-2); }
+  .mini-tile--progress .mini-tile-label { color: inherit; }
+  .mini-tile-value {
+    font-size: clamp(1.2rem, 4.2cqw, 1.9rem);
+    font-weight: 650;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .mini-tile-meta { font-size: 0.78rem; color: var(--text-2); }
+  .mini-tile-bar { display: block; height: 6px; border-radius: var(--radius-pill); background: var(--surface-1); overflow: hidden; }
+  .mini-tile-bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--phase);
+    transition: width 0.5s linear, background var(--dur-3) var(--ease-standard);
+  }
+  .mini-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+  }
+  .mini-task-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-task-list li::before { content: '○'; margin-right: 8px; color: var(--text-3); }
+
+  .mini-ctrl { width: 40px; height: 40px; }
+  .mini-ctrl--play { width: 52px; height: 52px; }
+}
+
+/* Large but short: keep one row of tiles. */
+@container mini (min-width: 560px) and (min-height: 260px) and (max-height: 340px) {
+  .mini-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); }
+  .mini-tile--tasks { display: none; }
+}

@@ -144,7 +144,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const win = await pip.requestWindow({ width: MINI_WIDTH, height: MINI_HEIGHT });
     copyStyles(win.document);
     win.document.documentElement.classList.add('mini-root');
-    win.document.title = 'Focus Space';
+    win.document.title = strings.mini.pipTitle;
     win.addEventListener('pagehide', () => {
       setPipWindow(null);
       setIsOpen(false);
@@ -169,7 +169,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     } catch (err) {
       console.warn('Mini player failed:', err);
-      app.showToast('Could not open the mini player.');
+      app.showToast(strings.toasts.miniPlayerUnavailable);
     }
   };
 

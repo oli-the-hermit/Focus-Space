@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { ActiveModal } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { Modal } from '../ui/Modal';
 import { SessionModal } from './SessionModal';
@@ -13,12 +14,21 @@ import { NotificationModal } from './NotificationModal';
 import { strings } from '../../constants/strings';
 
 export const ModalManager: React.FC = () => {
-  const { activeModal, closeModal } = useApp();
+  const { activeModal: current, closeModal } = useApp();
+
+  // Keep rendering the last modal while it plays its exit animation, and give
+  // every opening its own key so form state never leaks into the next one.
+  const lastRef = useRef<ActiveModal | null>(null);
+  const openIdRef = useRef(0);
+  if (current && current !== lastRef.current) openIdRef.current += 1;
+  if (current) lastRef.current = current;
+  const activeModal = current || lastRef.current;
+  const isOpen = !!current;
 
   if (!activeModal) return null;
 
   if (activeModal.type === 'NOTIFICATIONS') {
-    return <NotificationModal isOpen={true} onClose={closeModal} />;
+    return <NotificationModal key={openIdRef.current} isOpen={isOpen} onClose={closeModal} />;
   }
 
   let title = '';
@@ -136,9 +146,8 @@ export const ModalManager: React.FC = () => {
 
   return (
     <Modal
-      // Remount per modal so form state never leaks from one dialog into the next.
-      key={activeModal.type}
-      isOpen={!!activeModal}
+      key={openIdRef.current}
+      isOpen={isOpen}
       title={title}
       wide={wide}
       dismissible={activeModal.type === 'CONFIRM_DELETE'}

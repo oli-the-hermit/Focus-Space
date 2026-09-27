@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Popover } from './Popover';
 import { IconClock } from './icons';
+import { strings } from '../../constants/strings';
 
 export interface TimePickerProps {
   /** 'HH:MM' (24h). */
@@ -78,7 +79,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, id, ari
         <button
           type="button"
           className="picker-icon-btn"
-          aria-label="Choose time"
+          aria-label={strings.ui.chooseTime}
           aria-haspopup="listbox"
           aria-expanded={open}
           // Keep focus in the input so its blur handler doesn't fight this toggle.
@@ -99,7 +100,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, id, ari
           className="picker-input"
           value={draft}
           aria-label={ariaLabel}
-          placeholder="HH:MM"
+          placeholder={strings.ui.timePlaceholder}
           maxLength={5}
           onChange={e => setDraft(e.target.value)}
           onFocus={() => setOpen(true)}

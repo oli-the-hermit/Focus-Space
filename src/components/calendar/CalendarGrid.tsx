@@ -3,7 +3,9 @@ import { useApp } from '../../context/AppContext';
 import { CalendarEvent } from '../../types';
 import { formatDateStr, getDaysInMonth, getWeekRange, parseDateStr, getTodayStr } from '../../lib/dateUtils';
 import { strings } from '../../constants/strings';
-import { IconCopy, IconTrash } from '../ui/icons';
+import { IconCalendar, IconCopy, IconEdit, IconList, IconTrash } from '../ui/icons';
+import { useContextMenu } from '../ui/ContextMenu';
+import { isDragLeavingElement } from '../../lib/dnd';
 
 const FIRST_HOUR = 7;
 const LAST_HOUR = 22;
@@ -21,6 +23,7 @@ export const CalendarGrid: React.FC = () => {
     setCalendarView
   } = useApp();
 
+  const contextMenu = useContextMenu();
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
@@ -43,8 +46,8 @@ export const CalendarGrid: React.FC = () => {
     }
   };
 
-  const handleDragLeaveSlot = () => {
-    setDragOverSlot(null);
+  const handleDragLeaveSlot = (e: React.DragEvent) => {
+    if (isDragLeavingElement(e)) setDragOverSlot(null);
   };
 
   const handleDropOnSlot = (e: React.DragEvent, targetDate: string, targetTime: string) => {
@@ -80,6 +83,22 @@ export const CalendarGrid: React.FC = () => {
       onConfirm: () => deleteCalendarEvent(event.id)
     });
   };
+
+  const openEventMenu = (e: React.MouseEvent, ev: CalendarEvent) => {
+    e.stopPropagation();
+    contextMenu(e, [
+      { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: () => handleEditEvent(ev) },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateCalendarEvent(ev.id) },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteEvent(ev) }
+    ]);
+  };
+
+  const openSlotMenu = (e: React.MouseEvent, date: string, time: string) =>
+    contextMenu(e, [
+      { key: 'schedule', label: strings.contextMenu.scheduleHere, icon: <IconCalendar size={16} />, onSelect: () => handleQuickAdd(date, time) },
+      view !== 'day' && { key: 'day', label: strings.contextMenu.openDay, icon: <IconList size={16} />, onSelect: () => openDayView(date) }
+    ]);
 
   // 1. MONTH VIEW
   if (view === 'month') {
@@ -141,6 +160,7 @@ export const CalendarGrid: React.FC = () => {
                 key={idx}
                 className={`cal-month-cell ${!cell.isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isDragOver ? 'drag-over-active' : ''}`}
                 onClick={() => handleQuickAdd(cell.dStr, strings.calendar.quickAddPromptTime)}
+                onContextMenu={e => openSlotMenu(e, cell.dStr, strings.calendar.quickAddPromptTime)}
                 onDragOver={e => handleDragOverSlot(e, `month_${cell.dStr}`)}
                 onDragLeave={handleDragLeaveSlot}
                 onDrop={e => handleDropOnSlot(e, cell.dStr, strings.calendar.quickAddPromptTime)}
@@ -156,6 +176,7 @@ export const CalendarGrid: React.FC = () => {
                       draggable={true}
                       title={`${ev.startTime} ${ev.title}`}
                       onDragStart={e => handleDragStart(e, ev.id)}
+                      onContextMenu={e => openEventMenu(e, ev)}
                       onClick={e => {
                         e.stopPropagation();
                         handleEditEvent(ev);
@@ -250,6 +271,7 @@ export const CalendarGrid: React.FC = () => {
                     data-date={dStr}
                     data-time={timeStr}
                     onClick={() => handleQuickAdd(dStr, timeStr)}
+                    onContextMenu={e => openSlotMenu(e, dStr, timeStr)}
                     onDragOver={e => handleDragOverSlot(e, slotKey)}
                     onDragLeave={handleDragLeaveSlot}
                     onDrop={e => handleDropOnSlot(e, dStr, timeStr)}
@@ -272,6 +294,7 @@ export const CalendarGrid: React.FC = () => {
                     data-eid={ev.id}
                     style={{ top: `${topPct}%`, height: `${heightPct}%` }}
                     onDragStart={e => handleDragStart(e, ev.id)}
+                    onContextMenu={e => openEventMenu(e, ev)}
                     onClick={e => {
                       e.stopPropagation();
                       handleEditEvent(ev);

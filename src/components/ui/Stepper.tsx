@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { IconMinus, IconPlus } from './icons';
+import { strings } from '../../constants/strings';
 
 export interface StepperProps {
   value: number;
@@ -50,7 +51,7 @@ export const Stepper: React.FC<StepperProps> = ({
         className="stepper-btn"
         onClick={() => bump(-1)}
         disabled={value <= min}
-        aria-label="Decrease"
+        aria-label={strings.ui.decrease}
         tabIndex={-1}
       >
         <IconMinus size={16} strokeWidth={2.4} />
@@ -88,7 +89,7 @@ export const Stepper: React.FC<StepperProps> = ({
         className="stepper-btn"
         onClick={() => bump(1)}
         disabled={value >= max}
-        aria-label="Increase"
+        aria-label={strings.ui.increase}
         tabIndex={-1}
       >
         <IconPlus size={16} strokeWidth={2.4} />

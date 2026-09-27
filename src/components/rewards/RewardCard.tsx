@@ -2,7 +2,8 @@ import React from 'react';
 import { Reward } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
+import { IconEdit, IconCopy, IconGift, IconTrash } from '../ui/icons';
+import { useContextMenu } from '../ui/ContextMenu';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -12,6 +13,7 @@ export interface RewardCardProps {
 
 export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isClaimed }) => {
   const { openModal, duplicateReward, deleteReward, claimReward } = useApp();
+  const contextMenu = useContextMenu();
 
   const claimed = isClaimed || reward.status === 'claimed';
   const ready = showClaim !== undefined ? showClaim : reward.status === 'ready';
@@ -26,17 +28,32 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
 
   const handleDelete = () => {
     openModal('CONFIRM_DELETE', {
-      title: `${strings.common.delete} ${strings.rewards.badgeGoal}`,
-      message: `${strings.common.delete} "${reward.name}"?`,
-      confirmLabel: `${strings.common.delete} ${strings.rewards.badgeGoal}`,
+      title: strings.rewards.deleteRewardTitle,
+      message: strings.sessions.deleteConfirmPrompt.replace('{name}', reward.name),
+      confirmLabel: strings.common.delete,
       onConfirm: () => deleteReward(reward.id)
     });
   };
+
+  const openRewardMenu = (e: React.MouseEvent) =>
+    contextMenu(e, [
+      ready && !claimed && {
+        key: 'claim',
+        label: strings.contextMenu.claimReward,
+        icon: <IconGift size={15} />,
+        onSelect: () => claimReward(reward.id)
+      },
+      !claimed && { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: handleEdit },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateReward(reward.id) },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: handleDelete }
+    ]);
 
   return (
     <div
       className={`reward-card ${reward.status === 'ready' ? 'ready' : ''} ${claimed ? 'claimed' : ''}`}
       data-rid={reward.id}
+      onContextMenu={openRewardMenu}
     >
       <div className="reward-card-header">
         <div className="reward-card-emoji">{reward.emoji || reward.icon || '🎁'}</div>

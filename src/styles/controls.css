@@ -285,14 +285,18 @@
 }
 .popover.is-above { animation-name: popover-in-above; }
 .popover.is-measuring { visibility: hidden; animation: none; }
+.popover.is-leaving { animation: popover-out var(--dur-1) var(--ease-accel) forwards; }
 
 @keyframes popover-in {
-  from { transform: translateY(-4px) scale(0.98); }
-  to { transform: none; }
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
 }
 @keyframes popover-in-above {
-  from { transform: translateY(4px) scale(0.98); }
-  to { transform: none; }
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes popover-out {
+  to { opacity: 0; transform: scale(0.98); }
 }
 
 /* ── Menu ───────────────────────────────────────────────── */
@@ -315,6 +319,20 @@
 .menu-item.is-danger { color: var(--danger); }
 .menu-item.is-danger .menu-item-icon { color: var(--danger); }
 .menu-item.is-danger:hover:not(:disabled) { background: var(--danger-container); }
+.menu-item:focus-visible { outline: none; background: var(--surface-4); }
+.menu-item:disabled { color: var(--text-3); }
+.menu-item:disabled .menu-item-icon { color: var(--text-3); }
+.menu-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.menu-item-hint {
+  flex: none;
+  margin-left: 16px;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.menu-divider { height: 1px; margin: 6px 4px; background: var(--surface-4); }
+.context-menu { min-width: 224px; }
 
 /* ── Date & time pickers ────────────────────────────────── */
 .picker { position: relative; display: flex; width: 100%; min-width: 0; }

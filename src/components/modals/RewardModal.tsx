@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Reward, RewardTrigger, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
@@ -90,6 +92,8 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
     }
     onClose();
   };
+
+  const dirty = useDirty([name, description, emoji, frequency, linkedSessionId, linkedGoalId]);
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
@@ -183,14 +187,11 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         />
       </div>
 
-      <div className="modal-actions modal-form-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary">
-          {reward ? strings.common.saveChanges : strings.modals.createRewardBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryLabel={reward ? strings.common.saveChanges : strings.modals.createRewardBtn}
+      />
     </form>
   );
 };

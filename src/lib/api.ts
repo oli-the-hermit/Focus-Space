@@ -1,4 +1,5 @@
 import { isTauri } from './desktop';
+import { strings } from '../constants/strings';
 
 export interface ApiErrorBody {
   error?: string;
@@ -8,7 +9,7 @@ export class ApiError extends Error {
   status: number;
 
   constructor(status: number, message: string) {
-    super(message || `Request failed (${status})`);
+    super(message || strings.errors.requestInterruptedCode.replace('{status}', String(status)));
     this.name = 'ApiError';
     this.status = status;
   }
@@ -23,7 +24,8 @@ interface DesktopApiResponse {
 function unwrap<T>(status: number, data: unknown): T {
   if (status === 204) return undefined as T;
   if (status < 200 || status >= 300) {
-    const message = (data as ApiErrorBody | null)?.error || `Request failed (HTTP ${status})`;
+    const message =
+      (data as ApiErrorBody | null)?.error || strings.errors.requestInterruptedCode.replace('{status}', String(status));
     throw new ApiError(status, message);
   }
   return data as T;
@@ -70,7 +72,7 @@ async function request<T>(
       body: body !== undefined ? JSON.stringify(body) : undefined
     });
   } catch {
-    throw new ApiError(0, 'Cannot reach the local app server. Is it running? (npm run dev)');
+    throw new ApiError(0, strings.auth.serverUnreachable);
   }
 
   if (res.status === 204) return undefined as T;

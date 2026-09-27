@@ -5,6 +5,7 @@ import { strings } from '../../constants/strings';
 import { UserBadge } from '../auth/UserBadge';
 import { UserMenuModal } from '../auth/UserMenuModal';
 import { IconCalendar, IconGift, IconStats, IconTarget, IconTasks, IconTimer } from '../ui/icons';
+import { isTauri } from '../../lib/desktop';
 
 const NAV_ITEMS: { tab: TabType; label: string; icon: React.ReactNode }[] = [
   { tab: 'timer', label: strings.rail.timer, icon: <IconTimer size={22} /> },
@@ -22,8 +23,8 @@ export const NavRail: React.FC = () => {
   const readyRewardsCount = state.rewards.filter(r => r.status === 'ready').length;
 
   return (
-    <nav className="nav-rail" aria-label={strings.rail.navLabel}>
-      <div className="nav-rail-brand" title={strings.app.title}>
+    <nav className="nav-rail" aria-label={strings.rail.navLabel} data-tour="nav">
+      <div className="nav-rail-brand" title={strings.app.title} {...(isTauri() ? { 'data-tauri-drag-region': true } : {})}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <polyline points="12 7 12 12 15.5 14" />
@@ -44,6 +45,9 @@ export const NavRail: React.FC = () => {
               onClick={() => setActiveTab(item.tab)}
             >
               <span className="nav-rail-indicator">
+                {/* The active pill is its own element so page changes can slide it
+                    between items as a shared-element view transition. */}
+                {isActive && <span className="nav-rail-pill" aria-hidden="true" />}
                 {item.icon}
                 {badge > 0 && (
                   <span className="nav-badge" id="rewardBadge" aria-label={`${badge} ${strings.rewards.readyToClaim}`}>
@@ -65,7 +69,7 @@ export const NavRail: React.FC = () => {
         />
       </div>
 
-      {menuView && <UserMenuModal view={menuView} onClose={() => setMenuView(null)} />}
+      <UserMenuModal view={menuView} onClose={() => setMenuView(null)} />
     </nav>
   );
 };

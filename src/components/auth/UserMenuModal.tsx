@@ -5,9 +5,12 @@ import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
 import { Profile } from '../../types';
 import { SettingsView } from './SettingsView';
+import { FormActions } from '../ui/FormActions';
+import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
 
 export interface UserMenuModalProps {
-  view: 'profile' | 'settings';
+  /** Which view to show; null closes the modal (with its exit animation). */
+  view: 'profile' | 'settings' | null;
   onClose: () => void;
 }
 
@@ -17,14 +20,23 @@ function initials(name: string): string {
   return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
+const MIN_PASSWORD = 8;
+
 export const UserMenuModal: React.FC<UserMenuModalProps> = ({ view, onClose }) => {
-  const title = view === 'profile' ? strings.profile.title : strings.settings.title;
+  // Remember the last view so the content stays put while the modal closes.
+  const lastView = useRef<'profile' | 'settings'>('profile');
+  if (view) lastView.current = view;
+  const shown = view ?? lastView.current;
+  const title = shown === 'profile' ? strings.profile.title : strings.settings.title;
   return (
-    <Modal isOpen title={title} wide onClose={onClose}>
-      {view === 'profile' ? <ProfileView /> : <SettingsView />}
+    <Modal isOpen={!!view} title={title} wide onClose={onClose}>
+      {shown === 'profile' ? <ProfileView /> : <SettingsView />}
     </Modal>
   );
 };
+
+/** `inert` keeps collapsed fields out of the tab order (React 18 has no typed prop). */
+const inertUnless = (open: boolean) => (open ? {} : ({ inert: '' } as Record<string, string>));
 
 // ── PROFILE VIEW ─────────────────────────────────────────────────────────
 const ProfileView: React.FC = () => {
@@ -32,6 +44,7 @@ const ProfileView: React.FC = () => {
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [avatar, setAvatar] = useState(profile?.avatar ?? '');
+  const [pwOpen, setPwOpen] = useState(false);
   const [curPw, setCurPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -40,9 +53,47 @@ const ProfileView: React.FC = () => {
   const [deleteStep, setDeleteStep] = useState<'none' | 'confirm' | 'password'>('none');
   const [deletePw, setDeletePw] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const curPwRef = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
   const isOwner = profile.role === 'owner';
+
+  const identityDirty =
+    displayName !== (profile.displayName ?? '') ||
+    username !== (profile.username ?? '') ||
+    avatar !== (profile.avatar ?? '');
+  const pwLongEnough = newPw.length >= MIN_PASSWORD;
+  const pwMatch = newPw.length > 0 && newPw === confirmPw;
+  const pwValid = curPw.length > 0 && pwLongEnough && pwMatch;
+  const dirty = identityDirty || (pwOpen && !!(curPw || newPw || confirmPw));
+  // With the password section open, Save waits until every rule passes.
+  const canSave =
+    !saving &&
+    (identityDirty || pwOpen) &&
+    (!pwOpen || pwValid) &&
+    !!displayName.trim() &&
+    !!username.trim();
+
+  const openPassword = () => {
+    setPwOpen(true);
+    setError('');
+    window.setTimeout(() => curPwRef.current?.focus(), 60);
+  };
+
+  const closePassword = () => {
+    setPwOpen(false);
+    setCurPw('');
+    setNewPw('');
+    setConfirmPw('');
+    setError('');
+  };
+
+  const discard = () => {
+    setDisplayName(profile.displayName ?? '');
+    setUsername(profile.username ?? '');
+    setAvatar(profile.avatar ?? '');
+    closePassword();
+  };
 
   const pickAvatar = (file: File | undefined | null) => {
     setError('');
@@ -55,13 +106,14 @@ const ProfileView: React.FC = () => {
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const size = 128;
+        const size = 256;
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-        const scale = Math.min(size / img.width, size / img.height);
+        // Cover-crop to a square so the round frame is always filled.
+        const scale = Math.max(size / img.width, size / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
         ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
@@ -72,7 +124,7 @@ const ProfileView: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const saveProfile = async () => {
+  const save = async () => {
     setError('');
     if (!displayName.trim() || !username.trim()) {
       setError(strings.auth.fieldRequired);
@@ -80,42 +132,23 @@ const ProfileView: React.FC = () => {
     }
     setSaving(true);
     try {
-      const res = await api.put<{ profile: Profile }>(
-        '/api/profile',
-        { displayName: displayName.trim(), username: username.trim(), avatar },
-        token
-      );
-      refreshProfile(res.profile);
-      showToast(strings.profile.savedMsg);
+      if (identityDirty) {
+        const res = await api.put<{ profile: Profile }>(
+          '/api/profile',
+          { displayName: displayName.trim(), username: username.trim(), avatar },
+          token
+        );
+        refreshProfile(res.profile);
+      }
+      if (pwOpen) {
+        // Shows its own toast (and signs out other sessions).
+        await changePassword(curPw, newPw);
+        closePassword();
+      } else {
+        showToast(strings.profile.savedMsg);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : strings.profile.usernameTakenMsg);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const savePassword = async () => {
-    setError('');
-    if (!curPw || !newPw) {
-      setError(strings.auth.fieldRequired);
-      return;
-    }
-    if (newPw.length < 8) {
-      setError(strings.auth.weakPassword);
-      return;
-    }
-    if (newPw !== confirmPw) {
-      setError(strings.profile.passwordsDontMatchMsg);
-      return;
-    }
-    setSaving(true);
-    try {
-      await changePassword(curPw, newPw);
-      setCurPw('');
-      setNewPw('');
-      setConfirmPw('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : strings.profile.wrongPasswordMsg);
     } finally {
       setSaving(false);
     }
@@ -128,7 +161,7 @@ const ProfileView: React.FC = () => {
       await deleteOwnProfile(deletePw);
       showToast(strings.profile.deleteOwnExecMsg);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      setError(err instanceof Error ? err.message : strings.profile.deleteOwnFallback);
       setDeletePw('');
       setDeleteStep('password');
       setSaving(false);
@@ -137,104 +170,143 @@ const ProfileView: React.FC = () => {
 
   return (
     <>
-      {/* Basic info */}
-      <div className="profile-avatar-row">
-        <span className="profile-avatar-lg">
-          {avatar ? <img src={avatar} alt="" className="user-avatar-img" /> : initials(displayName)}
-        </span>
-        <div className="profile-avatar-actions">
-          <button type="button" className="btn-action" onClick={() => fileRef.current?.click()}>
-            {strings.profile.changePhotoBtn}
+      {/* Identity: photo on the left, name and username on the right */}
+      <div className="profile-identity">
+        <div className={`profile-photo ${avatar ? 'has-photo' : ''}`}>
+          <span className="profile-photo-img" aria-hidden="true">
+            {avatar ? <img src={avatar} alt="" /> : initials(displayName || username)}
+          </span>
+          <button
+            type="button"
+            className="profile-photo-edit"
+            onClick={() => fileRef.current?.click()}
+            aria-label={strings.profile.changePhotoBtn}
+            title={strings.profile.changePhotoBtn}
+          >
+            <IconEdit size={18} />
           </button>
           {avatar && (
-            <button type="button" className="btn-action" onClick={() => setAvatar('')}>
-              {strings.profile.removePhotoBtn}
+            <button
+              type="button"
+              className="profile-photo-remove"
+              onClick={() => setAvatar('')}
+              aria-label={strings.profile.removePhotoBtn}
+              title={strings.profile.removePhotoBtn}
+            >
+              <IconTrash size={14} />
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={e => {
+              pickAvatar(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+        </div>
+
+        <div className="profile-fields">
+          <div className="form-group">
+            <label className="form-label" htmlFor="profileName">{strings.profile.nameLabel}</label>
+            <input
+              id="profileName"
+              className="form-input"
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={40}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label" htmlFor="profileUsername">{strings.profile.usernameLabel}</label>
+            <input
+              id="profileUsername"
+              className="form-input"
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              maxLength={24}
+              autoComplete="username"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Password: collapsed until the user asks to change it */}
+      <div className={`password-block ${pwOpen ? 'is-open' : ''}`}>
+        <div className="password-row">
+          <span className="password-row-icon"><IconLock size={18} /></span>
+          <div className="password-row-text">
+            <span className="password-row-title">{strings.profile.passwordLabel}</span>
+            <span className="password-row-hint">{strings.profile.passwordHint}</span>
+          </div>
+          {pwOpen ? (
+            <button type="button" className="btn-action sm" onClick={closePassword}>
+              {strings.profile.keepPasswordBtn}
+            </button>
+          ) : (
+            <button type="button" className="btn-action tonal sm" onClick={openPassword}>
+              {strings.profile.changePasswordBtn}
             </button>
           )}
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={e => {
-            pickAvatar(e.target.files?.[0]);
-            e.target.value = '';
-          }}
-        />
-      </div>
 
-      <div className="form-group">
-        <label className="form-label">{strings.profile.nameLabel}</label>
-        <input
-          className="form-input"
-          type="text"
-          value={displayName}
-          onChange={e => setDisplayName(e.target.value)}
-          maxLength={40}
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">{strings.profile.usernameLabel}</label>
-        <input
-          className="form-input"
-          type="text"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          maxLength={24}
-        />
-      </div>
-
-      <button type="button" className="btn-action primary" onClick={saveProfile} disabled={saving}>
-        {strings.profile.saveBtn}
-      </button>
-
-      <div className="section-divider" />
-
-      {/* Password change */}
-      <h4 className="section-title">{strings.profile.passwordSectionTitle}</h4>
-      <div className="form-group">
-        <label className="form-label">{strings.profile.currentPasswordLabel}</label>
-        <input
-          className="form-input"
-          type="password"
-          value={curPw}
-          onChange={e => setCurPw(e.target.value)}
-          autoComplete="current-password"
-        />
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">{strings.profile.newPasswordLabel}</label>
-          <input
-            className="form-input"
-            type="password"
-            value={newPw}
-            onChange={e => setNewPw(e.target.value)}
-            autoComplete="new-password"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{strings.profile.confirmPasswordLabel}</label>
-          <input
-            className="form-input"
-            type="password"
-            value={confirmPw}
-            onChange={e => setConfirmPw(e.target.value)}
-            autoComplete="new-password"
-          />
+        <div className="collapsible" data-open={pwOpen}>
+          <div className="collapsible-inner" {...inertUnless(pwOpen)}>
+            <div className="password-fields">
+              <div className="form-group">
+                <label className="form-label" htmlFor="curPw">{strings.profile.currentPasswordLabel}</label>
+                <input
+                  ref={curPwRef}
+                  id="curPw"
+                  className="form-input"
+                  type="password"
+                  value={curPw}
+                  onChange={e => setCurPw(e.target.value)}
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="newPw">{strings.profile.newPasswordLabel}</label>
+                  <input
+                    id="newPw"
+                    className="form-input"
+                    type="password"
+                    value={newPw}
+                    onChange={e => setNewPw(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="confirmPw">{strings.profile.confirmPasswordLabel}</label>
+                  <input
+                    id="confirmPw"
+                    className="form-input"
+                    type="password"
+                    value={confirmPw}
+                    onChange={e => setConfirmPw(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+              </div>
+              <ul className="pw-rules" aria-live="polite">
+                <li className={pwLongEnough ? 'is-met' : ''}>
+                  <IconCheck size={14} strokeWidth={2.6} />
+                  {strings.profile.ruleLength}
+                </li>
+                <li className={pwMatch ? 'is-met' : ''}>
+                  <IconCheck size={14} strokeWidth={2.6} />
+                  {strings.profile.ruleMatch}
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-      <button type="button" className="btn-action" onClick={savePassword} disabled={saving}>
-        {strings.profile.saveBtn}
-      </button>
-
-      {error && (
-        <div className="auth-error" role="alert">
-          {error}
-        </div>
-      )}
 
       {/* Delete own profile (regular users only) */}
       {!isOwner && (
@@ -291,6 +363,21 @@ const ProfileView: React.FC = () => {
           )}
         </>
       )}
+
+      {error && (
+        <div className="auth-error" role="alert">
+          {error}
+        </div>
+      )}
+
+      <FormActions
+        dirty={dirty}
+        cancelLabel={strings.common.discardChanges}
+        onCancel={discard}
+        primaryLabel={strings.profile.saveBtn}
+        primaryDisabled={!canSave}
+        onPrimary={save}
+      />
     </>
   );
 };

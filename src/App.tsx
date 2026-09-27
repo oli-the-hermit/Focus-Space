@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from './context/AppContext';
 import { NavRail } from './components/shell/NavRail';
 import { TopBar } from './components/shell/TopBar';
@@ -28,16 +28,18 @@ import { MiniPlayerProvider } from './mini/MiniPlayerProvider';
 import { strings } from './constants/strings';
 import { formatDuration } from './lib/formatUtils';
 import { IconCheck, IconClock, IconTimer } from './components/ui/icons';
+import { ContextMenuProvider } from './components/ui/ContextMenu';
+import { useGlobalMenuItems } from './components/shell/globalMenu';
+import { HelpModal } from './components/help/HelpModal';
+import { OnboardingTour } from './components/onboarding/OnboardingTour';
+import { AlertCard } from './components/alerts/AlertCard';
+import { useShortcuts } from './hooks/useShortcuts';
+
+/** Delay before the first-run tour starts, so the app has painted first. */
+const TOUR_DELAY_MS = 600;
 
 export const AppContent: React.FC = () => {
-  const {
-    state,
-    activeTab,
-    toasts,
-    authStatus
-  } = useApp();
-
-  const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  const { authStatus } = useApp();
 
   if (authStatus === 'loading') {
     return (
@@ -70,6 +72,37 @@ export const AppContent: React.FC = () => {
     return <LoginScreen />;
   }
 
+  return (
+    <MiniPlayerProvider>
+      <AppShell />
+    </MiniPlayerProvider>
+  );
+};
+
+/** The signed-in app. Lives inside MiniPlayerProvider so menus and shortcuts can use it. */
+const AppShell: React.FC = () => {
+  const {
+    state,
+    activeTab,
+    toasts,
+    tourActive,
+    startTour,
+    activeAlert,
+    dismissAlert,
+    runAlertAction
+  } = useApp();
+  const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  const getGlobalItems = useGlobalMenuItems();
+  useShortcuts();
+
+  // First run on this profile: welcome tour (once; it sets tourSeen when closed).
+  useEffect(() => {
+    if (state.tourSeen || tourActive) return;
+    const t = window.setTimeout(startTour, TOUR_DELAY_MS);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tourSeen]);
+
   // Stats calculations
   const datesSet = new Set<string>();
   state.sessionLogs.forEach(s => datesSet.add(s.date));
@@ -84,7 +117,7 @@ export const AppContent: React.FC = () => {
   const avgTaskSec = state.taskCompletionLogs.length > 0 ? Math.round(totalTaskDuration / state.taskCompletionLogs.length) : 0;
 
   return (
-    <MiniPlayerProvider>
+    <ContextMenuProvider getGlobalItems={getGlobalItems}>
       <div className="app-shell">
         <NavRail />
 
@@ -95,9 +128,9 @@ export const AppContent: React.FC = () => {
             {/* ── TAB: TIMER & SESSIONS ─────────────────────────── */}
             <section className={`tab-page ${activeTab === 'timer' ? 'active' : ''}`} id="tab-timer">
               <div className="timer-layout">
-                <aside className="timer-layout-player"><PlayerCard /></aside>
-                <div className="timer-layout-tasks"><SessionTaskLists /></div>
-                <aside className="timer-layout-queue"><SessionsList /></aside>
+                <aside className="timer-layout-player" data-tour="player"><PlayerCard /></aside>
+                <div className="timer-layout-tasks" data-tour="session-tasks"><SessionTaskLists /></div>
+                <aside className="timer-layout-queue" data-tour="sessions"><SessionsList /></aside>
               </div>
             </section>
 
@@ -105,19 +138,19 @@ export const AppContent: React.FC = () => {
             <section className={`tab-page ${activeTab === 'tasks' ? 'active' : ''}`} id="tab-tasks">
               <TwoColumnLayout
                 className="tasks-layout-container"
-                sidebar={<ListSidebar />}
-                content={<TaskListCard />}
+                sidebar={<div data-tour="lists"><ListSidebar /></div>}
+                content={<div data-tour="list-content"><TaskListCard /></div>}
               />
             </section>
 
             {/* ── TAB: CALENDAR ─────────────────────────────────── */}
-            <section className={`tab-page tab-page--fill ${activeTab === 'calendar' ? 'active' : ''}`} id="tab-calendar">
+            <section className={`tab-page tab-page--fill ${activeTab === 'calendar' ? 'active' : ''}`} id="tab-calendar" data-tour="calendar">
               <CalendarTopbar />
               <CalendarGrid />
             </section>
 
             {/* ── TAB: STATS ────────────────────────────────────── */}
-            <section className={`tab-page ${activeTab === 'stats' ? 'active' : ''}`} id="tab-stats">
+            <section className={`tab-page ${activeTab === 'stats' ? 'active' : ''}`} id="tab-stats" data-tour="stats">
               <div className="stats-overview-grid">
                 <StatCard icon={<IconTimer size={20} />} value={avgSessions} label={strings.stats.avgSessionsDay} />
                 <StatCard icon={<IconClock size={20} />} value={formatDuration(avgWorkedSecs)} label={strings.stats.avgWorkedDay} />
@@ -132,12 +165,12 @@ export const AppContent: React.FC = () => {
             </section>
 
             {/* ── TAB: GOALS & LANDMARKS ────────────────────────── */}
-            <section className={`tab-page ${activeTab === 'goals' ? 'active' : ''}`} id="tab-goals">
+            <section className={`tab-page ${activeTab === 'goals' ? 'active' : ''}`} id="tab-goals" data-tour="goals">
               <GoalsGrid />
             </section>
 
             {/* ── TAB: REWARDS ──────────────────────────────────── */}
-            <section className={`tab-page ${activeTab === 'rewards' ? 'active' : ''}`} id="tab-rewards">
+            <section className={`tab-page ${activeTab === 'rewards' ? 'active' : ''}`} id="tab-rewards" data-tour="rewards">
               <RewardsGrid />
             </section>
           </main>
@@ -148,10 +181,22 @@ export const AppContent: React.FC = () => {
 
         <div className="toast-container" id="toastContainer" role="status" aria-live="polite">
           {toasts.map(t => (
-            <div key={t.id} className="toast">
+            <div key={t.id} className={`toast ${t.leaving ? 'is-leaving' : ''}`}>
               {t.message}
             </div>
           ))}
+        </div>
+
+        {/* In-app alert island (phase end, upcoming session) */}
+        <div className="alert-host">
+          {activeAlert && (
+            <AlertCard
+              key={activeAlert.id}
+              payload={activeAlert}
+              onAction={action => runAlertAction(action, activeAlert)}
+              onDismiss={dismissAlert}
+            />
+          )}
         </div>
 
         {/* Modal Manager for all dynamic modals */}
@@ -162,7 +207,10 @@ export const AppContent: React.FC = () => {
           isOpen={isNotifModalOpen}
           onClose={() => setIsNotifModalOpen(false)}
         />
+
+        <HelpModal />
+        <OnboardingTour />
       </div>
-    </MiniPlayerProvider>
+    </ContextMenuProvider>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useId, useMemo } from 'react';
 import { IconChevronDown, IconCheck, IconPlus, IconSearch } from './icons';
 import { Popover } from './Popover';
+import { strings } from '../../constants/strings';
 
 export interface SelectOption<T = string> {
   value: T;
@@ -253,20 +254,20 @@ export const Select = <T extends string | number>({
               ref={searchRef}
               type="text"
               value={query}
-              placeholder="Search…"
+              placeholder={strings.ui.search}
               onChange={e => {
                 setQuery(e.target.value);
                 setHighlightedIndex(0);
               }}
               onKeyDown={handleNavKeyDown}
-              aria-label="Search options"
+              aria-label={strings.ui.searchOptions}
             />
           </div>
         )}
 
         <ul ref={listRef} id={listboxId} role="listbox" aria-label={ariaLabel || 'Options'} className="select-options">
           {visibleOptions.length === 0 && !createOption && (
-            <li className="select-empty">No matches</li>
+            <li className="select-empty">{strings.ui.noMatches}</li>
           )}
           {visibleOptions.map((option, index) => {
             const isSelected = option.value === value;
@@ -321,7 +322,7 @@ export const Select = <T extends string | number>({
                   className="select-create-confirm"
                   onClick={commitCreate}
                   disabled={!draftName.trim()}
-                  aria-label="Create"
+                  aria-label={strings.ui.create}
                 >
                   <IconCheck size={16} strokeWidth={2.6} />
                 </button>

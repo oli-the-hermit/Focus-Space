@@ -3,9 +3,10 @@ import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
 import { TaskListBody } from './TaskListBody';
 import { Select } from '../ui/Select';
-import { Menu } from '../ui/Menu';
+import { Menu, MenuItem } from '../ui/Menu';
+import { useContextMenu } from '../ui/ContextMenu';
 import { strings } from '../../constants/strings';
-import { IconChevronDown, IconCopy, IconEdit, IconTrash, IconUnlink } from '../ui/icons';
+import { IconChevronDown, IconCopy, IconEdit, IconPlus, IconTrash, IconUnlink } from '../ui/icons';
 
 export interface TaskListPanelProps {
   list: TaskList;
@@ -29,6 +30,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
 }) => {
   const { state, createList, duplicateList, deleteList, openModal } = useApp();
   const remaining = list.tasks.filter(t => !t.completed).length;
+  const contextMenu = useContextMenu();
 
   const handleDelete = () => {
     openModal('CONFIRM_DELETE', {
@@ -39,9 +41,45 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
     });
   };
 
+  // Shared by the overflow menu and a right-click on the header.
+  const menuItems: MenuItem[] = [
+    {
+      key: 'new-task',
+      label: strings.contextMenu.newTask,
+      icon: <IconPlus size={15} />,
+      onSelect: () => openModal('NEW_TASK', { listId: list.id })
+    },
+    {
+      key: 'rename',
+      label: strings.tasks.renameTooltip,
+      icon: <IconEdit size={15} />,
+      onSelect: () => openModal('RENAME_LIST', { list })
+    },
+    {
+      key: 'duplicate',
+      label: strings.tasks.duplicateTooltip,
+      icon: <IconCopy size={15} />,
+      onSelect: () => duplicateList(list.id)
+    },
+    {
+      key: 'detach',
+      label: strings.modals.removeFromSession,
+      icon: <IconUnlink size={15} />,
+      onSelect: onDetach
+    },
+    { key: 'd1', divider: true },
+    {
+      key: 'delete',
+      label: strings.tasks.deleteTooltip,
+      icon: <IconTrash size={15} />,
+      danger: true,
+      onSelect: handleDelete
+    }
+  ];
+
   return (
     <section className={`list-panel ${collapsed ? 'is-collapsed' : ''}`}>
-      <header className="list-panel-header">
+      <header className="list-panel-header" onContextMenu={e => contextMenu(e, menuItems)}>
         <button
           type="button"
           className="icon-btn sm list-panel-collapse"
@@ -80,36 +118,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
           {strings.tasks.tasksLeft.replace('{count}', String(remaining))}
         </span>
 
-        <Menu
-          ariaLabel={strings.timer.moreListActions}
-          items={[
-            {
-              key: 'rename',
-              label: strings.tasks.renameTooltip,
-              icon: <IconEdit size={15} />,
-              onSelect: () => openModal('RENAME_LIST', { list })
-            },
-            {
-              key: 'duplicate',
-              label: strings.tasks.duplicateTooltip,
-              icon: <IconCopy size={15} />,
-              onSelect: () => duplicateList(list.id)
-            },
-            {
-              key: 'detach',
-              label: strings.modals.removeFromSession,
-              icon: <IconUnlink size={15} />,
-              onSelect: onDetach
-            },
-            {
-              key: 'delete',
-              label: strings.tasks.deleteTooltip,
-              icon: <IconTrash size={15} />,
-              danger: true,
-              onSelect: handleDelete
-            }
-          ]}
-        />
+        <Menu ariaLabel={strings.timer.moreListActions} items={menuItems} />
       </header>
 
       {!collapsed && <TaskListBody list={list} />}

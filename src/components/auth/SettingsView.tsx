@@ -85,7 +85,7 @@ export const SettingsView: React.FC = () => {
       setShowAddForm(false);
       await loadProfiles();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create profile');
+      setError(err instanceof Error ? err.message : strings.errors.createProfile);
     } finally {
       setBusy(false);
     }
@@ -100,7 +100,7 @@ export const SettingsView: React.FC = () => {
       setRenamingId(null);
       await loadProfiles();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Rename failed');
+      setError(err instanceof Error ? err.message : strings.errors.renameProfile);
     } finally {
       setBusy(false);
     }
@@ -113,9 +113,9 @@ export const SettingsView: React.FC = () => {
       await api.del(`/api/profiles/${target.id}`, undefined, token);
       setDeleting(null);
       await loadProfiles();
-      showToast(`Profile "${target.displayName}" deleted.`);
+      showToast(strings.toasts.profileRemoved.replace('{name}', target.displayName));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      setError(err instanceof Error ? err.message : strings.errors.deleteProfile);
       setDeleting(null);
     } finally {
       setBusy(false);
@@ -133,7 +133,7 @@ export const SettingsView: React.FC = () => {
       showToast(strings.settings.resetOkMsg + (res.deleted > 0 ? ` (${res.deleted})` : ''));
       await loadProfiles();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Reset failed');
+      setError(err instanceof Error ? err.message : strings.errors.resetProfiles);
     } finally {
       setBusy(false);
     }
@@ -180,7 +180,7 @@ export const SettingsView: React.FC = () => {
                 <div className="profile-row-info">
                   <span className="profile-row-name">
                     {p.displayName}
-                    {p.role === 'owner' && <span className="role-badge">Main</span>}
+                    {p.role === 'owner' && <span className="role-badge">{strings.auth.mainBadge}</span>}
                   </span>
                   <span className="profile-row-meta">
                     @{p.username} · {formatDate(p.createdAt)}

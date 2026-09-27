@@ -9,7 +9,8 @@ import {
   saveMiniPrefs,
   sendCommandToMain,
   setMiniAlwaysOnTop,
-  trackMiniPosition
+  trackMiniPosition,
+  trackMiniSize
 } from '../lib/desktop';
 
 /**
@@ -32,6 +33,7 @@ export const MiniPlayerApp: React.FC = () => {
     } catch {}
     let unlistenState: (() => void) | undefined;
     let unlistenMove: (() => void) | undefined;
+    let unlistenSize: (() => void) | undefined;
     let cancelled = false;
 
     listenForSnapshots(s => setSnapshot(s)).then(fn => {
@@ -45,11 +47,16 @@ export const MiniPlayerApp: React.FC = () => {
       if (cancelled) fn();
       else unlistenMove = fn;
     });
+    trackMiniSize().then(fn => {
+      if (cancelled) fn();
+      else unlistenSize = fn;
+    });
 
     return () => {
       cancelled = true;
       unlistenState?.();
       unlistenMove?.();
+      unlistenSize?.();
     };
   }, []);
 

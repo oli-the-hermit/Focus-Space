@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Task } from '../../types';
 import { strings } from '../../constants/strings';
@@ -26,6 +28,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({ listId, task, onClose }) =
     onClose();
   };
 
+  const dirty = useDirty(text);
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -40,14 +44,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({ listId, task, onClose }) =
         />
       </div>
 
-      <div className="modal-actions modal-form-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary">
-          {task ? strings.common.save : strings.modals.addTaskBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryLabel={task ? strings.common.save : strings.modals.addTaskBtn}
+      />
     </form>
   );
 };

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Goal, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
@@ -64,6 +66,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     onClose();
   };
 
+  const dirty = useDirty([name, type, startDate, dueDate, rewardId]);
+
   return (
     <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
@@ -118,14 +122,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         />
       </div>
 
-      <div className="modal-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary" disabled={datesInvalid}>
-          {goal ? strings.common.saveChanges : strings.modals.createGoalBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryDisabled={datesInvalid}
+        primaryLabel={goal ? strings.common.saveChanges : strings.modals.createGoalBtn}
+      />
     </form>
   );
 };

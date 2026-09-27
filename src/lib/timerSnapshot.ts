@@ -13,6 +13,8 @@ export interface TimerSnapshot {
   /** Length of the phase that follows the current one, in seconds. */
   nextPhaseSeconds: number;
   completedToday: number;
+  /** A few unfinished tasks after the current one (large mini-player layout). */
+  upNextTasks: string[];
   sound: boolean;
   theme: 'light' | 'dark';
 }
@@ -30,6 +32,17 @@ export function getCurrentTask(state: AppState, session: Session | undefined): s
     if (task) return task.text;
   }
   return null;
+}
+
+/** Unfinished tasks across the session's lists, skipping the current one. */
+export function getUpNextTasks(state: AppState, session: Session | undefined, limit = 3): string[] {
+  if (!session) return [];
+  const open: string[] = [];
+  for (const listId of session.taskListIds || []) {
+    const list = state.taskLists.find(l => l.id === listId);
+    for (const t of list?.tasks || []) if (!t.completed) open.push(t.text);
+  }
+  return open.slice(1, 1 + limit);
 }
 
 /** Falls back to the session's configured length when the timer has no total yet. */
@@ -55,6 +68,7 @@ export function buildTimerSnapshot(state: AppState, targetEndTime: number | null
     currentTask: getCurrentTask(state, session),
     nextPhaseSeconds: nextMins * 60,
     completedToday: state.timer.sessionsCompletedToday,
+    upNextTasks: getUpNextTasks(state, session),
     sound: state.sound,
     theme
   };

@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IconClose } from './icons';
+import { strings } from '../../constants/strings';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -15,10 +16,27 @@ export interface ModalProps {
   children: React.ReactNode;
 }
 
+/** Matches --dur-2: how long a closing modal stays mounted to play its exit. */
+const EXIT_MS = 180;
+
 export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = false, dismissible = false, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  // Keep the last content on screen while the exit animation plays.
+  const [mounted, setMounted] = useState(isOpen);
+  const lastRef = useRef({ title, children });
+  if (isOpen) lastRef.current = { title, children };
+
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      return;
+    }
+    const t = window.setTimeout(() => setMounted(false), EXIT_MS);
+    return () => window.clearTimeout(t);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -43,10 +61,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
     };
   }, [isOpen, dismissible]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !mounted) return null;
+  const shown = isOpen ? { title, children } : lastRef.current;
 
   return (
-    <div className="modal-backdrop" id="modalBackdrop">
+    <div className={`modal-backdrop ${isOpen ? '' : 'is-closing'}`} id="modalBackdrop" aria-hidden={!isOpen || undefined}>
       <div
         ref={modalRef}
         className={`modal ${wide ? 'wide' : ''}`}
@@ -56,13 +75,13 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
         aria-labelledby="modalTitle"
       >
         <div className="modal-header">
-          <h3 className="modal-title" id="modalTitle">{title}</h3>
-          <button type="button" className="icon-btn" id="closeModalBtn" aria-label="Close" onClick={onClose}>
+          <h3 className="modal-title" id="modalTitle">{shown.title}</h3>
+          <button type="button" className="icon-btn" id="closeModalBtn" aria-label={strings.ui.close} onClick={onClose}>
             <IconClose size={18} strokeWidth={2.2} />
           </button>
         </div>
         <div className="modal-body" id="modalBody">
-          {children}
+          {shown.children}
         </div>
       </div>
     </div>

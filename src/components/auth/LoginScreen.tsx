@@ -77,7 +77,7 @@ export const LoginScreen: React.FC = () => {
         await login(username.trim(), password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
+      setError(err instanceof Error ? err.message : strings.errors.requestInterrupted);
       setBusy(false);
     }
   };

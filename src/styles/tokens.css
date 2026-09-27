@@ -89,12 +89,21 @@
   --z-celebration:    800;
   --z-popover:        1000;
   --z-toast:          1100;
+  --z-tour:           1200;
 
   /* Self-hosted via @fontsource-variable/geist (imported in main.tsx), so it works offline */
   --font:             'Geist Variable', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
   --transition:       0.16s ease;
   --transition-md:    0.26s cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);
+  /* Motion scale. Opacity is only ever animated in transit, never left translucent. */
+  --dur-1:            100ms;   /* exits, small fades */
+  --dur-2:            180ms;   /* hovers, icon swaps, popovers */
+  --dur-3:            260ms;   /* modals, pages, colour changes */
+  --dur-4:            400ms;   /* spotlight moves, large layout shifts */
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel:       cubic-bezier(0.05, 0.7, 0.1, 1);    /* entering */
+  --ease-accel:       cubic-bezier(0.3, 0, 0.8, 0.15);    /* leaving */
 
   color-scheme: dark;
 }

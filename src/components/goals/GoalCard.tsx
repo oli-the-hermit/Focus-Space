@@ -2,7 +2,8 @@ import React from 'react';
 import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconEdit, IconCopy, IconTrash } from '../ui/icons';
+import { IconCheck, IconEdit, IconCopy, IconFlag, IconReset, IconTrash } from '../ui/icons';
+import { useContextMenu } from '../ui/ContextMenu';
 import { ScheduleBadge } from './ScheduleBadge';
 
 export interface GoalCardProps {
@@ -20,6 +21,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     duplicateLandmark,
     deleteLandmark
   } = useApp();
+  const contextMenu = useContextMenu();
 
   const goalName = goal.name || goal.title || strings.goals.untitledGoal;
   const goalType = goal.type || goal.frequency || 'daily';
@@ -41,9 +43,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
   const handleDeleteGoal = () => {
     openModal('CONFIRM_DELETE', {
-      title: `${strings.common.delete} ${strings.tabs.goals}`,
-      message: `${strings.common.delete} "${goalName}"?`,
-      confirmLabel: `${strings.common.delete} ${strings.tabs.goals}`,
+      title: strings.goals.deleteGoalTitle,
+      message: strings.sessions.deleteConfirmPrompt.replace('{name}', goalName),
+      confirmLabel: strings.common.delete,
       onConfirm: () => deleteGoal(goal.id)
     });
   };
@@ -60,8 +62,42 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     deleteLandmark(goal.id, lmId);
   };
 
+  const cm = strings.contextMenu;
+
+  const openGoalMenu = (e: React.MouseEvent) =>
+    contextMenu(e, [
+      { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: handleEditGoal },
+      { key: 'landmark', label: cm.addLandmark, icon: <IconFlag size={15} />, onSelect: handleAddLandmark },
+      !hasLandmarks && {
+        key: 'toggle',
+        label: goal.completed ? cm.markNotDone : cm.markDone,
+        icon: goal.completed ? <IconReset size={15} /> : <IconCheck size={15} />,
+        onSelect: () => toggleGoal(goal.id)
+      },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateGoal(goal.id) },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: handleDeleteGoal }
+    ]);
+
+  const openLandmarkMenu = (e: React.MouseEvent, lm: Landmark) => {
+    // The goal card's own handler would otherwise replace this menu.
+    e.stopPropagation();
+    contextMenu(e, [
+      {
+        key: 'toggle',
+        label: lm.completed ? cm.markNotDone : cm.markDone,
+        icon: lm.completed ? <IconReset size={15} /> : <IconCheck size={15} />,
+        onSelect: () => toggleLandmark(goal.id, lm.id)
+      },
+      { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: () => handleEditLandmark(lm) },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateLandmark(goal.id, lm.id) },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteLandmark(lm.id) }
+    ]);
+  };
+
   return (
-    <div className="goal-card" data-gid={goal.id}>
+    <div className="goal-card" data-gid={goal.id} onContextMenu={openGoalMenu}>
       <div className="goal-card-header">
         <div className="goal-card-header-info">
           <div className="goal-card-title">{goalName}</div>
@@ -70,7 +106,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
               {goalType.charAt(0).toUpperCase() + goalType.slice(1)}
             </span>
             {linkedReward && (
-              <span className="goal-reward-badge">🎁 {linkedReward.name}</span>
+              <span className="goal-reward-badge">{linkedReward.emoji || linkedReward.icon || '🎁'} {linkedReward.name}</span>
             )}
           </div>
           <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
@@ -119,6 +155,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 key={lm.id}
                 className={`landmark-item ${lm.completed ? 'landmark-done' : ''}`}
                 data-lmid={lm.id}
+                onContextMenu={e => openLandmarkMenu(e, lm)}
               >
                 <input
                   type="checkbox"
@@ -128,7 +165,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 />
                 <span className="landmark-text">{lmName}</span>
                 <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
-                {lmReward && <span className="landmark-reward-tag">🎁 {lmReward.name}</span>}
+                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji || lmReward.icon || '🎁'} {lmReward.name}</span>}
                 <div className="landmark-actions">
                   <button className="icon-btn xs" onClick={() => handleEditLandmark(lm)} title={strings.common.edit}>
                     <IconEdit size={12} />

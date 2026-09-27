@@ -17,6 +17,9 @@ export interface TaskItemProps {
   onDrop: (e: React.DragEvent, id: string) => void;
   isDragging: boolean;
   isDragOver: boolean;
+  /** Just added: plays the enter animation. */
+  isNew?: boolean;
+  onContextMenu?: (e: React.MouseEvent, task: Task) => void;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({
@@ -31,13 +34,17 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onDragLeave,
   onDrop,
   isDragging,
-  isDragOver
+  isDragOver,
+  isNew,
+  onContextMenu
 }) => {
   return (
     <div
-      className={`task-row draggable-item ${task.completed ? 'done' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
+      className={`task-row draggable-item ${task.completed ? 'done' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''} ${isNew ? 'item-enter' : ''}`}
       draggable={true}
       data-tid={task.id}
+      data-id={task.id}
+      onContextMenu={onContextMenu ? e => onContextMenu(e, task) : undefined}
       onDragStart={e => onDragStart(e, task.id)}
       onDragOver={e => onDragOver(e, task.id)}
       onDragLeave={onDragLeave}
@@ -54,7 +61,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
       {task.durationSeconds ? (
         <span className="task-time-badge" title={strings.tasks.completionTimeTooltip}>
-          ⏱️ {formatDuration(task.durationSeconds)}
+          {formatDuration(task.durationSeconds)}
         </span>
       ) : null}
 

@@ -3,6 +3,7 @@ import { Popover } from './Popover';
 import { IconCalendar, IconChevronLeft, IconChevronRight, IconClose } from './icons';
 import { formatDateStr, getDaysInMonth, getTodayStr, parseDateStr } from '../../lib/dateUtils';
 import { formatDateLabel } from '../../lib/formatUtils';
+import { strings } from '../../constants/strings';
 
 export interface DatePickerProps {
   /** 'YYYY-MM-DD', or '' when empty. */
@@ -140,8 +141,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           type="button"
           className="picker-clear"
           onClick={() => onChange('')}
-          aria-label="Clear date"
-          title="Clear"
+          aria-label={strings.ui.clearDate}
+          title={strings.ui.clear}
         >
           <IconClose size={14} strokeWidth={2.4} />
         </button>
@@ -164,7 +165,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               type="button"
               className="icon-btn sm"
               onClick={() => setFocusDate(addMonths(focusDate, -1))}
-              aria-label="Previous month"
+              aria-label={strings.ui.prevMonth}
             >
               <IconChevronLeft size={16} />
             </button>
@@ -172,7 +173,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               type="button"
               className="icon-btn sm"
               onClick={() => setFocusDate(addMonths(focusDate, 1))}
-              aria-label="Next month"
+              aria-label={strings.ui.nextMonth}
             >
               <IconChevronRight size={16} />
             </button>

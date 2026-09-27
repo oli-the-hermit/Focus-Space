@@ -39,10 +39,10 @@ export const AgendaHeroCard: React.FC = () => {
 
       <div className="agenda-hero-meta">
         <div className="agenda-meta-item">
-          🕒 {strings.agenda.startsAt.replace('{time}', nextEvent.startTime)}
+          {strings.agenda.startsAt.replace('{time}', nextEvent.startTime)}
         </div>
         <div className="agenda-meta-item">
-          ⏱️ {strings.agenda.minutesDuration.replace('{duration}', String(nextEvent.durationMins))}
+          {strings.agenda.minutesDuration.replace('{duration}', String(nextEvent.durationMins))}
         </div>
       </div>
 

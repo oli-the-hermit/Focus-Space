@@ -1,6 +1,6 @@
 [package]
 name = "focus-space"
-version = "1.0.0"
+version = "1.1.0"
 description = "Focus Space desktop app"
 authors = ["sanmilano"]
 license = ""
@@ -24,6 +24,9 @@ log = "0.4"
 tauri = { version = "2.11.6", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-single-instance = "2"
+tauri-plugin-opener = "2"
+# Already pulled in by Tauri (its async runtime); used for the alert timer.
+tokio = { version = "1", features = ["time"] }
 # Local backend (port of server/): SQLite compiled in, so end users need nothing installed.
 rusqlite = { version = "0.32", features = ["bundled"] }
 pbkdf2 = "0.12"

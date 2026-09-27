@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskItem } from './TaskItem';
 import { Task, TaskList } from '../../types';
 import { strings } from '../../constants/strings';
-import { IconPlus } from '../ui/icons';
+import { IconCheck, IconCopy, IconEdit, IconPlus, IconReset, IconTrash } from '../ui/icons';
+import { useContextMenu } from '../ui/ContextMenu';
+import { useFlip, useNewIds } from '../../hooks/useListMotion';
+import { isDragLeavingElement } from '../../lib/dnd';
 
 export interface TaskListBodyProps {
   list: TaskList;
@@ -15,6 +18,12 @@ export interface TaskListBodyProps {
  */
 export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   const { addTask, toggleTask, duplicateTask, deleteTask, openModal, reorderTasks } = useApp();
+
+  const contextMenu = useContextMenu();
+  const itemsRef = useRef<HTMLDivElement>(null);
+  const ids = list.tasks.map(t => t.id);
+  const newIds = useNewIds(ids);
+  useFlip(itemsRef, ids);
 
   const [newTaskText, setNewTaskText] = useState('');
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -36,7 +45,9 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
     if (dragOverId !== id) setDragOverId(id);
   };
 
-  const handleDragLeave = () => setDragOverId(null);
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (isDragLeavingElement(e)) setDragOverId(null);
+  };
 
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
@@ -61,6 +72,19 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteTask(lId, task.id)
     });
+  };
+
+  const openTaskMenu = (e: React.MouseEvent, task: Task) => {
+    const cm = strings.contextMenu;
+    contextMenu(e, [
+      task.completed
+        ? { key: 'undo', label: cm.markNotDone, icon: <IconReset size={15} />, onSelect: () => toggleTask(list.id, task.id, false) }
+        : { key: 'done', label: cm.markDone, icon: <IconCheck size={15} />, onSelect: () => toggleTask(list.id, task.id, true) },
+      { key: 'rename', label: strings.common.rename, icon: <IconEdit size={15} />, onSelect: () => handleRenameTask(list.id, task) },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateTask(list.id, task.id) },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteTask(list.id, task) }
+    ]);
   };
 
   return (
@@ -93,7 +117,7 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
         </button>
       </form>
 
-      <div className="task-list-items">
+      <div className="task-list-items" ref={itemsRef}>
         {list.tasks.length === 0 ? (
           <div className="empty-state small">{strings.tasks.emptyTasks}</div>
         ) : (
@@ -112,6 +136,8 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
               onDrop={handleDrop}
               isDragging={draggedId === task.id}
               isDragOver={dragOverId === task.id && draggedId !== task.id}
+              isNew={newIds.has(task.id)}
+              onContextMenu={openTaskMenu}
             />
           ))
         )}

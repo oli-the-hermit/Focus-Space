@@ -17,6 +17,9 @@ export interface SessionItemProps {
   onDrop: (e: React.DragEvent, id: string) => void;
   isDragging: boolean;
   isDragOver: boolean;
+  /** Just created: plays the enter animation. */
+  isNew?: boolean;
+  onContextMenu?: (e: React.MouseEvent, session: Session) => void;
 }
 
 /**
@@ -35,7 +38,9 @@ export const SessionItem: React.FC<SessionItemProps> = ({
   onDragLeave,
   onDrop,
   isDragging,
-  isDragOver
+  isDragOver,
+  isNew,
+  onContextMenu
 }) => {
   const { state } = useApp();
   const reward = session.rewardId ? state.rewards.find(r => r.id === session.rewardId) : null;
@@ -49,7 +54,8 @@ export const SessionItem: React.FC<SessionItemProps> = ({
 
   return (
     <div
-      className={`session-item draggable-item ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
+      className={`session-item draggable-item ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''} ${isNew ? 'item-enter' : ''}`}
+      onContextMenu={onContextMenu ? e => onContextMenu(e, session) : undefined}
       draggable={true}
       data-id={session.id}
       role="button"

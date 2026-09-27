@@ -1,7 +1,7 @@
 {
   "name": "focus-space-time-tracker",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"node server/index.js\" \"vite\"",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-opener": "^2.5.5",
     "better-sqlite3": "^13.0.3",
     "express": "^5.2.1",
     "react": "^18.2.0",

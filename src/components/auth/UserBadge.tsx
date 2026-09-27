@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Popover } from '../ui/Popover';
+import { IconLogOut, IconSettings, IconUser } from '../ui/icons';
 
 export interface UserBadgeProps {
   onOpenProfile: () => void;
@@ -79,7 +80,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSetti
             onOpenProfile();
           }}
         >
-          <span className="menu-item-icon">👤</span>
+          <span className="menu-item-icon"><IconUser /></span>
           {strings.userMenu.profile}
         </button>
         <button
@@ -91,7 +92,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSetti
             onOpenSettings();
           }}
         >
-          <span className="menu-item-icon">⚙️</span>
+          <span className="menu-item-icon"><IconSettings /></span>
           {strings.userMenu.settings}
         </button>
         <button
@@ -101,7 +102,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSetti
           onClick={handleExit}
           disabled={busy}
         >
-          <span className="menu-item-icon">🚪</span>
+          <span className="menu-item-icon"><IconLogOut /></span>
           {strings.userMenu.exit}
         </button>
       </Popover>

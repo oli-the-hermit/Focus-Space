@@ -120,9 +120,14 @@ export interface SessionLog {
 }
 
 export interface NotificationSettings {
+  /** Reminders before scheduled calendar sessions. */
   enabled: boolean;
   leadMinutes: number;
   sound: boolean;
+  /** Alert (with a "start next" action) when a focus or break phase ends. */
+  phaseAlerts: boolean;
+  /** Seconds before an alert hides itself. */
+  autoDismissSec: number;
 }
 
 export interface TimerState {
@@ -158,6 +163,8 @@ export interface AppState {
   timer: TimerState;
   sound: boolean;
   theme: ThemeMode;
+  /** The onboarding tour was finished or closed on this profile. */
+  tourSeen: boolean;
 }
 
 export type ModalType =

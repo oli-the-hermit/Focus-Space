@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Session } from '../../types';
 import { strings } from '../../constants/strings';
@@ -92,6 +94,8 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
     }
     onClose();
   };
+
+  const dirty = useDirty([name, focusMinutes, breakMinutes, taskListIds, rewardId, rewardDraft]);
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
@@ -240,14 +244,11 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
         )}
       </div>
 
-      <div className="modal-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary">
-          {session ? strings.common.saveChanges : strings.modals.createSessionBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryLabel={session ? strings.common.saveChanges : strings.modals.createSessionBtn}
+      />
     </form>
   );
 };

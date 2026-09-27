@@ -1,0 +1,162 @@
+/* ═══════════════════════════════════════════════════════════
+   Motion: transitions and micro-interactions.
+   Short, purposeful and interruptible. Durations and easings come
+   from tokens.css; the reduced-motion rule in base.css turns them off.
+ ═══════════════════════════════════════════════════════════ */
+
+/* ── Phase colours cross-fade everywhere at once ─────────── */
+/* Registering the phase variables as colours lets them transition, so
+   the play button, scrubber, art tile and chips all shift together when
+   focus becomes break (or the timer starts). */
+@property --phase { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }
+@property --phase-hover { syntax: '<color>'; inherits: true; initial-value: #DDE84D; }
+@property --on-phase { syntax: '<color>'; inherits: true; initial-value: #1A1D00; }
+@property --on-phase-2 { syntax: '<color>'; inherits: true; initial-value: #3A4000; }
+@property --phase-text { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }
+
+.player-card,
+.mini-player {
+  transition:
+    --phase var(--dur-3) var(--ease-standard),
+    --phase-hover var(--dur-3) var(--ease-standard),
+    --on-phase var(--dur-3) var(--ease-standard),
+    --on-phase-2 var(--dur-3) var(--ease-standard),
+    --phase-text var(--dur-3) var(--ease-standard);
+}
+.player-art { transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard), transform var(--dur-3) var(--ease-emphasized); }
+.player-art-foot { transition: color var(--dur-3) var(--ease-standard); }
+.ctrl-btn { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard); }
+.phase-chip { transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard); }
+.status-dot { transition: background var(--dur-3) var(--ease-standard); }
+.status-chip-time { transition: color var(--dur-3) var(--ease-standard); }
+
+/* Starting the timer gives the art tile a small "breath". */
+.player-card.is-running .player-art { animation: art-start var(--dur-4) var(--ease-emphasized); }
+@keyframes art-start {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* ── Icon swap (play ↔ pause, sound on ↔ off) ────────────── */
+.icon-swap { position: relative; display: inline-grid; place-items: center; }
+.icon-swap > span {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  transition: opacity var(--dur-2) var(--ease-standard), transform var(--dur-2) var(--ease-emphasized);
+}
+.icon-swap.is-on .icon-swap-off,
+.icon-swap.is-off .icon-swap-on { opacity: 0; transform: scale(0.5) rotate(-60deg); }
+.icon-swap.is-on .icon-swap-on,
+.icon-swap.is-off .icon-swap-off { opacity: 1; transform: none; }
+
+/* ── The bell rings when a phase ends ────────────────────── */
+.bell-icon { transform-origin: 50% 8%; }
+.is-ringing .bell-icon { animation: bell-ring 1s var(--ease-standard) 3; }
+.icon-btn.is-ringing { color: var(--accent-text); background: var(--accent-container); }
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  10% { transform: rotate(16deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(12deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  70% { transform: rotate(0); }
+}
+.player-card.is-ringing .player-art { animation: art-ring 1.2s var(--ease-standard) 2; }
+@keyframes art-ring {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.02); }
+  30% { transform: scale(0.99); }
+  45% { transform: scale(1.01); }
+  60% { transform: scale(1); }
+}
+
+/* ── Press feedback ──────────────────────────────────────── */
+.btn-action,
+.icon-btn,
+.mini-win-btn,
+.window-btn,
+.status-chip-action,
+.help-row {
+  transition-property: background, color, transform;
+  transition-duration: var(--dur-2), var(--dur-2), var(--dur-1);
+  transition-timing-function: var(--ease-standard);
+}
+.btn-action:active:not(:disabled),
+.icon-btn:active:not(:disabled),
+.status-chip-action:active,
+.window-btn:active { transform: scale(0.95); }
+.help-row:active { transform: scale(0.99); }
+
+/* ── Page changes ────────────────────────────────────────── */
+/* With View Transitions (Chromium/WebView2) the page area cross-fades and
+   rises, the title cross-fades, and the rail's active pill slides. */
+.app-main { view-transition-name: page; }
+.top-bar-title { view-transition-name: page-title; }
+html.has-vt .tab-page.active { animation: none; }
+
+::view-transition-old(page) { animation: vt-page-out var(--dur-2) var(--ease-accel) both; }
+::view-transition-new(page) { animation: vt-page-in var(--dur-3) var(--ease-decel) both; }
+::view-transition-old(page-title) { animation: vt-fade-out var(--dur-2) var(--ease-accel) both; }
+::view-transition-new(page-title) { animation: vt-fade-in var(--dur-3) var(--ease-decel) both; }
+::view-transition-group(nav-pill) { animation-duration: var(--dur-3); animation-timing-function: var(--ease-emphasized); }
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+
+@keyframes vt-page-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes vt-page-in { from { opacity: 0; transform: translateY(12px); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+
+/* Without View Transitions the pill grows in from the centre instead. */
+html:not(.has-vt) .nav-rail-pill { animation: pill-in var(--dur-3) var(--ease-emphasized); }
+@keyframes pill-in { from { transform: scaleX(0.4); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ── Modals: exit as well as enter ───────────────────────── */
+.modal-backdrop.is-closing { animation: scrim-out var(--dur-2) var(--ease-accel) forwards; pointer-events: none; }
+.modal-backdrop.is-closing .modal { animation: modal-out var(--dur-2) var(--ease-accel) forwards; }
+@keyframes scrim-out { to { background: transparent; } }
+@keyframes modal-out { to { opacity: 0; transform: translateY(8px) scale(0.98); } }
+
+/* ── Toasts slide out ────────────────────────────────────── */
+.toast { transition: opacity var(--dur-2) var(--ease-accel), transform var(--dur-2) var(--ease-accel); }
+.toast.is-leaving { opacity: 0; transform: translateX(24px); }
+
+/* ── Lists: new rows grow in; reorders glide (useFlip) ───── */
+.item-enter { animation: item-enter var(--dur-3) var(--ease-decel); }
+@keyframes item-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.session-item,
+.list-nav-item { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard); }
+
+/* ── Checking things off ─────────────────────────────────── */
+input[type='checkbox']:not(.switch):checked { animation: check-pop var(--dur-3) var(--ease-emphasized); }
+@keyframes check-pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.task-text,
+.landmark-text { transition: color var(--dur-3) var(--ease-standard); }
+
+/* ── Small pops ──────────────────────────────────────────── */
+.nav-badge { animation: pop-in var(--dur-3) var(--ease-emphasized); }
+@keyframes pop-in {
+  from { transform: scale(0.4); }
+  to { transform: scale(1); }
+}
+
+/* Progress bars ease rather than snap. */
+.progress-fill,
+.goal-progress-fill { transition: width var(--dur-4) var(--ease-emphasized); }

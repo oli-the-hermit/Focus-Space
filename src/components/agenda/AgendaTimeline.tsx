@@ -81,8 +81,8 @@ export const AgendaTimeline: React.FC = () => {
                   </div>
                   <div className="agenda-item-title">{ev.title}</div>
                   <div className="agenda-item-meta">
-                    <span>⏱️ {ev.durationMins} mins</span>
-                    {taskList ? <span>📋 {taskList.name}</span> : null}
+                    <span>{strings.agenda.durationShort.replace('{count}', String(ev.durationMins))}</span>
+                    {taskList ? <span>{strings.agenda.listLabel.replace('{name}', taskList.name)}</span> : null}
                   </div>
                 </div>
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import {
   AppState,
   TabType,
@@ -31,11 +32,40 @@ import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex, exportRawKey, i
 import { strings } from '../constants/strings';
 import { getTodayStr } from '../lib/dateUtils';
 import { formatDuration } from '../lib/formatUtils';
+import { startTicker } from '../lib/ticker';
+import {
+  AlertActionId,
+  AlertActionMessage,
+  AlertPayload,
+  DEFAULT_AUTO_DISMISS_SEC,
+  SW_ALERT_MESSAGE,
+  buildEventAlert,
+  buildPhaseAlert,
+  pageIsInFront,
+  registerAlertWorker,
+  showWebNotification
+} from '../lib/notify';
+import {
+  cancelDesktopAlert,
+  focusMainWindow,
+  isTauri,
+  listenForAlertActions,
+  listenForAlertFired,
+  scheduleDesktopAlert,
+  showDesktopAlert
+} from '../lib/desktop';
 
 interface ToastItem {
   id: string;
   message: string;
+  /** Playing its exit animation; removed shortly after. */
+  leaving?: boolean;
 }
+
+const TOAST_MS = 3500;
+const TOAST_EXIT_MS = 180;
+const RINGING_MS = 4000;
+const EVENT_CHECK_MS = 30_000;
 
 interface AppContextType {
   state: AppState;
@@ -136,6 +166,21 @@ interface AppContextType {
 
   // Appearance
   updateTheme: (theme: ThemeMode) => void;
+
+  // Onboarding & help
+  tourActive: boolean;
+  startTour: () => void;
+  endTour: () => void;
+  helpOpen: boolean;
+  setHelpOpen: (open: boolean) => void;
+
+  // Alerts
+  /** The bell rings for a few seconds after a phase ends. */
+  alertRinging: boolean;
+  /** Alert shown in-app as an island (app in front). */
+  activeAlert: AlertPayload | null;
+  dismissAlert: () => void;
+  runAlertAction: (action: AlertActionId, payload?: AlertPayload | null) => void;
 }
 
 export type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated';
@@ -207,7 +252,7 @@ function normalizeState(raw: unknown): AppState {
     calendarEvents: Array.isArray(r?.calendarEvents) ? (r!.calendarEvents as CalendarEvent[]) : DEFAULT_CALENDAR_EVENTS,
     calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
     calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
-    notifications: (r?.notifications && typeof r.notifications === 'object') ? (r.notifications as NotificationSettings) : { enabled: true, leadMinutes: 10, sound: true },
+    notifications: normalizeNotifications(r?.notifications),
     goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Goal[]) : DEFAULT_GOALS,
     rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Reward[]) : DEFAULT_REWARDS,
     timer: {
@@ -220,8 +265,26 @@ function normalizeState(raw: unknown): AppState {
         : 0
     },
     sound: typeof r?.sound === 'boolean' ? r.sound : true,
-    theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system'
+    theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system',
+    // Missing on data saved before the tour existed, so every profile sees it once.
+    tourSeen: r?.tourSeen === true
   };
+}
+
+function normalizeNotifications(raw: unknown): NotificationSettings {
+  const n = (raw && typeof raw === 'object') ? (raw as Partial<NotificationSettings>) : {};
+  return {
+    enabled: typeof n.enabled === 'boolean' ? n.enabled : true,
+    leadMinutes: typeof n.leadMinutes === 'number' && n.leadMinutes > 0 ? n.leadMinutes : 10,
+    sound: typeof n.sound === 'boolean' ? n.sound : true,
+    phaseAlerts: typeof n.phaseAlerts === 'boolean' ? n.phaseAlerts : true,
+    autoDismissSec: typeof n.autoDismissSec === 'number' && n.autoDismissSec > 0 ? n.autoDismissSec : DEFAULT_AUTO_DISMISS_SEC
+  };
+}
+
+/** True when the user asked the OS for less motion. */
+function prefersReducedMotion(): boolean {
+  return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 
 function resolveThemeMode(mode: ThemeMode): 'light' | 'dark' {
@@ -238,8 +301,27 @@ function applyThemeMode(mode: ThemeMode) {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('timer');
+  const [activeTab, setActiveTabState] = useState<TabType>('timer');
+  const activeTabRef = useRef<TabType>('timer');
+  activeTabRef.current = activeTab;
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [tourActive, setTourActive] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [alertRinging, setAlertRinging] = useState(false);
+  const [activeAlert, setActiveAlert] = useState<AlertPayload | null>(null);
+  const ringingTimerRef = useRef<number | undefined>(undefined);
+
+  // Page changes cross-fade with the View Transitions API where available
+  // (Chromium / WebView2); the nav indicator slides as a shared element.
+  const setActiveTab = (tab: TabType) => {
+    if (tab === activeTabRef.current) return;
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    if (doc.startViewTransition && !prefersReducedMotion() && document.visibilityState === 'visible') {
+      doc.startViewTransition(() => flushSync(() => setActiveTabState(tab)));
+    } else {
+      setActiveTabState(tab);
+    }
+  };
   const [activeCelebrationReward, setActiveCelebrationReward] = useState<Reward | null>(null);
   const [activeModal, setActiveModal] = useState<ActiveModal | null>(null);
 
@@ -382,8 +464,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const id = uid();
     setToasts(prev => [...prev, { id, message }]);
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3500);
+      setToasts(prev => prev.map(t => (t.id === id ? { ...t, leaving: true } : t)));
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), TOAST_EXIT_MS);
+    }, TOAST_MS);
   };
 
   const openModal = ((type: ModalType, payload?: unknown) => {
@@ -440,7 +523,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProfile(res.profile);
     setAuthStatus('authenticated');
     setState(next);
-    showToast(migrated ? 'Existing local data imported into your account.' : 'Welcome! Your main account is ready.');
+    showToast(migrated ? strings.toasts.dataImported : strings.toasts.setupComplete);
   };
 
   const logout = async () => {
@@ -466,7 +549,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     targetEndTimeRef.current = null;
     setProfile(null);
     setAuthStatus('unauthenticated');
-    setActiveTab('timer');
+    setActiveTabState('timer');
+    setTourActive(false);
+    setHelpOpen(false);
+    setActiveAlert(null);
     setState(() => normalizeState(null));
   };
 
@@ -548,6 +634,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (e) {}
   };
 
+  const ringBell = () => {
+    window.clearTimeout(ringingTimerRef.current);
+    setAlertRinging(true);
+    ringingTimerRef.current = window.setTimeout(() => setAlertRinging(false), RINGING_MS);
+  };
+
+  /**
+   * Web delivery: an island inside the page when it's in front, otherwise a
+   * browser notification (with buttons). Desktop alerts are routed by Rust.
+   */
+  const deliverAlert = (payload: AlertPayload) => {
+    if (isTauri()) {
+      showDesktopAlert(payload).catch(() => setActiveAlert(payload));
+      return;
+    }
+    if (pageIsInFront()) {
+      setActiveAlert(payload);
+      return;
+    }
+    showWebNotification(payload).then(shown => {
+      if (!shown) setActiveAlert(payload);
+    });
+  };
+
   // Phase completion handler
   const handlePhaseComplete = (skipped = false) => {
     targetEndTimeRef.current = null;
@@ -560,7 +670,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isFocus) {
       if (!skipped) {
         playChime('focus');
-        showToast('✅ Focus session complete! Time for a break.');
+        announcePhaseEnd('focus');
 
         // Unlock session rewards
         if (currentSession) {
@@ -611,7 +721,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Was break, switch to focus
       if (!skipped) {
         playChime('break');
-        showToast('☀️ Break over! Ready to focus again.');
+        announcePhaseEnd('break');
       }
 
       const focusMins = currentSession?.focusMinutes || 25;
@@ -630,8 +740,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Rings the bell, then alerts (or falls back to the old toast when alerts are off).
+  // On desktop the alert itself comes from Rust's timer, which isn't throttled.
+  const announcePhaseEnd = (endedPhase: TimerPhase) => {
+    ringBell();
+    const n = state.notifications;
+    if (!n.phaseAlerts) {
+      showToast(endedPhase === 'focus' ? strings.toasts.focusComplete : strings.toasts.breakOver);
+      return;
+    }
+    if (!isTauri()) deliverAlert(buildPhaseAlert(endedPhase, n));
+  };
+
   // Timer Wall-Clock Tick Engine (Drift-free, background-resilient)
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<(() => void) | null>(null);
+  // The ticker outlives renders; always call the latest completion handler.
+  const handlePhaseCompleteRef = useRef(handlePhaseComplete);
+  handlePhaseCompleteRef.current = handlePhaseComplete;
 
   useEffect(() => {
     if (state.timer.status === 'running') {
@@ -650,22 +775,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } catch {}
       }
 
-      timerRef.current = window.setInterval(() => {
+      // Ticks from a worker so a hidden tab/minimized window still ends on time.
+      timerRef.current = startTicker(() => {
         const targetEnd = targetEndTimeRef.current;
         if (!targetEnd) return;
         const now = Date.now();
         const remainingSecs = Math.max(0, Math.ceil((targetEnd - now) / 1000));
 
         if (remainingSecs <= 0) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
+          stopTicker();
           targetEndTimeRef.current = null;
           try {
             localStorage.removeItem(TIMER_RUN_KEY);
           } catch {}
-          handlePhaseComplete(false);
+          handlePhaseCompleteRef.current(false);
         } else {
           setState(prev => {
             if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
@@ -677,19 +800,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }, 500);
     } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      stopTicker();
     }
 
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
+    return stopTicker;
   }, [state.timer.status, state.timer.phase, state.activeSessionId]);
+
+  function stopTicker() {
+    timerRef.current?.();
+    timerRef.current = null;
+  }
+
+  // Desktop: mirror the running phase's end in Rust so the alert fires on time
+  // even while WebView2 throttles this window.
+  useEffect(() => {
+    if (!isTauri()) return;
+    const n = state.notifications;
+    if (state.timer.status === 'running' && targetEndTimeRef.current && n.phaseAlerts) {
+      scheduleDesktopAlert(targetEndTimeRef.current, buildPhaseAlert(state.timer.phase, n)).catch(() => {});
+    } else {
+      cancelDesktopAlert().catch(() => {});
+    }
+  }, [
+    state.timer.status,
+    state.timer.phase,
+    state.activeSessionId,
+    state.notifications.phaseAlerts,
+    state.notifications.autoDismissSec
+  ]);
 
   // Re-reads the wall clock; completes the phase if it already elapsed
   const syncTimer = () => {
@@ -715,6 +853,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getTimerTargetEnd = () => targetEndTimeRef.current;
+  const syncTimerRef = useRef(syncTimer);
+  syncTimerRef.current = syncTimer;
 
   // Sync timer immediately on tab visibility / focus change
   useEffect(() => {
@@ -792,10 +932,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    stopTicker();
     targetEndTimeRef.current = null;
     try {
       localStorage.removeItem(TIMER_RUN_KEY);
@@ -819,10 +956,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const skipPhase = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    stopTicker();
     targetEndTimeRef.current = null;
     try {
       localStorage.removeItem(TIMER_RUN_KEY);
@@ -831,6 +965,117 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleSound = () => setState(prev => ({ ...prev, sound: !prev.sound }));
+
+  const toggleTimerRef = useRef(toggleTimer);
+  toggleTimerRef.current = toggleTimer;
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // ── Alerts ──────────────────────────────────────────────────────────
+  const dismissAlert = () => setActiveAlert(null);
+
+  /** Starts the timer only if it isn't already running (alert buttons). */
+  const startTimerIfIdle = () => {
+    syncTimerRef.current();
+    // Runs after the sync's state update, so a just-finished phase is idle by now.
+    setTimeout(() => {
+      if (stateRef.current.timer.status !== 'running') toggleTimerRef.current();
+    }, 0);
+  };
+
+  const runAlertAction = (action: AlertActionId, payload?: AlertPayload | null) => {
+    setActiveAlert(null);
+    window.clearTimeout(ringingTimerRef.current);
+    setAlertRinging(false);
+    if (action === 'start-next') {
+      startTimerIfIdle();
+    } else if (action === 'start-session' && payload?.sessionId) {
+      setActiveTab('timer');
+      setActiveSessionRef.current(payload.sessionId);
+      setTimeout(() => toggleTimerRef.current(), 0);
+    } else if (action === 'open-app' && payload?.kind === 'event-soon') {
+      setActiveTab('calendar');
+    }
+    if (isTauri()) focusMainWindow().catch(() => {});
+    else window.focus();
+  };
+  const runAlertActionRef = useRef(runAlertAction);
+  runAlertActionRef.current = runAlertAction;
+
+  // Desktop: Rust fired an alert, and the island window reports button presses.
+  useEffect(() => {
+    if (!isTauri() || authStatus !== 'authenticated') return;
+    const unlisteners: Promise<() => void>[] = [
+      listenForAlertFired(({ payload, inFront }) => {
+        syncTimerRef.current();
+        if (inFront) setActiveAlert(payload);
+      }),
+      listenForAlertActions((msg: AlertActionMessage) => {
+        if (msg.action !== 'dismiss') runAlertActionRef.current(msg.action, msg.payload);
+      })
+    ];
+    return () => unlisteners.forEach(p => p.then(fn => fn()).catch(() => {}));
+  }, [authStatus]);
+
+  // Web: buttons on a browser notification come back through the service worker.
+  useEffect(() => {
+    if (isTauri() || authStatus !== 'authenticated' || !('serviceWorker' in navigator)) return;
+    registerAlertWorker();
+    const onMessage = (e: MessageEvent) => {
+      const data = e.data as { type?: string } & Partial<AlertActionMessage>;
+      if (data?.type !== SW_ALERT_MESSAGE || !data.action || data.action === 'dismiss') return;
+      runAlertActionRef.current(data.action, data.payload ?? null);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [authStatus]);
+
+  // Calendar reminders: a heads-up `leadMinutes` before each scheduled session today.
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+    const check = () => {
+      const n = stateRef.current.notifications;
+      if (!n.enabled) return;
+      const today = getTodayStr();
+      const now = Date.now();
+      const due = stateRef.current.calendarEvents.filter(ev => {
+        if (ev.date !== today || ev.notified) return false;
+        const [h, m] = ev.startTime.split(':').map(Number);
+        const start = new Date();
+        start.setHours(h || 0, m || 0, 0, 0);
+        const diff = start.getTime() - now;
+        // Within the lead time, and not more than 2 minutes past the start.
+        return diff > -120_000 && diff <= n.leadMinutes * 60_000;
+      });
+      if (!due.length) return;
+      setState(prev => ({
+        ...prev,
+        calendarEvents: prev.calendarEvents.map(ev => (due.some(d => d.id === ev.id) ? { ...ev, notified: true } : ev))
+      }));
+      due.forEach(ev => {
+        const [h, m] = ev.startTime.split(':').map(Number);
+        const start = new Date();
+        start.setHours(h || 0, m || 0, 0, 0);
+        if (n.sound) playChime('focus');
+        ringBell();
+        deliverAlert(buildEventAlert(ev, Math.round((start.getTime() - now) / 60_000), n));
+      });
+    };
+    check();
+    const stop = startTicker(check, EVENT_CHECK_MS);
+    return stop;
+  }, [authStatus]);
+
+  // ── Onboarding ──────────────────────────────────────────────────────
+  const startTour = () => {
+    setHelpOpen(false);
+    setActiveModal(null);
+    setTourActive(true);
+  };
+  const endTour = () => {
+    setTourActive(false);
+    setState(prev => (prev.tourSeen ? prev : { ...prev, tourSeen: true }));
+  };
 
   // ══════════════════════════════════════════════════════════════════════
   // DRAG & DROP REORDERING
@@ -884,7 +1129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => {
       const ev = prev.calendarEvents.find(e => e.id === eventId);
       if (!ev) return prev;
-      showToast(`Event moved to ${targetDate} at ${targetTime}`);
+      showToast(strings.toasts.eventMoved.replace('{date}', targetDate).replace('{time}', targetTime));
       return {
         ...prev,
         calendarEvents: prev.calendarEvents.map(e =>
@@ -898,6 +1143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // SESSIONS
   // ══════════════════════════════════════════════════════════════════════
   const setActiveSession = (id: string) => {
+    if (isTauri()) cancelDesktopAlert().catch(() => {});
     targetEndTimeRef.current = null;
     try {
       localStorage.removeItem(TIMER_RUN_KEY);
@@ -933,7 +1179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeSessionId: prev.activeSessionId || newSession.id
       };
     });
-    showToast(`Session "${newSession.name}" created.`);
+    showToast(strings.toasts.sessionCreated.replace('{name}', newSession.name));
     return newSession.id;
   };
 
@@ -974,7 +1220,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       return { ...prev, sessions: updated, rewards: updatedRewards, timer: timerUpdate };
     });
-    showToast('Session updated.');
+    showToast(strings.toasts.sessionUpdated);
   };
 
   const duplicateSession = (id: string) => {
@@ -989,7 +1235,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       return { ...prev, sessions: [...prev.sessions, dup] };
     });
-    showToast('Session duplicated.');
+    showToast(strings.toasts.sessionDuplicated);
   };
 
   const deleteSession = (id: string) => {
@@ -1025,7 +1271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       };
     });
-    showToast('Session deleted.');
+    showToast(strings.toasts.sessionDeleted);
   };
 
   // Silent on purpose: called from inline pickers, where a toast per change is noise.
@@ -1052,7 +1298,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeListId: activate ? newList.id : prev.activeListId,
       selectedListIdForTimer: prev.selectedListIdForTimer || newList.id
     }));
-    showToast(`List "${name}" created.`);
+    showToast(strings.toasts.listCreated.replace('{name}', name));
     return newList.id;
   };
 
@@ -1061,7 +1307,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       taskLists: prev.taskLists.map(l => (l.id === id ? { ...l, name } : l))
     }));
-    showToast('List renamed.');
+    showToast(strings.toasts.listRenamed);
   };
 
   const duplicateList = (id: string) => {
@@ -1075,7 +1321,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       return { ...prev, taskLists: [...prev.taskLists, dup], activeListId: dup.id };
     });
-    showToast('List duplicated.');
+    showToast(strings.toasts.listDuplicated);
   };
 
   const deleteList = (id: string) => {
@@ -1092,7 +1338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           prev.selectedListIdForTimer === id ? (filtered[0]?.id || null) : prev.selectedListIdForTimer
       };
     });
-    showToast('List deleted.');
+    showToast(strings.toasts.listDeleted);
   };
 
   const setSelectedListForTimer = (id: string | null) => setState(prev => ({ ...prev, selectedListIdForTimer: id }));
@@ -1144,7 +1390,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timestamp: now,
           date: getTodayStr()
         });
-        showToast(`✅ Task completed in ${formatDuration(durationSeconds)}!`);
+        showToast(strings.toasts.taskDone.replace('{duration}', formatDuration(durationSeconds)));
       }
 
       return {
@@ -1168,7 +1414,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : l
       )
     }));
-    showToast('Task updated.');
+    showToast(strings.toasts.taskUpdated);
   };
 
   const duplicateTask = (listId: string, taskId: string) => {
@@ -1207,7 +1453,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCalendarEvent = (event: Omit<CalendarEvent, 'id'>) => {
     const newEvent: CalendarEvent = { ...event, id: uid() };
     setState(prev => ({ ...prev, calendarEvents: [...prev.calendarEvents, newEvent] }));
-    showToast(`Event "${newEvent.title}" scheduled.`);
+    showToast(strings.toasts.eventScheduled.replace('{title}', newEvent.title));
   };
 
   const updateCalendarEvent = (id: string, event: Partial<CalendarEvent>) => {
@@ -1215,7 +1461,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       calendarEvents: prev.calendarEvents.map(e => (e.id === id ? { ...e, ...event } : e))
     }));
-    showToast('Event updated.');
+    showToast(strings.toasts.eventUpdated);
   };
 
   const duplicateCalendarEvent = (id: string) => {
@@ -1225,12 +1471,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const dup: CalendarEvent = { ...target, id: uid(), title: `${target.title} (Copy)` };
       return { ...prev, calendarEvents: [...prev.calendarEvents, dup] };
     });
-    showToast('Event duplicated.');
+    showToast(strings.toasts.eventDuplicated);
   };
 
   const deleteCalendarEvent = (id: string) => {
     setState(prev => ({ ...prev, calendarEvents: prev.calendarEvents.filter(e => e.id !== id) }));
-    showToast('Event removed.');
+    showToast(strings.toasts.eventRemoved);
   };
 
   const setCalendarView = (view: CalendarView) => setState(prev => ({ ...prev, calendarView: view }));
@@ -1268,7 +1514,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rewards: updatedRewards
       };
     });
-    showToast(`Goal "${newGoal.name}" created.`);
+    showToast(strings.toasts.goalCreated.replace('{name}', newGoal.name));
   };
 
   const updateGoal = (id: string, goal: Partial<Goal>) => {
@@ -1311,7 +1557,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       return { ...prev, goals: updated, rewards: updatedRewards };
     });
-    showToast('Goal updated.');
+    showToast(strings.toasts.goalUpdated);
   };
 
   const duplicateGoal = (id: string) => {
@@ -1327,7 +1573,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       return { ...prev, goals: [...prev.goals, dup] };
     });
-    showToast('Goal duplicated.');
+    showToast(strings.toasts.goalDuplicated);
   };
 
   const deleteGoal = (id: string) => {
@@ -1346,7 +1592,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return r;
       })
     }));
-    showToast('Goal deleted.');
+    showToast(strings.toasts.goalDeleted);
   };
 
   const toggleGoal = (id: string) => {
@@ -1547,7 +1793,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         goals: updatedGoals
       };
     });
-    showToast(`Reward "${newReward.name}" created.`);
+    showToast(strings.toasts.rewardCreated.replace('{name}', newReward.name));
     return newReward.id;
   };
 
@@ -1620,7 +1866,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         goals: updatedGoals
       };
     });
-    showToast('Reward updated.');
+    showToast(strings.toasts.rewardUpdated);
   };
 
   const duplicateReward = (id: string) => {
@@ -1636,7 +1882,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       return { ...prev, rewards: [...prev.rewards, dup] };
     });
-    showToast('Reward duplicated.');
+    showToast(strings.toasts.rewardDuplicated);
   };
 
   const deleteReward = (id: string) => {
@@ -1650,7 +1896,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         landmarks: (g.landmarks || []).map(l => (l.rewardId === id ? { ...l, rewardId: null } : l))
       }))
     }));
-    showToast('Reward deleted.');
+    showToast(strings.toasts.rewardDeleted);
   };
 
   const claimReward = (id: string) => {
@@ -1666,6 +1912,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return prev;
     });
   };
+
+  const setActiveSessionRef = useRef(setActiveSession);
+  setActiveSessionRef.current = setActiveSession;
 
   const updateNotifications = (settings: Partial<NotificationSettings>) => {
     setState(prev => ({ ...prev, notifications: { ...prev.notifications, ...settings } }));
@@ -1744,7 +1993,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshProfile,
         deleteOwnProfile,
         changePassword,
-        updateTheme
+        updateTheme,
+        tourActive,
+        startTour,
+        endTour,
+        helpOpen,
+        setHelpOpen,
+        alertRinging,
+        activeAlert,
+        dismissAlert,
+        runAlertAction
       }}
     >
       {children}

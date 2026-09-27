@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { SessionItem } from './SessionItem';
 import { Session } from '../../types';
 import { strings } from '../../constants/strings';
-import { IconPlus } from '../ui/icons';
+import { IconCalendar, IconCopy, IconEdit, IconPlay, IconPlus, IconTrash } from '../ui/icons';
+import { useContextMenu } from '../ui/ContextMenu';
+import { useFlip, useNewIds } from '../../hooks/useListMotion';
+import { getTodayStr } from '../../lib/dateUtils';
+import { isDragLeavingElement } from '../../lib/dnd';
 
 export const SessionsList: React.FC = () => {
   const {
@@ -12,8 +16,14 @@ export const SessionsList: React.FC = () => {
     openModal,
     duplicateSession,
     deleteSession,
-    reorderSessions
+    reorderSessions,
+    toggleTimer
   } = useApp();
+  const contextMenu = useContextMenu();
+  const listRef = useRef<HTMLDivElement>(null);
+  const ids = state.sessions.map(s => s.id);
+  const newIds = useNewIds(ids);
+  useFlip(listRef, ids);
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -32,8 +42,8 @@ export const SessionsList: React.FC = () => {
     }
   };
 
-  const handleDragLeave = () => {
-    setDragOverId(null);
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (isDragLeavingElement(e)) setDragOverId(null);
   };
 
   const handleDrop = (e: React.DragEvent, targetId: string) => {
@@ -62,6 +72,29 @@ export const SessionsList: React.FC = () => {
     });
   };
 
+  const startSession = (session: Session) => {
+    setActiveSession(session.id);
+    // setActiveSession resets the timer to idle; start it on the next tick.
+    setTimeout(toggleTimer, 0);
+  };
+
+  const openSessionMenu = (e: React.MouseEvent, session: Session) => {
+    const cm = strings.contextMenu;
+    contextMenu(e, [
+      { key: 'start', label: cm.startSession, icon: <IconPlay size={15} />, onSelect: () => startSession(session) },
+      { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: () => handleEditSession(session) },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateSession(session.id) },
+      {
+        key: 'schedule',
+        label: cm.scheduleSession,
+        icon: <IconCalendar size={16} />,
+        onSelect: () => openModal('SCHEDULE_EVENT', { date: getTodayStr() })
+      },
+      { key: 'd1', divider: true },
+      { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteSession(session) }
+    ]);
+  };
+
   return (
     <div className="card panel-card sessions-panel">
       <div className="panel-card-header">
@@ -72,7 +105,7 @@ export const SessionsList: React.FC = () => {
         </button>
       </div>
 
-      <div className="sessions-list" id="sessionsList">
+      <div className="sessions-list" id="sessionsList" ref={listRef}>
         {state.sessions.length === 0 ? (
           <div className="empty-state small">{strings.sessions.emptySessionsMsg}</div>
         ) : (
@@ -91,6 +124,8 @@ export const SessionsList: React.FC = () => {
               onDrop={handleDrop}
               isDragging={draggedId === session.id}
               isDragOver={dragOverId === session.id && draggedId !== session.id}
+              isNew={newIds.has(session.id)}
+              onContextMenu={openSessionMenu}
             />
           ))
         )}

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
 import { strings } from '../../constants/strings';
@@ -43,6 +45,8 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
     onClose();
   };
 
+  const dirty = useDirty([name, sessionChoice]);
+
   return (
     <form onSubmit={handleSubmit} className="modal-form">
       <div className="form-group">
@@ -78,18 +82,18 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
         </div>
       )}
 
-      <div className="modal-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary" disabled={!name.trim()}>
-          {list
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryDisabled={!name.trim()}
+        primaryLabel={
+          list
             ? strings.common.save
             : sessionChoice === NEW_SESSION
               ? strings.modals.createListAndSessionBtn
-              : strings.modals.createListBtn}
-        </button>
-      </div>
+              : strings.modals.createListBtn
+        }
+      />
     </form>
   );
 };

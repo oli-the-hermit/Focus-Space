@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FormActions } from '../ui/FormActions';
+import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { CalendarEvent } from '../../types';
 import { strings } from '../../constants/strings';
@@ -63,6 +65,8 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       onClose();
     }
   };
+
+  const dirty = useDirty([title, date, startTime, durationMins, sessionId, details]);
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
@@ -148,23 +152,18 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         />
       </div>
 
-      <div className="modal-actions">
-        {event && (
-          <button
-            type="button"
-            className="btn-action danger btn-action-auto-left"
-            onClick={handleDelete}
-          >
-            {strings.common.delete}
-          </button>
-        )}
-        <button type="button" className="btn-action" onClick={onClose}>
-          {strings.common.cancel}
-        </button>
-        <button type="submit" className="btn-action primary">
-          {event ? strings.common.saveChanges : strings.calendar.scheduleSessionBtn}
-        </button>
-      </div>
+      <FormActions
+        dirty={dirty}
+        onCancel={onClose}
+        primaryLabel={event ? strings.common.saveChanges : strings.modals.scheduleEvent}
+        leading={
+          event && (
+            <button type="button" className="btn-action danger" onClick={handleDelete}>
+              {strings.common.delete}
+            </button>
+          )
+        }
+      />
     </form>
   );
 };

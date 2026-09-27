@@ -5,7 +5,8 @@ import Database from 'better-sqlite3';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const DATA_DIR = path.join(__dirname, 'data');
+// FOCUSSPACE_DATA_DIR points a throwaway dev/test instance at its own database.
+const DATA_DIR = process.env.FOCUSSPACE_DATA_DIR || path.join(__dirname, 'data');
 const DB_PATH = path.join(DATA_DIR, 'focusspace.db');
 
 let db = null;
