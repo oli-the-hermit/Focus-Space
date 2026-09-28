@@ -20,13 +20,13 @@ export const CelebrationOverlay: React.FC = () => {
     >
       <div className="celebration-card">
         <div className="celebration-emoji" id="celebrationEmoji">
-          {activeCelebrationReward.emoji || activeCelebrationReward.icon || '🎉'}
+          {activeCelebrationReward.emoji}
         </div>
         <h2 className="celebration-title" id="celebrationTitle">
           {strings.celebration.rewardClaimed}
         </h2>
         <p className="celebration-desc" id="celebrationDesc">
-          {activeCelebrationReward.description || activeCelebrationReward.desc || strings.celebration.desc}
+          {activeCelebrationReward.description || strings.celebration.desc}
         </p>
         <Button
           variant="primary"

@@ -3,6 +3,7 @@ import { IconClose } from './icons';
 import { useUiLabels } from './UiLabels';
 import { useBlockingOverlay } from '../../lib/overlays';
 import { IconButton } from './IconButton';
+import { cssDurationMs } from '../../lib/theme';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -18,8 +19,6 @@ export interface ModalProps {
   children: React.ReactNode;
 }
 
-/** Matches --dur-2: how long a closing modal stays mounted to play its exit. */
-const EXIT_MS = 180;
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = false, dismissible = false, children }) => {
   const labels = useUiLabels();
@@ -38,7 +37,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
       setMounted(true);
       return;
     }
-    const t = window.setTimeout(() => setMounted(false), EXIT_MS);
+    // Stays mounted while the exit animation (--dur-2 in modal.css) plays.
+    const t = window.setTimeout(() => setMounted(false), cssDurationMs('--dur-2'));
     return () => window.clearTimeout(t);
   }, [isOpen]);
 

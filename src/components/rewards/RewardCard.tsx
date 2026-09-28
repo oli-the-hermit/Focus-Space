@@ -7,7 +7,6 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { IconButton } from '../ui/IconButton';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -21,7 +20,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
 
   const claimed = isClaimed || reward.status === 'claimed';
   const ready = showClaim !== undefined ? showClaim : reward.status === 'ready';
-  const rewardFrequency = reward.frequency || reward.type || 'daily';
+  const rewardFrequency = reward.frequency;
   const hasSessionLink = !!(reward.linkedSessionId || (reward.trigger === 'session' && reward.linkedId));
   const hasGoalLink = !!(reward.linkedGoalId || (reward.trigger === 'goal' && reward.linkedId));
   const isLandmark = reward.trigger === 'landmark';
@@ -60,7 +59,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
       onContextMenu={openRewardMenu}
     >
       <div className="reward-card-header">
-        <div className="reward-card-emoji">{reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI}</div>
+        <div className="reward-card-emoji">{reward.emoji}</div>
         <div className="reward-card-info">
           <div className="reward-card-name">{reward.name}</div>
           <div className="reward-card-meta">
@@ -95,9 +94,9 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
         </div>
       </div>
 
-      {(reward.description || reward.desc) && (
+      {reward.description && (
         <div className="reward-card-desc">
-          {reward.description || reward.desc}
+          {reward.description}
         </div>
       )}
 

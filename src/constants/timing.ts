@@ -1,0 +1,20 @@
+/**
+ * App timing in milliseconds. Timers that wait for a CSS animation don't belong
+ * here: they read the motion token instead (cssDurationMs('--dur-2') in lib/theme).
+ */
+export const TIMING = {
+  /** How long a toast stays before it slides out. */
+  toastVisibleMs: 3500,
+  /** How long the bell button rings after a phase ends. */
+  alertRingingMs: 4000,
+  /** How often upcoming calendar sessions are checked for reminders. */
+  eventCheckMs: 30_000,
+  /** Quiet period before changes are encrypted and saved. */
+  saveDebounceMs: 800,
+  /** Delay before the first-run tour starts, so the app has painted first. */
+  tourStartDelayMs: 600,
+  /** Retry interval while the local API isn't reachable yet. */
+  serverRetryMs: 3000,
+  /** Mini player clock refresh. */
+  miniClockTickMs: 250
+} as const;

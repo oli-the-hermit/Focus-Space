@@ -17,7 +17,8 @@ import {
   ModalPayloadMap,
   ActiveModal,
   Profile,
-  ThemeMode
+  ThemeMode,
+  NewReward
 } from '../types';
 import { DEFAULT_CALENDAR_EVENTS, DEFAULT_GOALS, DEFAULT_REWARDS, DEFAULT_REWARD_EMOJI, DEFAULT_SESSIONS, DEFAULT_TASK_LISTS } from '../constants/defaults';
 import { api } from '../lib/api';
@@ -48,6 +49,11 @@ import {
   showDesktopAlert
 } from '../lib/desktop';
 import { format } from '../lib/i18n';
+import { clearTimerRun, loadTimerRun, saveTimerRun, storage } from '../lib/storage';
+import { applyTheme, cacheTheme, cachedTheme, cssDurationMs } from '../lib/theme';
+import { playChime as playPhaseChime } from '../lib/audio';
+import { TIMING } from '../constants/timing';
+import { normalizeGoal, normalizeReward, normalizeTask } from '../lib/normalize';
 
 interface ToastItem {
   id: string;
@@ -56,10 +62,6 @@ interface ToastItem {
   leaving?: boolean;
 }
 
-const TOAST_MS = 3500;
-const TOAST_EXIT_MS = 180;
-const RINGING_MS = 4000;
-const EVENT_CHECK_MS = 30_000;
 
 interface AppContextType {
   state: AppState;
@@ -138,7 +140,7 @@ interface AppContextType {
   toggleLandmark: (goalId: string, landmarkId: string) => void;
 
   // Rewards CRUD
-  addReward: (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }) => string;
+  addReward: (reward: NewReward) => string;
   updateReward: (id: string, reward: Partial<Reward>) => void;
   duplicateReward: (id: string) => void;
   deleteReward: (id: string) => void;
@@ -191,19 +193,6 @@ interface AuthResponse {
   data: AuthDataResponse;
 }
 
-const LEGACY_STORAGE_KEY = 'focusspace_v1';
-const THEME_CACHE_KEY = 'focusspace_theme_cache';
-const AUTH_TOKEN_KEY = 'focusspace_auth_token';
-const AUTH_KEY_MATERIAL = 'focusspace_auth_key';
-const TIMER_RUN_KEY = 'focusspace_timer_run';
-
-interface PersistedTimerRun {
-  targetEndTime: number;
-  phase: TimerPhase;
-  sessionId: string | null;
-  total: number;
-}
-
 function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
@@ -218,7 +207,9 @@ function normalizeState(raw: unknown): AppState {
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
   const focusMins = activeSession?.focusMinutes || 25;
 
-  const taskLists: TaskList[] = Array.isArray(r?.taskLists) && r!.taskLists.length ? (r!.taskLists as TaskList[]) : DEFAULT_TASK_LISTS;
+  const taskLists: TaskList[] = Array.isArray(r?.taskLists) && r!.taskLists.length
+    ? (r!.taskLists as TaskList[]).map(l => ({ ...l, tasks: (l.tasks || []).map(t => normalizeTask(t as unknown as Record<string, unknown>)) }))
+    : DEFAULT_TASK_LISTS;
   const selectedListIdForTimer = (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id;
 
   // Sessions own their task lists. Legacy data had a single global timer list:
@@ -247,8 +238,8 @@ function normalizeState(raw: unknown): AppState {
     calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
     calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
     notifications: normalizeNotifications(r?.notifications),
-    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Goal[]) : DEFAULT_GOALS,
-    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Reward[]) : DEFAULT_REWARDS,
+    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Record<string, unknown>[]).map(normalizeGoal) : DEFAULT_GOALS,
+    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Record<string, unknown>[]).map(normalizeReward) : DEFAULT_REWARDS,
     timer: {
       phase: 'focus',
       status: 'idle',
@@ -281,16 +272,6 @@ function prefersReducedMotion(): boolean {
   return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 
-function resolveThemeMode(mode: ThemeMode): 'light' | 'dark' {
-  if (mode !== 'system') return mode;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function applyThemeMode(mode: ThemeMode) {
-  const resolved = resolveThemeMode(mode);
-  document.documentElement.dataset.theme = resolved;
-  document.documentElement.style.colorScheme = resolved;
-}
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -337,8 +318,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const bootstrapAuth = async () => {
       try {
-        const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
-        const storedKeyMaterial = localStorage.getItem(AUTH_KEY_MATERIAL);
+        const storedToken = storage.get('authToken');
+        const storedKeyMaterial = storage.get('authKey');
 
         if (!storedToken || !storedKeyMaterial) {
           if (!cancelled) setAuthStatus('unauthenticated');
@@ -361,29 +342,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         // Restore active running timer if valid
-        try {
-          const timerRunRaw = localStorage.getItem(TIMER_RUN_KEY);
-          if (timerRunRaw) {
-            const runInfo: PersistedTimerRun = JSON.parse(timerRunRaw);
-            const now = Date.now();
-            if (runInfo.targetEndTime > now) {
-              const remainingSecs = Math.max(1, Math.ceil((runInfo.targetEndTime - now) / 1000));
-              nextState = {
-                ...nextState,
-                timer: {
-                  ...nextState.timer,
-                  phase: runInfo.phase,
-                  status: 'running',
-                  remaining: remainingSecs,
-                  total: runInfo.total || nextState.timer.total
-                }
-              };
-              targetEndTimeRef.current = runInfo.targetEndTime;
-            } else {
-              localStorage.removeItem(TIMER_RUN_KEY);
-            }
+        const runInfo = loadTimerRun();
+        if (runInfo) {
+          const now = Date.now();
+          if (runInfo.targetEndTime > now) {
+            const remainingSecs = Math.max(1, Math.ceil((runInfo.targetEndTime - now) / 1000));
+            nextState = {
+              ...nextState,
+              timer: {
+                ...nextState.timer,
+                phase: runInfo.phase,
+                status: 'running',
+                remaining: remainingSecs,
+                total: runInfo.total || nextState.timer.total
+              }
+            };
+            targetEndTimeRef.current = runInfo.targetEndTime;
+          } else {
+            clearTimerRun();
           }
-        } catch {}
+        }
 
         if (!cancelled) {
           setProfile(meRes.profile);
@@ -392,9 +370,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {
         if (!cancelled) {
-          localStorage.removeItem(AUTH_TOKEN_KEY);
-          localStorage.removeItem(AUTH_KEY_MATERIAL);
-          localStorage.removeItem(TIMER_RUN_KEY);
+          storage.remove('authToken', 'authKey', 'timerRun');
           tokenRef.current = null;
           dataKeyRef.current = null;
           targetEndTimeRef.current = null;
@@ -412,23 +388,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Theme bootstrap (cached) + application
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem(THEME_CACHE_KEY) as ThemeMode | null;
-      if (cached === 'light' || cached === 'dark' || cached === 'system') applyThemeMode(cached);
-    } catch {}
+    const cached = cachedTheme();
+    if (cached) applyTheme(cached);
   }, []);
 
   useEffect(() => {
-    applyThemeMode(state.theme);
-    try {
-      localStorage.setItem(THEME_CACHE_KEY, state.theme);
-    } catch {}
+    applyTheme(state.theme);
+    cacheTheme(state.theme);
   }, [state.theme]);
 
   useEffect(() => {
     if (state.theme !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => applyThemeMode('system');
+    const handler = () => applyTheme('system');
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, [state.theme]);
@@ -448,7 +420,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } catch (err) {
         console.warn('Failed to persist data:', err);
       }
-    }, 800);
+    }, TIMING.saveDebounceMs);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
@@ -459,8 +431,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts(prev => [...prev, { id, message }]);
     setTimeout(() => {
       setToasts(prev => prev.map(t => (t.id === id ? { ...t, leaving: true } : t)));
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), TOAST_EXIT_MS);
-    }, TOAST_MS);
+      // Removed once the slide-out transition (--dur-2 in toast.css) has played.
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), cssDurationMs('--dur-2'));
+    }, TIMING.toastVisibleMs);
   };
 
   const openModal = ((type: ModalType, payload?: unknown) => {
@@ -486,29 +459,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     dataKeyRef.current = key;
     const rawKeyB64 = await exportRawKey(key);
-    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
-    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
+    storage.set('authToken', res.token);
+    storage.set('authKey', rawKeyB64);
     setProfile(res.profile);
     setAuthStatus('authenticated');
     setState(next);
   };
 
   const setup = async (username: string, displayName: string, password: string) => {
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const legacyRaw = storage.get('legacyData');
     const res = await api.post<AuthResponse>('/api/auth/setup', { username, displayName, password });
     tokenRef.current = res.token;
     const key = await deriveDataKey(password, res.data.salt);
     dataKeyRef.current = key;
     const rawKeyB64 = await exportRawKey(key);
-    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
-    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
+    storage.set('authToken', res.token);
+    storage.set('authKey', rawKeyB64);
 
     let next = normalizeState(null);
     let migrated = false;
     if (legacyRaw) {
       try {
         next = normalizeState(JSON.parse(legacyRaw));
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
+        storage.remove('legacyData');
         migrated = true;
       } catch {
         // Fall back to fresh defaults
@@ -528,16 +501,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const copy = { ...state, timer: { ...state.timer, status: 'idle' } };
         const sealed = await encryptBlob(JSON.stringify(copy), key);
         await api.put('/api/data', sealed, token);
-      } catch {}
+      } catch {
+        // Best effort: every change was already auto-saved; this only flushes the last one.
+      }
     }
     if (token) {
       try {
         await api.post('/api/auth/logout', {}, token);
-      } catch {}
+      } catch {
+        // Signing out locally must work even when the server can't be reached.
+      }
     }
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_KEY_MATERIAL);
-    localStorage.removeItem(TIMER_RUN_KEY);
+    storage.remove('authToken', 'authKey', 'timerRun');
     tokenRef.current = null;
     dataKeyRef.current = null;
     targetEndTimeRef.current = null;
@@ -552,9 +527,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteOwnProfile = async (password: string) => {
     await api.del('/api/profile', { password }, tokenRef.current);
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_KEY_MATERIAL);
-    localStorage.removeItem(TIMER_RUN_KEY);
+    storage.remove('authToken', 'authKey', 'timerRun');
     tokenRef.current = null;
     dataKeyRef.current = null;
     targetEndTimeRef.current = null;
@@ -593,8 +566,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     tokenRef.current = res.token;
     dataKeyRef.current = newKey;
     const rawKeyB64 = await exportRawKey(newKey);
-    localStorage.setItem(AUTH_TOKEN_KEY, res.token);
-    localStorage.setItem(AUTH_KEY_MATERIAL, rawKeyB64);
+    storage.set('authToken', res.token);
+    storage.set('authKey', rawKeyB64);
     setProfile(res.profile);
     showToast(strings.profile.passwordChangedMsg);
   };
@@ -605,33 +578,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => ({ ...prev, theme }));
   };
 
-  // Web Audio Chime Sound
-  const playChime = (type: TimerPhase = 'focus') => {
-    if (!state.sound) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new AudioCtx();
-      const freqs = type === 'focus' ? [523.25, 659.25, 783.99] : [783.99, 659.25, 523.25];
-      freqs.forEach((f, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = f;
-        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
-        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.18 + 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.5);
-        osc.start(ctx.currentTime + i * 0.18);
-        osc.stop(ctx.currentTime + i * 0.18 + 0.55);
-      });
-    } catch {}
+  const playChime = (phase: TimerPhase = 'focus') => {
+    if (state.sound) playPhaseChime(phase);
   };
 
   const ringBell = () => {
     window.clearTimeout(ringingTimerRef.current);
     setAlertRinging(true);
-    ringingTimerRef.current = window.setTimeout(() => setAlertRinging(false), RINGING_MS);
+    ringingTimerRef.current = window.setTimeout(() => setAlertRinging(false), TIMING.alertRingingMs);
   };
 
   /**
@@ -655,9 +609,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Phase completion handler
   const handlePhaseComplete = (skipped = false) => {
     targetEndTimeRef.current = null;
-    try {
-      localStorage.removeItem(TIMER_RUN_KEY);
-    } catch {}
+    clearTimerRun();
     const currentSession = state.sessions.find(s => s.id === state.activeSessionId) || state.sessions[0];
     const isFocus = state.timer.phase === 'focus';
 
@@ -756,17 +708,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (state.timer.status === 'running') {
       if (!targetEndTimeRef.current) {
         targetEndTimeRef.current = Date.now() + state.timer.remaining * 1000;
-        try {
-          localStorage.setItem(
-            TIMER_RUN_KEY,
-            JSON.stringify({
+        saveTimerRun({
               targetEndTime: targetEndTimeRef.current,
               phase: state.timer.phase,
               sessionId: state.activeSessionId,
               total: state.timer.total
-            })
-          );
-        } catch {}
+            });
       }
 
       // Ticks from a worker so a hidden tab/minimized window still ends on time.
@@ -779,9 +726,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (remainingSecs <= 0) {
           stopTicker();
           targetEndTimeRef.current = null;
-          try {
-            localStorage.removeItem(TIMER_RUN_KEY);
-          } catch {}
+          clearTimerRun();
           handlePhaseCompleteRef.current(false);
         } else {
           setState(prev => {
@@ -830,9 +775,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const remainingSecs = Math.max(0, Math.ceil((targetEndTimeRef.current - now) / 1000));
       if (remainingSecs <= 0) {
         targetEndTimeRef.current = null;
-        try {
-          localStorage.removeItem(TIMER_RUN_KEY);
-        } catch {}
+        clearTimerRun();
         handlePhaseComplete(false);
       } else {
         setState(prev => {
@@ -874,9 +817,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000))
           : prev.timer.remaining;
         targetEndTimeRef.current = null;
-        try {
-          localStorage.removeItem(TIMER_RUN_KEY);
-        } catch {}
+        clearTimerRun();
         return {
           ...prev,
           timer: { ...prev.timer, status: 'paused', remaining: currentRemaining }
@@ -900,17 +841,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const targetEndTime = Date.now() + remaining * 1000;
       targetEndTimeRef.current = targetEndTime;
-      try {
-        localStorage.setItem(
-          TIMER_RUN_KEY,
-          JSON.stringify({
+      saveTimerRun({
             targetEndTime,
             phase: prev.timer.phase,
             sessionId: prev.activeSessionId,
             total
-          })
-        );
-      } catch {}
+          });
 
       return {
         ...prev,
@@ -928,9 +864,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetTimer = () => {
     stopTicker();
     targetEndTimeRef.current = null;
-    try {
-      localStorage.removeItem(TIMER_RUN_KEY);
-    } catch {}
+    clearTimerRun();
     setState(prev => {
       const activeSession = prev.sessions.find(s => s.id === prev.activeSessionId) || prev.sessions[0];
       const mins = activeSession?.focusMinutes || 25;
@@ -952,9 +886,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const skipPhase = () => {
     stopTicker();
     targetEndTimeRef.current = null;
-    try {
-      localStorage.removeItem(TIMER_RUN_KEY);
-    } catch {}
+    clearTimerRun();
     handlePhaseComplete(true);
   };
 
@@ -1056,7 +988,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     };
     check();
-    const stop = startTicker(check, EVENT_CHECK_MS);
+    const stop = startTicker(check, TIMING.eventCheckMs);
     return stop;
   }, [authStatus]);
 
@@ -1139,9 +1071,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setActiveSession = (id: string) => {
     if (isTauri()) cancelDesktopAlert().catch(() => {});
     targetEndTimeRef.current = null;
-    try {
-      localStorage.removeItem(TIMER_RUN_KEY);
-    } catch {}
+    clearTimerRun();
     setState(prev => {
       const s = prev.sessions.find(x => x.id === id) || prev.sessions[0];
       const dur = (s?.focusMinutes || 25) * 60;
@@ -1224,7 +1154,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const dup: Session = {
         ...target,
         id: uid(),
-        name: `${target.name} (Copy)`,
+        name: format(strings.common.copyOf, { name: target.name }),
         taskListIds: [...(target.taskListIds || [])]
       };
       return { ...prev, sessions: [...prev.sessions, dup] };
@@ -1310,7 +1240,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!target) return prev;
       const dup: TaskList = {
         id: uid(),
-        name: `${target.name} (Copy)`,
+        name: format(strings.common.copyOf, { name: target.name }),
         tasks: target.tasks.map(t => ({ ...t, id: uid(), completed: false, durationSeconds: null }))
       };
       return { ...prev, taskLists: [...prev.taskLists, dup], activeListId: dup.id };
@@ -1341,7 +1271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // TASKS
   // ══════════════════════════════════════════════════════════════════════
   const addTask = (listId: string, text: string) => {
-    const newTask: Task = { id: uid(), text, completed: false, created: Date.now(), createdAt: Date.now() };
+    const newTask: Task = { id: uid(), text, completed: false, createdAt: Date.now() };
     setState(prev => ({
       ...prev,
       taskLists: prev.taskLists.map(l => (l.id === listId ? { ...l, tasks: [...l.tasks, newTask] } : l))
@@ -1462,7 +1392,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => {
       const target = prev.calendarEvents.find(e => e.id === id);
       if (!target) return prev;
-      const dup: CalendarEvent = { ...target, id: uid(), title: `${target.title} (Copy)` };
+      const dup: CalendarEvent = { ...target, id: uid(), title: format(strings.common.copyOf, { name: target.title }) };
       return { ...prev, calendarEvents: [...prev.calendarEvents, dup] };
     });
     showToast(strings.toasts.eventDuplicated);
@@ -1484,10 +1414,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newGoal: Goal = {
       ...goal,
       id: uid(),
-      name: goal.name || goal.title || 'Untitled Goal',
-      title: goal.name || goal.title || 'Untitled Goal',
-      type: goal.type || goal.frequency || 'daily',
-      frequency: goal.type || goal.frequency || 'daily',
+      name: goal.name || strings.goals.untitledGoal,
+      frequency: goal.frequency || 'daily',
       target: goal.target || 4,
       current: 0,
       completed: false,
@@ -1518,10 +1446,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? {
               ...g,
               ...goal,
-              name: goal.name || goal.title || g.name,
-              title: goal.title || goal.name || g.title,
-              type: goal.type || goal.frequency || g.type,
-              frequency: goal.frequency || goal.type || g.frequency
+              name: goal.name || g.name,
+              frequency: goal.frequency || g.frequency
             }
           : g
       );
@@ -1561,8 +1487,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const dup: Goal = {
         ...target,
         id: uid(),
-        name: `${target.name} (Copy)`,
-        title: `${target.name} (Copy)`,
+        name: format(strings.common.copyOf, { name: target.name }),
         landmarks: (target.landmarks || []).map(l => ({ ...l, id: uid(), completed: false }))
       };
       return { ...prev, goals: [...prev.goals, dup] };
@@ -1626,8 +1551,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newLm: Landmark = {
       ...landmark,
       id: uid(),
-      name: landmark.name || landmark.text || 'Untitled Landmark',
-      text: landmark.name || landmark.text || 'Untitled Landmark',
+      name: landmark.name || strings.goals.untitledLandmark,
       completed: false
     };
     setState(prev => ({
@@ -1650,8 +1574,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ? {
                   ...l,
                   ...landmark,
-                  name: landmark.name || landmark.text || l.name,
-                  text: landmark.text || landmark.name || l.text
+                  name: landmark.name || l.name
                 }
               : l
           )
@@ -1750,7 +1673,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ══════════════════════════════════════════════════════════════════════
   // REWARDS
   // ══════════════════════════════════════════════════════════════════════
-  const addReward = (reward: Omit<Reward, 'id' | 'status'> & { status?: Reward['status'] }): string => {
+  const addReward = (reward: NewReward): string => {
     const linkedSession = reward.linkedSessionId || (reward.trigger === 'session' ? reward.linkedId : null);
     const linkedGoal = reward.linkedGoalId || (reward.trigger === 'goal' ? reward.linkedId : null);
     const inferredTrigger: Reward['trigger'] = reward.trigger || (linkedSession ? 'session' : linkedGoal ? 'goal' : 'manual');
@@ -1759,10 +1682,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...reward,
       id: uid(),
       name: reward.name,
-      description: reward.description || reward.desc || '',
-      desc: reward.description || reward.desc || '',
-      emoji: reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI,
-      icon: reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI,
+      description: reward.description ?? '',
+      emoji: reward.emoji || DEFAULT_REWARD_EMOJI,
+      frequency: reward.frequency ?? 'daily',
       trigger: inferredTrigger,
       linkedSessionId: linkedSession,
       linkedGoalId: linkedGoal,
@@ -1812,10 +1734,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return {
           ...r,
           ...reward,
-          description: reward.description !== undefined ? reward.description : (reward.desc !== undefined ? reward.desc : r.description),
-          desc: reward.desc !== undefined ? reward.desc : (reward.description !== undefined ? reward.description : r.desc),
-          emoji: reward.emoji || reward.icon || r.emoji,
-          icon: reward.icon || reward.emoji || r.icon,
+          emoji: reward.emoji || r.emoji,
           trigger: nextTrigger,
           linkedSessionId: nextLinkedSession,
           linkedGoalId: nextLinkedGoal,
@@ -1870,7 +1789,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const dup: Reward = {
         ...target,
         id: uid(),
-        name: `${target.name} (Copy)`,
+        name: format(strings.common.copyOf, { name: target.name }),
         status: target.trigger === 'manual' ? 'ready' : 'locked',
         claimedAt: null
       };

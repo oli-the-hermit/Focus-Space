@@ -16,6 +16,7 @@ import {
 } from '../lib/desktop';
 import { strings } from '../constants/strings';
 import { MiniPlayer } from './MiniPlayer';
+import { applyTheme } from '../lib/theme';
 
 type MiniMode = 'desktop' | 'pip' | null;
 
@@ -133,9 +134,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // PiP: keep the theme in sync with the main document.
   useEffect(() => {
-    if (!pipWindow) return;
-    pipWindow.document.documentElement.dataset.theme = snapshot.theme;
-    pipWindow.document.documentElement.style.colorScheme = snapshot.theme;
+    if (pipWindow) applyTheme(snapshot.theme, pipWindow.document);
   }, [pipWindow, snapshot.theme]);
 
   const openPip = async () => {

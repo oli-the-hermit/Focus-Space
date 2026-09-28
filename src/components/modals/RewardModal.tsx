@@ -19,10 +19,10 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   const { state, addReward, updateReward, createSession } = useApp();
 
   const [name, setName] = useState(reward ? reward.name : '');
-  const [description, setDescription] = useState(reward ? (reward.description || reward.desc || '') : '');
-  const [emoji, setEmoji] = useState(reward ? (reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI) : DEFAULT_REWARD_EMOJI);
+  const [description, setDescription] = useState(reward ? (reward.description || '') : '');
+  const [emoji, setEmoji] = useState(reward ? (reward.emoji) : DEFAULT_REWARD_EMOJI);
   const [frequency, setFrequency] = useState<GoalFrequency>(
-    reward ? (reward.frequency || reward.type || 'daily') : 'daily'
+    reward ? reward.frequency : 'daily'
   );
 
   const initialSessionId = () => {
@@ -64,11 +64,8 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
       updateReward(reward.id, {
         name: finalName,
         description: description.trim(),
-        desc: description.trim(),
         emoji: finalEmoji,
-        icon: finalEmoji,
         frequency,
-        type: frequency,
         trigger: inferredTrigger,
         linkedSessionId: finalSessionId,
         linkedGoalId: finalGoalId,
@@ -79,11 +76,8 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
       addReward({
         name: finalName,
         description: description.trim(),
-        desc: description.trim(),
         emoji: finalEmoji,
-        icon: finalEmoji,
         frequency,
-        type: frequency,
         trigger: inferredTrigger,
         linkedSessionId: finalSessionId,
         linkedGoalId: finalGoalId,
@@ -170,7 +164,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
             { value: '', label: strings.rewards.noGoalLinked },
             ...state.goals.map(g => ({
               value: g.id,
-              label: g.name || g.title
+              label: g.name
             }))
           ]}
         />

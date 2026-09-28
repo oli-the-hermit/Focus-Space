@@ -18,7 +18,7 @@ export const GoalsGrid: React.FC = () => {
 
   const filteredGoals = filter === 'all'
     ? state.goals
-    : state.goals.filter(g => (g.type || g.frequency) === filter);
+    : state.goals.filter(g => g.frequency === filter);
 
   return (
     <FilterGridLayout

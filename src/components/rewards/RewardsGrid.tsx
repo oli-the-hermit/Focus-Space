@@ -19,7 +19,7 @@ export const RewardsGrid: React.FC = () => {
 
   const filteredRewards = filter === 'all'
     ? state.rewards
-    : state.rewards.filter(r => (r.frequency || r.type || 'daily') === filter);
+    : state.rewards.filter(r => r.frequency === filter);
 
   return (
     <FilterGridLayout

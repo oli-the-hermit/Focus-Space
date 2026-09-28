@@ -7,6 +7,7 @@ import { Field, TextInput } from '../ui/Field';
 import { IconLogo } from '../ui/icons';
 import { LIMITS } from '../../constants/limits';
 import { format } from '../../lib/i18n';
+import { TIMING } from '../../constants/timing';
 
 export const LoginScreen: React.FC = () => {
   const { login, setup } = useApp();
@@ -35,7 +36,7 @@ export const LoginScreen: React.FC = () => {
         if (cancelled) return;
         setServerUp(false);
         setError(err instanceof Error ? err.message : strings.auth.serverUnreachable);
-        timer = window.setTimeout(check, 3000);
+        timer = window.setTimeout(check, TIMING.serverRetryMs);
       }
     };
 

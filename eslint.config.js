@@ -52,8 +52,8 @@ export default tseslint.config(
     rules: {
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      // Silent catches (mostly localStorage) move behind one storage helper in Phase 7.
-      'no-empty': 'warn',
+      // Phase 7 complete: every intentionally ignored error says why in a comment.
+      'no-empty': 'error',
       // Off: "initialize, then assign in every branch" is intentional and readable here.
       'no-useless-assignment': 'off',
       // Phase 6 complete: user-facing text lives in constants/strings.ts.
@@ -61,8 +61,8 @@ export default tseslint.config(
     }
   },
   {
-    // The dictionaries themselves and seed data.
-    files: ['src/constants/strings.ts', 'src/constants/defaults.ts'],
+    // The dictionaries themselves, seed data and test fixtures.
+    files: ['src/constants/strings.ts', 'src/constants/defaults.ts', 'src/**/*.test.ts'],
     rules: { 'no-restricted-syntax': 'off' }
   },
   {

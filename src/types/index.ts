@@ -24,7 +24,6 @@ export interface Task {
   text: string;
   completed: boolean;
   createdAt?: number;
-  created?: number;
   completedAt?: number | null;
   durationSeconds?: number | null;
 }
@@ -59,7 +58,6 @@ export interface CalendarEvent {
 export interface Landmark {
   id: string;
   name: string;
-  text?: string;
   completed: boolean;
   rewardId?: string | null;
   rewardName?: string;
@@ -70,9 +68,7 @@ export interface Landmark {
 export interface Goal {
   id: string;
   name: string;
-  title?: string;
-  type: GoalFrequency;
-  frequency?: GoalFrequency;
+  frequency: GoalFrequency;
   target?: number;
   current?: number;
   completed: boolean;
@@ -85,12 +81,9 @@ export interface Goal {
 export interface Reward {
   id: string;
   name: string;
-  description?: string;
-  desc?: string;
-  emoji?: string;
-  icon?: string;
-  frequency?: GoalFrequency;
-  type?: GoalFrequency;
+  description: string;
+  emoji: string;
+  frequency: GoalFrequency;
   trigger: RewardTrigger;
   linkedId?: string | null;
   linkedSessionId?: string | null;
@@ -98,6 +91,10 @@ export interface Reward {
   status: RewardStatus;
   claimedAt?: number | null;
 }
+
+/** What callers pass to addReward: the rest is filled in (id, status, defaults). */
+export type NewReward = Omit<Reward, 'id' | 'status' | 'description' | 'emoji' | 'frequency'> &
+  Partial<Pick<Reward, 'status' | 'description' | 'emoji' | 'frequency'>>;
 
 export interface TaskCompletionLog {
   id: string;

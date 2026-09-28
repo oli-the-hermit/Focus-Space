@@ -123,7 +123,9 @@ export async function showWebNotification(payload: AlertPayload): Promise<boolea
     try {
       await reg.showNotification(payload.title, options);
       return true;
-    } catch {}
+    } catch {
+      // The worker couldn't show it (e.g. permission revoked): try a plain notification below.
+    }
   }
   try {
     // No worker: a plain notification (no buttons); clicking it focuses the tab.

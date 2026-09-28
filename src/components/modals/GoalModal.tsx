@@ -8,7 +8,6 @@ import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 import { Field, TextInput } from '../ui/Field';
 import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface GoalModalProps {
   goal?: Goal | null;
@@ -19,8 +18,8 @@ export interface GoalModalProps {
 export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   const { state, addGoal, updateGoal } = useApp();
 
-  const [name, setName] = useState(goal ? (goal.name || goal.title || '') : '');
-  const [type, setType] = useState<GoalFrequency>(goal ? (goal.type || goal.frequency || 'daily') : 'daily');
+  const [name, setName] = useState(goal ? (goal.name || '') : '');
+  const [type, setType] = useState<GoalFrequency>(goal ? (goal.frequency) : 'daily');
   const [startDate, setStartDate] = useState(goal?.startDate || '');
   const [dueDate, setDueDate] = useState(goal?.dueDate || '');
 
@@ -48,8 +47,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     if (goal) {
       updateGoal(goal.id, {
         name: finalName,
-        title: finalName,
-        type,
         frequency: type,
         rewardId: finalReward,
         ...dates
@@ -57,8 +54,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     } else {
       addGoal({
         name: finalName,
-        title: finalName,
-        type,
         frequency: type,
         rewardId: finalReward,
         landmarks: [],
@@ -110,7 +105,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
             ...state.rewards.map(r => ({
               value: r.id,
               label: r.name,
-              icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>
+              icon: <span className="emoji-glyph">{r.emoji}</span>
             }))
           ]}
         />

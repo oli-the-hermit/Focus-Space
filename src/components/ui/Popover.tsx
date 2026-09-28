@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useBlockingOverlay } from '../../lib/overlays';
+import { cssDurationMs } from '../../lib/theme';
 
 /** A viewport point to anchor to instead of an element (right-click menus). */
 export interface AnchorPoint {
@@ -38,8 +39,6 @@ interface Position {
 }
 
 const VIEWPORT_MARGIN = 8;
-/** Matches --dur-1: how long the panel stays mounted to play its exit. */
-const EXIT_MS = 100;
 
 /**
  * Floating panel anchored to an element or a point. Renders into the anchor's own
@@ -64,7 +63,7 @@ export const Popover: React.FC<PopoverProps> = ({
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<Position | null>(null);
-  // Stays true for EXIT_MS after `open` turns false so the exit can play.
+  // Stays true after `open` turns false while the exit (--dur-1 in popover.css) plays.
   const [mounted, setMounted] = useState(open);
   // Open menus pause the global keyboard shortcuts.
   useBlockingOverlay(role === 'menu' && (open || mounted));
@@ -116,9 +115,9 @@ export const Popover: React.FC<PopoverProps> = ({
     const t = window.setTimeout(() => {
       setMounted(false);
       setPos(null);
-    }, EXIT_MS);
+    }, cssDurationMs('--dur-1', getDoc()));
     return () => window.clearTimeout(t);
-  }, [open]);
+  }, [open, getDoc]);
 
   useLayoutEffect(() => {
     if (open && mounted) reposition();

@@ -34,9 +34,8 @@ import { HelpModal } from './components/help/HelpModal';
 import { OnboardingTour } from './components/onboarding/OnboardingTour';
 import { AlertCard } from './components/alerts/AlertCard';
 import { useShortcuts } from './hooks/useShortcuts';
+import { TIMING } from './constants/timing';
 
-/** Delay before the first-run tour starts, so the app has painted first. */
-const TOUR_DELAY_MS = 600;
 
 export const AppContent: React.FC = () => {
   const { authStatus } = useApp();
@@ -86,7 +85,7 @@ const AppShell: React.FC = () => {
   // First run on this profile: welcome tour (once; it sets tourSeen when closed).
   useEffect(() => {
     if (state.tourSeen || tourActive) return;
-    const t = window.setTimeout(startTour, TOUR_DELAY_MS);
+    const t = window.setTimeout(startTour, TIMING.tourStartDelayMs);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.tourSeen]);

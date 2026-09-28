@@ -7,7 +7,6 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 import { Field, TextInput } from '../ui/Field';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -18,7 +17,7 @@ export interface LandmarkModalProps {
 export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, onClose }) => {
   const { state, addLandmark, updateLandmark } = useApp();
 
-  const [name, setName] = useState(landmark ? (landmark.name || landmark.text || '') : '');
+  const [name, setName] = useState(landmark?.name ?? '');
   const [rewardId, setRewardId] = useState<string>(landmark?.rewardId || '');
   const [startDate, setStartDate] = useState(landmark?.startDate || '');
   const [dueDate, setDueDate] = useState(landmark?.dueDate || '');
@@ -34,14 +33,12 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
     if (landmark) {
       updateLandmark(goalId, landmark.id, {
         name: finalName,
-        text: finalName,
         rewardId: finalReward,
         ...dates
       });
     } else {
       addLandmark(goalId, {
         name: finalName,
-        text: finalName,
         completed: false,
         rewardId: finalReward,
         ...dates
@@ -83,7 +80,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
             ...state.rewards.map(r => ({
               value: r.id,
               label: r.name,
-              icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>
+              icon: <span className="emoji-glyph">{r.emoji}</span>
             }))
           ]}
         />

@@ -9,7 +9,6 @@ import { IconButton } from '../ui/IconButton';
 import { ProgressBar } from '../ui/ProgressBar';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface GoalCardProps {
   goal: Goal;
@@ -28,8 +27,8 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
   } = useApp();
   const contextMenu = useContextMenu();
 
-  const goalName = goal.name || goal.title || strings.goals.untitledGoal;
-  const goalType = goal.type || goal.frequency || 'daily';
+  const goalName = goal.name;
+  const goalType = goal.frequency;
   const landmarks = goal.landmarks || [];
   const hasLandmarks = landmarks.length > 0;
 
@@ -112,7 +111,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
               {frequencyLabel(goalType)}
             </span>
             {linkedReward && (
-              <span className="goal-reward-badge">{linkedReward.emoji || linkedReward.icon || DEFAULT_REWARD_EMOJI} {linkedReward.name}</span>
+              <span className="goal-reward-badge">{linkedReward.emoji} {linkedReward.name}</span>
             )}
           </div>
           <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
@@ -144,7 +143,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
         <div className="goal-landmarks">
           <div className="landmarks-title">{strings.goals.landmarksTitle}</div>
           {landmarks.map(lm => {
-            const lmName = lm.name || lm.text || strings.goals.untitledLandmark;
+            const lmName = lm.name;
             const lmReward = lm.rewardId ? state.rewards.find(r => r.id === lm.rewardId) : null;
 
             return (
@@ -162,7 +161,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 />
                 <span className="landmark-text">{lmName}</span>
                 <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
-                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji || lmReward.icon || DEFAULT_REWARD_EMOJI} {lmReward.name}</span>}
+                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji} {lmReward.name}</span>}
                 <div className="landmark-actions">
                   <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
                     <IconEdit size={12} />

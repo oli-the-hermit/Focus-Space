@@ -22,7 +22,6 @@ import { Card } from '../ui/Card';
 import { Scrubber } from './Scrubber';
 import { cx } from '../../lib/cx';
 import { format } from '../../lib/i18n';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 import { shortcutHint } from '../../constants/shortcuts';
 
 /**
@@ -188,7 +187,7 @@ export const PlayerCard: React.FC = () => {
               {strings.timer.rewardOnCompletion.replace(':', '')}
             </span>
             <span className="player-foot-value" title={reward.name}>
-              {reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI} {reward.name}
+              {reward.emoji} {reward.name}
             </span>
           </div>
         )}

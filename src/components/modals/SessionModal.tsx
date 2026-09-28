@@ -82,11 +82,8 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
       addReward({
         name: draft.name.trim(),
         description: draft.description.trim(),
-        desc: draft.description.trim(),
         emoji,
-        icon: emoji,
         frequency: 'daily',
-        type: 'daily',
         trigger: 'session',
         linkedSessionId: sessionId,
         linkedId: sessionId,
@@ -223,7 +220,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
               ...state.rewards.map(r => ({
                 value: r.id,
                 label: r.name,
-                icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>,
+                icon: <span className="emoji-glyph">{r.emoji}</span>,
                 meta: r.status === 'claimed' ? strings.rewards.claimed : undefined
               }))
             ]}

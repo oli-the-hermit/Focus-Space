@@ -8,6 +8,7 @@ export const strings = {
     discardChanges: 'Discard changes',
     delete: 'Delete',
     duplicate: 'Duplicate',
+    copyOf: '{name} (Copy)',
     edit: 'Edit',
     rename: 'Rename',
     close: 'Close',

@@ -12,6 +12,7 @@ import {
   trackMiniPosition,
   trackMiniSize
 } from '../lib/desktop';
+import { applyTheme, cachedTheme } from '../lib/theme';
 
 /**
  * Root of the Tauri mini-player window (`?view=mini`). It holds no app data:
@@ -24,13 +25,7 @@ export const MiniPlayerApp: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.add('mini-root');
     // Paint with the cached theme until the first snapshot arrives.
-    try {
-      const cached = localStorage.getItem('focusspace_theme_cache');
-      const resolved = cached === 'light' || cached === 'dark'
-        ? cached
-        : window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.dataset.theme = resolved;
-    } catch {}
+    applyTheme(cachedTheme() ?? 'system');
     let unlistenState: (() => void) | undefined;
     let unlistenMove: (() => void) | undefined;
     let unlistenSize: (() => void) | undefined;
@@ -60,11 +55,10 @@ export const MiniPlayerApp: React.FC = () => {
     };
   }, []);
 
+  const snapshotTheme = snapshot?.theme;
   useEffect(() => {
-    if (!snapshot) return;
-    document.documentElement.dataset.theme = snapshot.theme;
-    document.documentElement.style.colorScheme = snapshot.theme;
-  }, [snapshot?.theme]);
+    if (snapshotTheme) applyTheme(snapshotTheme);
+  }, [snapshotTheme]);
 
   const onCommand = useCallback((cmd: MiniCommand) => {
     sendCommandToMain(cmd);

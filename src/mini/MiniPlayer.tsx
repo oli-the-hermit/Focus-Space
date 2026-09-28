@@ -17,6 +17,7 @@ import { IconSwap } from '../components/ui/IconSwap';
 import { useContextMenuState } from '../components/ui/ContextMenu';
 import { MenuItem } from '../components/ui/Menu';
 import { Scrubber } from '../components/timer/Scrubber';
+import { TIMING } from '../constants/timing';
 
 export interface MiniWindowControls {
   pinned?: boolean;
@@ -57,7 +58,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
   useEffect(() => {
     if (!running) return;
     const win = rootRef.current?.ownerDocument.defaultView || window;
-    const id = win.setInterval(() => setNow(Date.now()), 250);
+    const id = win.setInterval(() => setNow(Date.now()), TIMING.miniClockTickMs);
     return () => win.clearInterval(id);
   }, [running]);
 

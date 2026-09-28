@@ -2,20 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCard } from '../components/alerts/AlertCard';
 import type { AlertActionId, AlertPayload } from '../lib/notify';
 import { closeCurrentWindow, listenForAlertShow, sendAlertAction, takePendingAlert } from '../lib/desktop';
-
-const THEME_CACHE_KEY = 'focusspace_theme_cache';
-
-function applyCachedTheme() {
-  try {
-    const cached = localStorage.getItem(THEME_CACHE_KEY);
-    const resolved =
-      cached === 'light' || cached === 'dark'
-        ? cached
-        : window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    document.documentElement.dataset.theme = resolved;
-    document.documentElement.style.colorScheme = resolved;
-  } catch {}
-}
+import { applyTheme, cachedTheme } from '../lib/theme';
 
 /**
  * The desktop alert window (index.html#island): frameless, always on top, opened
@@ -27,7 +14,7 @@ export const IslandApp: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.classList.add('island-root');
-    applyCachedTheme();
+    applyTheme(cachedTheme() ?? 'system');
 
     const off = listenForAlertShow(setPayload);
     takePendingAlert()

@@ -9,6 +9,7 @@
 import type { TimerSnapshot } from './timerSnapshot';
 import { EVT_ALERT_ACTION, type AlertActionMessage, type AlertPayload } from './notify';
 import { strings } from '../constants/strings';
+import { storage } from './storage';
 
 export const MINI_WINDOW_LABEL = 'mini';
 /** URL hash that makes `main.tsx` render the mini player instead of the app. */
@@ -44,7 +45,6 @@ export interface MiniPrefs {
   height?: number;
 }
 
-const PREFS_KEY = 'focusspace_mini_prefs';
 const DEFAULT_PREFS: MiniPrefs = { alwaysOnTop: true, pinned: false };
 
 export function isTauri(): boolean {
@@ -52,28 +52,21 @@ export function isTauri(): boolean {
 }
 
 export function loadMiniPrefs(): MiniPrefs {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (!raw) return { ...DEFAULT_PREFS };
-    const parsed = JSON.parse(raw) as Partial<MiniPrefs>;
-    return {
-      alwaysOnTop: typeof parsed.alwaysOnTop === 'boolean' ? parsed.alwaysOnTop : DEFAULT_PREFS.alwaysOnTop,
-      pinned: typeof parsed.pinned === 'boolean' ? parsed.pinned : DEFAULT_PREFS.pinned,
-      x: typeof parsed.x === 'number' ? parsed.x : undefined,
-      y: typeof parsed.y === 'number' ? parsed.y : undefined,
-      width: typeof parsed.width === 'number' ? parsed.width : undefined,
-      height: typeof parsed.height === 'number' ? parsed.height : undefined
-    };
-  } catch {
-    return { ...DEFAULT_PREFS };
-  }
+  const parsed = storage.getJSON<Partial<MiniPrefs>>('miniPrefs');
+  if (!parsed || typeof parsed !== 'object') return { ...DEFAULT_PREFS };
+  return {
+    alwaysOnTop: typeof parsed.alwaysOnTop === 'boolean' ? parsed.alwaysOnTop : DEFAULT_PREFS.alwaysOnTop,
+    pinned: typeof parsed.pinned === 'boolean' ? parsed.pinned : DEFAULT_PREFS.pinned,
+    x: typeof parsed.x === 'number' ? parsed.x : undefined,
+    y: typeof parsed.y === 'number' ? parsed.y : undefined,
+    width: typeof parsed.width === 'number' ? parsed.width : undefined,
+    height: typeof parsed.height === 'number' ? parsed.height : undefined
+  };
 }
 
 export function saveMiniPrefs(patch: Partial<MiniPrefs>): MiniPrefs {
   const next = { ...loadMiniPrefs(), ...patch };
-  try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(next));
-  } catch {}
+  storage.setJSON('miniPrefs', next);
   return next;
 }
 
