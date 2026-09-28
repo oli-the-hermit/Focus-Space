@@ -5,6 +5,9 @@ import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconGift, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { IconButton } from '../ui/IconButton';
+import { format } from '../../lib/i18n';
+import { frequencyLabel } from '../../constants/frequencies';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -30,7 +33,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
   const handleDelete = () => {
     openModal('CONFIRM_DELETE', {
       title: strings.rewards.deleteRewardTitle,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', reward.name),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: reward.name }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteReward(reward.id)
     });
@@ -40,7 +43,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
     contextMenu(e, [
       ready && !claimed && {
         key: 'claim',
-        label: strings.contextMenu.claimReward,
+        label: strings.actions.claimReward,
         icon: <IconGift size={15} />,
         onSelect: () => claimReward(reward.id)
       },
@@ -57,12 +60,12 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
       onContextMenu={openRewardMenu}
     >
       <div className="reward-card-header">
-        <div className="reward-card-emoji">{reward.emoji || reward.icon || '🎁'}</div>
+        <div className="reward-card-emoji">{reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI}</div>
         <div className="reward-card-info">
           <div className="reward-card-name">{reward.name}</div>
           <div className="reward-card-meta">
             <span className={`goal-type-badge badge-${rewardFrequency}`}>
-              {rewardFrequency.charAt(0).toUpperCase() + rewardFrequency.slice(1)}
+              {frequencyLabel(rewardFrequency)}
             </span>
             {hasSessionLink && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
             {hasGoalLink && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
@@ -72,7 +75,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
             )}
             {claimed && (
               <span className="reward-trigger-badge claimed">
-                {strings.rewards.badgeClaimed}
+                {strings.rewards.claimed}
               </span>
             )}
           </div>
@@ -101,7 +104,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
       {ready && !claimed && (
         <div className="reward-claim-container">
           <button className="claim-btn" onClick={() => claimReward(reward.id)}>
-            {strings.rewards.claimBtn}
+            {strings.actions.claimReward}
           </button>
         </div>
       )}

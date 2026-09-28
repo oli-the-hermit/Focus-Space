@@ -18,6 +18,36 @@ export const strings = {
     title: 'Focus Space',
     description: 'A calm, minimal focus timer with sessions, task lists, goals, landmarks, and rewards.'
   },
+  // Goal and reward frequencies (types GOAL_FREQUENCIES), plus the "All" filter.
+  frequency: {
+    all: 'All',
+    daily: 'Daily',
+    weekly: 'Weekly',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    custom: 'Custom'
+  },
+  // What each keyboard shortcut does (keys: constants/shortcuts.ts).
+  shortcuts: {
+    toggleTimer: 'Start or pause the timer',
+    skip: 'Skip to the next phase',
+    reset: 'Reset the timer',
+    newSession: 'New session',
+    miniPlayer: 'Open or close the mini player',
+    help: 'Open help',
+    contextMenu: 'Open the menu for the focused item'
+  },
+  // Names of keys shown on key caps.
+  keys: {
+    space: 'Space',
+    shift: 'Shift'
+  },
+  // Compact duration units: formatDuration() in lib/formatUtils.
+  units: {
+    seconds: '{s}s',
+    minutes: '{m}m',
+    minutesSeconds: '{m}m {s}s'
+  },
   status: {
     ready: 'Ready',
     focusing: 'Focusing…',
@@ -53,8 +83,6 @@ export const strings = {
     sessionProgress: 'Session progress',
     rewardOnCompletion: 'Reward on completion:',
     sessionsTitle: 'Sessions',
-    newSessionBtn: '+ New session',
-    resetTooltip: 'Reset timer',
     skipTooltip: 'Skip phase',
     playTooltip: 'Start',
     pauseTooltip: 'Pause',
@@ -62,8 +90,6 @@ export const strings = {
     upNext: 'Up next',
     completedToday: '{count} completed today',
     noOpenTasks: 'No open tasks',
-    miniPlayerOpen: 'Open mini player',
-    miniPlayerClose: 'Close mini player',
     soundOnTooltip: 'Sound on',
     soundOffTooltip: 'Sound off',
     sessionTasksTitle: 'Session tasks',
@@ -82,10 +108,9 @@ export const strings = {
     unpin: 'Unpin position',
     alwaysOnTopOn: 'Always on top: on',
     alwaysOnTopOff: 'Always on top: off',
-    expand: 'Open Focus Space',
     close: 'Close (timer keeps running)',
     waiting: 'Connecting to Focus Space…',
-    pipTitle: 'Focus Space',
+    windowTitle: 'Focus Space · Mini player',
     progress: 'Progress',
     upNext: 'Up next',
     doneToday: 'Done today',
@@ -94,7 +119,7 @@ export const strings = {
   },
   tasks: {
     sidebarTitle: 'Lists',
-    newListBtn: '+ New list',
+    newListBtn: 'New list',
     selectListPrompt: 'Pick or create a list to get started.',
     addTaskPlaceholder: 'Add a task and press Enter…',
     addTaskBtn: 'Add',
@@ -102,9 +127,8 @@ export const strings = {
     duplicateTooltip: 'Duplicate list',
     deleteTooltip: 'Delete list',
     deleteListTitle: 'Delete list?',
-    dragToReorder: 'Drag to reorder',
     emptyLists: 'No lists yet. Create one to get started.',
-    tasksRemaining: '{count} tasks remaining',
+    tasksRemaining: { one: '{count} task remaining', other: '{count} tasks remaining' },
     completedOf: '{done} of {total} completed',
     emptyListPrompt: 'Pick or create a list in the sidebar to start tracking tasks.',
     emptyTasks: 'No tasks yet. Add your first one above.',
@@ -115,7 +139,6 @@ export const strings = {
     prevBtn: 'Previous',
     todayBtn: 'Today',
     nextBtn: 'Next',
-    scheduleSessionBtn: '+ Schedule session',
     views: {
       week: 'Week',
       day: 'Day',
@@ -134,29 +157,26 @@ export const strings = {
     emptyLogs: 'No completed tasks yet. Check off tasks during a session and your timing stats will show up here.'
   },
   goals: {
-    newGoalBtn: '+ New goal',
     deleteGoalTitle: 'Delete goal?',
     emptyGoals: 'No goals yet. Set your first one. Small steps count too.',
-    addLandmarkBtn: '+ Add landmark',
     landmarksTitle: 'Landmarks',
     untitledGoal: 'Untitled goal',
     untitledLandmark: 'Untitled landmark',
     landmarksCountLabel: '{done} of {total} landmarks',
     dueOn: 'Due {date}',
     startsOn: 'Starts {date}',
-    startsIn: 'starts in {count} day{s}',
-    daysLeft: '{count} day{s} left',
+    dateRange: '{start} → {end}',
+    startsIn: { one: 'starts in {count} day', other: 'starts in {count} days' },
+    daysLeft: { one: '{count} day left', other: '{count} days left' },
     dueToday: 'due today',
-    overdue: '{count} day{s} past due'
+    overdue: { one: '{count} day past due', other: '{count} days past due' }
   },
   rewards: {
     readyToClaim: 'Ready to claim',
     inProgress: 'In progress',
     claimed: 'Claimed',
-    newRewardBtn: '+ New reward',
     deleteRewardTitle: 'Delete reward?',
     emptyReady: 'Finish a session, landmark or goal to unlock your first reward.',
-    claimBtn: 'Claim reward',
     linkSessionLabel: 'Link to focus session (optional)',
     noSessionLinked: '— No session linked —',
     linkGoalLabel: 'Link to goal (optional)',
@@ -167,8 +187,7 @@ export const strings = {
     badgeSession: 'Session',
     badgeGoal: 'Goal',
     badgeLandmark: 'Landmark',
-    badgeManual: 'Manual',
-    badgeClaimed: 'Claimed'
+    badgeManual: 'Manual'
   },
   sessions: {
     deleteConfirmTitle: 'Delete session?',
@@ -189,7 +208,7 @@ export const strings = {
     leadTimeLabel: 'Remind me',
     soundLabel: 'Play a chime',
     autoDismissLabel: 'Hide alerts after',
-    autoDismissValue: '{count} seconds',
+    autoDismissValue: { one: '{count} second', other: '{count} seconds' },
     browserPermLabel: 'Browser permission',
     requestPermBtn: 'Allow notifications',
     permGrantedMsg: 'Allowed. Alerts reach you even when this tab is in the background.',
@@ -248,7 +267,6 @@ export const strings = {
     editLandmark: 'Edit landmark',
     landmarkNameLabel: 'Landmark name',
     landmarkNamePlaceholder: 'e.g. Finish chapter 3',
-    addLandmarkBtn: 'Add landmark',
 
     newReward: 'New reward',
     editReward: 'Edit reward',
@@ -298,13 +316,15 @@ export const strings = {
     setupSubtitle: 'One quick step, no Next › Next › Finish required. This main account looks after every profile on this device.',
     usernameLabel: 'Username',
     displayNameLabel: 'Display name',
+    displayNamePlaceholder: 'e.g. Enzo',
+    usernamePlaceholder: 'username',
     passwordLabel: 'Password',
     confirmPasswordLabel: 'Confirm password',
     signInBtn: 'Sign in',
     createAccountBtn: 'Create main account',
     fieldRequired: 'A few fields are still empty. Fill them in to continue.',
     passwordsDontMatch: 'Those passwords don’t match yet. Retype them to confirm.',
-    weakPassword: 'Passwords need at least 8 characters. Try adding a word or two.',
+    weakPassword: 'Passwords need at least {min} characters. Try adding a word or two.',
     switchToLogin: 'Already have an account? Sign in',
     switchToSetup: 'No account? Create the main account',
     signingIn: 'Signing in…',
@@ -322,18 +342,16 @@ export const strings = {
     title: 'Profile',
     changePhotoBtn: 'Change photo',
     removePhotoBtn: 'Remove photo',
-    photoTooLarge: 'That image is over 1 MB. Try a smaller or cropped photo.',
+    photoTooLarge: 'That image is over {mb} MB. Try a smaller or cropped photo.',
     nameLabel: 'Name',
     usernameLabel: 'Username',
-    saveBtn: 'Save changes',
     savedMsg: 'Profile saved.',
     passwordLabel: 'Password',
-    passwordHint: 'Use at least 8 characters.',
+    passwordHint: 'Use at least {min} characters.',
     changePasswordBtn: 'Change password',
     keepPasswordBtn: 'Keep current password',
-    ruleLength: 'At least 8 characters',
+    ruleLength: 'At least {min} characters',
     ruleMatch: 'New passwords match',
-    usernameTakenMsg: 'That username is already in use. Try a different one.',
     currentPasswordLabel: 'Current password',
     newPasswordLabel: 'New password',
     confirmPasswordLabel: 'Confirm new password',
@@ -342,9 +360,7 @@ export const strings = {
     deleteOwnBtn: 'Delete my profile',
     deleteOwnConfirmMsg: 'This removes your profile and everything in it from this device. It can’t be undone.',
     deleteOwnExecMsg: 'Your profile has been deleted.',
-    deleteOwnFallback: 'We couldn’t delete your profile. Please try again.',
-    deleteBtn: 'Delete',
-    cancelBtn: 'Cancel'
+    deleteOwnFallback: 'We couldn’t delete your profile. Please try again.'
   },
   settings: {
     title: 'Settings',
@@ -354,10 +370,9 @@ export const strings = {
     themeSystem: 'System',
     profilesSectionTitle: 'Profiles',
     profileCounter: '{count} of {max} profiles',
-    addProfileBtn: '+ Add profile',
+    addProfileBtn: 'Add profile',
+    maxProfilesReached: 'You can have up to {max} profiles on this device.',
     addProfileTitle: 'New profile',
-    renameBtn: 'Rename',
-    deleteBtn: 'Delete',
     deleteProfileConfirmMsg: 'Delete this profile and everything in it? This can’t be undone.',
     dangerZoneTitle: 'Permanent actions',
     resetProfilesBtn: 'Reset user profiles',
@@ -368,8 +383,7 @@ export const strings = {
     resetPasswordTitle: 'Confirm it’s you',
     resetPasswordMsg: 'Enter your password to confirm.',
     // SettingsView appends " (n)" with the number of profiles removed.
-    resetOkMsg: 'User profiles reset',
-    cancelBtn: 'Cancel'
+    resetOkMsg: 'User profiles reset'
   },
   help: {
     title: 'Help',
@@ -386,15 +400,6 @@ export const strings = {
     reportDesc: 'Opens GitHub Issues in your browser.',
     starTitle: 'Star on GitHub',
     starDesc: 'If Focus Space helps you, a star helps us.',
-    shortcuts: [
-      { keys: ['Space'], label: 'Start or pause the timer' },
-      { keys: ['S'], label: 'Skip to the next phase' },
-      { keys: ['R'], label: 'Reset the timer' },
-      { keys: ['N'], label: 'New session' },
-      { keys: ['M'], label: 'Open or close the mini player' },
-      { keys: ['?'], label: 'Open help' },
-      { keys: ['Shift', 'F10'], label: 'Open the menu for the focused item' }
-    ],
     shortcutsNote: 'Shortcuts pause while you’re typing or a dialog is open.',
     whatsNew: [
       'A quick tour for new and returning users. Replay it from Help.',
@@ -410,6 +415,7 @@ export const strings = {
     privacyTitle: 'Your data stays here',
     privacyBody: 'Everything is stored on this device and encrypted with your password. Nothing is sent anywhere.',
     credits: 'Made by sanmilano.',
+    githubLabel: 'GitHub',
     reportBody: 'Version: {version}\nPlatform: {platform}\n\nWhat happened?\n\nWhat did you expect?\n'
   },
   onboarding: {
@@ -452,7 +458,8 @@ export const strings = {
       help: { title: 'Help', body: 'Shortcuts, what’s new and this tour live here.' }
     }
   },
-  contextMenu: {
+  // Commands, shared by buttons, tooltips, menus and alerts that run the same action.
+  actions: {
     newSession: 'New session',
     newList: 'New task list',
     newTask: 'New task',
@@ -472,7 +479,6 @@ export const strings = {
     startSession: 'Start session',
     help: 'Help and tutorial',
     open: 'Open',
-    markDone: 'Mark as complete',
     markNotDone: 'Mark as not done',
     claimReward: 'Claim reward',
     addLandmark: 'Add landmark',
@@ -483,8 +489,7 @@ export const strings = {
   windowControls: {
     minimize: 'Minimize',
     maximize: 'Maximize',
-    restore: 'Restore',
-    close: 'Close'
+    restore: 'Restore'
   },
   alerts: {
     focusDoneTitle: 'Focus session complete',
@@ -495,7 +500,6 @@ export const strings = {
     eventSoonBody: '"{title}" starts in {minutes} min.',
     startBreak: 'Start break',
     startFocus: 'Start focus',
-    startSession: 'Start session',
     openApp: 'Open app',
     dismiss: 'Dismiss'
   },
@@ -535,6 +539,35 @@ export const strings = {
   errors: {
     requestInterrupted: 'Something interrupted that request. Please try again.',
     requestInterruptedCode: 'Something interrupted that request (code {status}). Please try again.',
+    // One message per API error code. The web and desktop backends send only
+    // { code, params }; params fill the {placeholders}. Keep the codes in sync
+    // with server/errors.js and src-tauri/src/backend/errors.rs (npm run audit:errors).
+    api: {
+      SESSION_EXPIRED: 'Your session has ended. Sign in again to continue.',
+      OWNER_ONLY: 'Only the main account can do this.',
+      INVALID_USERNAME: 'Usernames use {min}–{max} characters: letters, numbers, dots, dashes or underscores.',
+      INVALID_DISPLAY_NAME: 'Display names can be {min}–{max} characters.',
+      INVALID_PASSWORD: 'Passwords can be {min}–{max} characters.',
+      INVALID_NEW_PASSWORD: 'New passwords can be {min}–{max} characters.',
+      USERNAME_TAKEN: 'That username is already in use. Try a different one.',
+      ALREADY_SET_UP: 'This device already has a main account. Sign in instead.',
+      CREDENTIALS_REQUIRED: 'Enter your username and password to continue.',
+      TOO_MANY_ATTEMPTS: 'Too many sign-in attempts in a row. Take a short break and try again in {seconds} seconds.',
+      INVALID_CREDENTIALS: 'That username and password don’t match. Check for typos or Caps Lock and try again.',
+      CURRENT_PASSWORD_REQUIRED: 'Enter your current password to continue.',
+      WRONG_CURRENT_PASSWORD: 'That’s not your current password. Give it another try.',
+      PASSWORD_REQUIRED: 'Enter your password to confirm.',
+      WRONG_PASSWORD: 'That password doesn’t match. Please try again.',
+      OWNER_UNDELETABLE: 'The main account can’t be deleted. It keeps every profile on this device running.',
+      PROFILE_LIMIT: 'You’ve reached the limit of {max} profiles. Remove one to add someone new.',
+      PROFILE_NOT_FOUND: 'We couldn’t find that profile. It may have been removed already.',
+      AVATAR_TOO_LARGE: 'That image is too large. Try a smaller or cropped photo.',
+      NO_CHANGES: 'No changes to save yet.',
+      SAVE_FAILED: 'We couldn’t save that change. Your data is safe, so please try again.',
+      PAYLOAD_TOO_LARGE: 'That’s more than we can save at once. Try a smaller image or fewer changes.',
+      NOT_FOUND: 'We couldn’t find what you were looking for.',
+      INTERNAL: 'Something unexpected happened on our side. Your data is safe, so please try again.'
+    },
     createProfile: 'We couldn’t create that profile. Please try again.',
     renameProfile: 'We couldn’t rename that profile. Please try again.',
     deleteProfile: 'We couldn’t delete that profile. Please try again.',

@@ -1,8 +1,9 @@
 //! Route handlers, one per Express route in `server/app.js`. Validation rules,
-//! status codes and error messages match the web server exactly.
+//! status codes and error codes match the web server exactly. Limits come from
+//! shared/limits.json (limits.rs); errors are codes (errors.rs), never sentences.
 
 use std::sync::MutexGuard;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::alphabet;
 use base64::engine::general_purpose::{GeneralPurpose, GeneralPurposeConfig};
@@ -12,20 +13,10 @@ use rusqlite::types::Value as SqlValue;
 use rusqlite::{params, params_from_iter, Connection, OptionalExtension, Row};
 use serde_json::{json, Value};
 
-use super::{crypto, ApiResponse, Attempt, Backend};
+use super::limits::LIMITS;
+use super::{crypto, errors, ApiResponse, Attempt, Backend};
 
-const SESSION_TTL_MS: i64 = 30 * 24 * 3600 * 1000; // 30 days
-const MAX_PROFILES: i64 = 6;
-const LOCKOUT_MAX_FAILURES: u32 = 5;
-const LOCKOUT_MS: i64 = 30_000;
-const LOGIN_FAIL_DELAY: Duration = Duration::from_millis(250);
-const MAX_BLOB_BYTES: usize = 1_572_864; // 1.5 MB encrypted blob cap
-const MAX_AVATAR_LEN: usize = 200_000;
 const DUMMY_SALT: &str = "00000000000000000000000000000000";
-
-const MSG_USERNAME: &str = "Usernames use 3–24 characters: letters, numbers, dots, dashes or underscores.";
-const MSG_DISPLAY_NAME: &str = "Display names can be 1–40 characters.";
-const MSG_PASSWORD: &str = "Passwords can be 8–128 characters.";
 
 // Node's Buffer.from(v, 'base64') accepts input with or without padding.
 const BASE64_LENIENT: GeneralPurpose = GeneralPurpose::new(
@@ -37,18 +28,18 @@ const BASE64_LENIENT: GeneralPurpose = GeneralPurpose::new(
 
 pub(crate) struct ApiErr {
     status: u16,
-    message: String,
+    code: &'static str,
 }
 
 impl From<rusqlite::Error> for ApiErr {
     fn from(err: rusqlite::Error) -> Self {
         log::error!("database error: {err}");
-        fail(500, "Something unexpected happened on our side. Your data is safe, so please try again.")
+        fail(500, errors::INTERNAL)
     }
 }
 
-fn fail(status: u16, message: impl Into<String>) -> ApiErr {
-    ApiErr { status, message: message.into() }
+fn fail(status: u16, code: &'static str) -> ApiErr {
+    ApiErr { status, code }
 }
 
 type Reply = Result<(u16, Value), ApiErr>;
@@ -69,7 +60,7 @@ fn now_ms() -> i64 {
 }
 
 fn db(b: &Backend) -> Result<MutexGuard<'_, Connection>, ApiErr> {
-    b.conn.lock().map_err(|_| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))
+    b.conn.lock().map_err(|_| fail(500, errors::INTERNAL))
 }
 
 // ── Validation (lengths count UTF-16 units, like JS `.length`) ───────────
@@ -78,19 +69,21 @@ fn js_len(s: &str) -> usize {
     s.encode_utf16().count()
 }
 
+/// Mirrors `username.pattern` in shared/limits.json (pinned by a test in limits.rs).
 fn valid_username(v: Option<&str>) -> bool {
+    let rule = &LIMITS.username;
     v.is_some_and(|s| {
-        (3..=24).contains(&s.len())
+        (rule.min..=rule.max).contains(&s.len())
             && s.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'.' || c == b'_' || c == b'-')
     })
 }
 
 fn valid_display_name(v: Option<&str>) -> bool {
-    v.is_some_and(|s| (1..=40).contains(&js_len(s.trim())))
+    v.is_some_and(|s| LIMITS.display_name.contains(js_len(s.trim())))
 }
 
 fn valid_password(v: Option<&str>) -> bool {
-    v.is_some_and(|s| (8..=128).contains(&js_len(s)))
+    v.is_some_and(|s| LIMITS.password.contains(js_len(s)))
 }
 
 fn valid_iv(v: Option<&str>) -> bool {
@@ -101,7 +94,7 @@ fn valid_iv(v: Option<&str>) -> bool {
 
 fn valid_cipher(v: Option<&str>) -> bool {
     v.is_some_and(|s| {
-        !s.is_empty() && s.len() <= MAX_BLOB_BYTES * 2 && BASE64_LENIENT.decode(s).is_ok_and(|b| b.len() <= MAX_BLOB_BYTES)
+        !s.is_empty() && s.len() <= LIMITS.max_blob_bytes * 2 && BASE64_LENIENT.decode(s).is_ok_and(|b| b.len() <= LIMITS.max_blob_bytes)
     })
 }
 
@@ -131,8 +124,8 @@ fn record_failure(b: &Backend, key: &str) {
     if let Ok(mut attempts) = b.attempts.lock() {
         let entry = attempts.entry(key.to_string()).or_insert_with(Attempt::default);
         entry.count += 1;
-        if entry.count >= LOCKOUT_MAX_FAILURES {
-            entry.blocked_until = Some(now_ms() + LOCKOUT_MS);
+        if entry.count >= LIMITS.login.max_failures {
+            entry.blocked_until = Some(now_ms() + LIMITS.lockout_ms());
             entry.count = 0;
         }
     }
@@ -238,7 +231,7 @@ fn create_session(conn: &Connection, profile_id: i64) -> Result<String, ApiErr> 
     let now = now_ms();
     conn.execute(
         "INSERT INTO sessions (token_hash, profile_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-        params![crypto::hash_token(&token), profile_id, now, now + SESSION_TTL_MS],
+        params![crypto::hash_token(&token), profile_id, now, now + LIMITS.session_ttl_ms()],
     )?;
     Ok(token)
 }
@@ -248,13 +241,13 @@ fn assert_unique_username(conn: &Connection, username: &str) -> Result<(), ApiEr
         .query_row("SELECT id FROM profiles WHERE username = ? COLLATE NOCASE", [username], |r| r.get(0))
         .optional()?;
     match exists {
-        Some(_) => Err(fail(409, "That username is already in use. Try a different one.")),
+        Some(_) => Err(fail(409, errors::USERNAME_TAKEN)),
         None => Ok(()),
     }
 }
 
 fn hash_new_password(password: &str, salt_hex: Option<&str>) -> Result<(String, String), ApiErr> {
-    crypto::hash_password(password, salt_hex).map_err(|_| fail(400, "We couldn’t save that change. Your data is safe, so please try again."))
+    crypto::hash_password(password, salt_hex).map_err(|_| fail(400, errors::SAVE_FAILED))
 }
 
 // ── Middleware equivalents ───────────────────────────────────────────────
@@ -262,7 +255,7 @@ fn hash_new_password(password: &str, salt_hex: Option<&str>) -> Result<(String, 
 fn require_auth(b: &Backend, token: Option<&str>) -> Result<AuthCtx, ApiErr> {
     let token = token
         .filter(|t| !t.is_empty())
-        .ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+        .ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
     let conn = db(b)?;
     let row = conn
         .query_row(
@@ -287,16 +280,16 @@ fn require_auth(b: &Backend, token: Option<&str>) -> Result<AuthCtx, ApiErr> {
         .optional()?;
 
     let Some((expires_at, ctx)) = row else {
-        return Err(fail(401, "Your session has ended. Sign in again to continue."));
+        return Err(fail(401, errors::SESSION_EXPIRED));
     };
     if expires_at < now_ms() {
         conn.execute("DELETE FROM sessions WHERE token_hash = ?", [&ctx.token_hash])?;
-        return Err(fail(401, "Your session has ended. Sign in again to continue."));
+        return Err(fail(401, errors::SESSION_EXPIRED));
     }
     // Sliding expiry
     conn.execute(
         "UPDATE sessions SET expires_at = ? WHERE token_hash = ?",
-        params![now_ms() + SESSION_TTL_MS, ctx.token_hash],
+        params![now_ms() + LIMITS.session_ttl_ms(), ctx.token_hash],
     )?;
     Ok(ctx)
 }
@@ -304,7 +297,7 @@ fn require_auth(b: &Backend, token: Option<&str>) -> Result<AuthCtx, ApiErr> {
 fn require_owner(b: &Backend, token: Option<&str>) -> Result<AuthCtx, ApiErr> {
     let ctx = require_auth(b, token)?;
     if ctx.role != "owner" {
-        return Err(fail(403, "Only the main account can do this."));
+        return Err(fail(403, errors::OWNER_ONLY));
     }
     Ok(ctx)
 }
@@ -315,7 +308,7 @@ pub(crate) fn dispatch(b: &Backend, method: &str, path: &str, body: Option<Value
     let body = body.unwrap_or(Value::Null);
     match route(b, method, path, &body, token.as_deref()) {
         Ok((status, body)) => ApiResponse { status, body },
-        Err(e) => ApiResponse { status: e.status, body: json!({ "error": e.message }) },
+        Err(e) => ApiResponse { status: e.status, body: errors::body(e.code) },
     }
 }
 
@@ -361,7 +354,7 @@ fn route(b: &Backend, method: &str, path: &str, body: &Value, token: Option<&str
             reset_profiles(b, &ctx, body)
         }
 
-        _ => Err(fail(404, "We couldn’t find what you were looking for.")),
+        _ => Err(fail(404, errors::NOT_FOUND)),
     }
 }
 
@@ -377,18 +370,18 @@ fn setup(b: &Backend, body: &Value) -> Reply {
     let display_name = str_field(body, "displayName");
     let password = str_field(body, "password");
     if !valid_username(username) {
-        return Err(fail(400, MSG_USERNAME));
+        return Err(fail(400, errors::INVALID_USERNAME));
     }
     if !valid_display_name(display_name) {
-        return Err(fail(400, MSG_DISPLAY_NAME));
+        return Err(fail(400, errors::INVALID_DISPLAY_NAME));
     }
     if !valid_password(password) {
-        return Err(fail(400, MSG_PASSWORD));
+        return Err(fail(400, errors::INVALID_PASSWORD));
     }
     let (username, display_name, password) = (username.unwrap(), display_name.unwrap().trim(), password.unwrap());
 
     if profile_count(&*db(b)?)? > 0 {
-        return Err(fail(409, "This device already has a main account. Sign in instead."));
+        return Err(fail(409, errors::ALREADY_SET_UP));
     }
 
     // Hash without holding the database lock.
@@ -401,7 +394,7 @@ fn setup(b: &Backend, body: &Value) -> Reply {
          VALUES (?, ?, 'owner', ?, ?, ?, ?)",
         params![username, display_name, salt, hash, now, now],
     )?;
-    let profile = profile_by_id(&conn, conn.last_insert_rowid())?.ok_or_else(|| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))?;
+    let profile = profile_by_id(&conn, conn.last_insert_rowid())?.ok_or_else(|| fail(500, errors::INTERNAL))?;
     let token = create_session(&conn, profile.id)?;
     Ok((
         201,
@@ -411,13 +404,13 @@ fn setup(b: &Backend, body: &Value) -> Reply {
 
 fn login(b: &Backend, body: &Value) -> Reply {
     let (Some(username), Some(password)) = (str_field(body, "username"), str_field(body, "password")) else {
-        return Err(fail(400, "Enter your username and password to continue."));
+        return Err(fail(400, errors::CREDENTIALS_REQUIRED));
     };
 
     // Desktop has a single client, so the lockout is keyed by username only.
     let key = username.to_lowercase();
     if is_blocked(b, &key) {
-        return Err(fail(429, "Too many sign-in attempts in a row. Take a short break and try again in 30 seconds."));
+        return Err(fail(429, errors::TOO_MANY_ATTEMPTS));
     }
 
     let row = profile_by_username(&*db(b)?, username)?;
@@ -432,8 +425,8 @@ fn login(b: &Backend, body: &Value) -> Reply {
 
     let Some(row) = row.filter(|_| valid) else {
         record_failure(b, &key);
-        std::thread::sleep(LOGIN_FAIL_DELAY);
-        return Err(fail(401, "That username and password don’t match. Check for typos or Caps Lock and try again."));
+        std::thread::sleep(LIMITS.login_fail_delay());
+        return Err(fail(401, errors::INVALID_CREDENTIALS));
     };
 
     record_success(b, &key);
@@ -453,7 +446,7 @@ fn logout(b: &Backend, ctx: &AuthCtx) -> Reply {
 // ── Encrypted per-profile data ───────────────────────────────────────────
 
 fn get_data(b: &Backend, ctx: &AuthCtx) -> Reply {
-    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
     if row.data_cipher.is_empty() {
         ok(json!({ "salt": row.salt, "iv": "", "cipher": "" }))
     } else {
@@ -465,7 +458,7 @@ fn put_data(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     let iv = str_field(body, "iv");
     let cipher = str_field(body, "cipher");
     if !valid_iv(iv) || !valid_cipher(cipher) {
-        return Err(fail(400, "We couldn’t save that change. Your data is safe, so please try again."));
+        return Err(fail(400, errors::SAVE_FAILED));
     }
     db(b)?.execute(
         "UPDATE profiles SET data_iv = ?, data_cipher = ?, updated_at = ? WHERE id = ?",
@@ -478,7 +471,7 @@ fn put_data(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
 
 fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     let conn = db(b)?;
-    let row = profile_by_id(&conn, ctx.id)?.ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+    let row = profile_by_id(&conn, ctx.id)?.ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
 
     let mut sets: Vec<&str> = Vec::new();
     let mut values: Vec<SqlValue> = Vec::new();
@@ -486,7 +479,7 @@ fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     if let Some(v) = body.get("displayName") {
         let name = v.as_str();
         if !valid_display_name(name) {
-            return Err(fail(400, MSG_DISPLAY_NAME));
+            return Err(fail(400, errors::INVALID_DISPLAY_NAME));
         }
         sets.push("display_name = ?");
         values.push(SqlValue::Text(name.unwrap().trim().to_string()));
@@ -494,7 +487,7 @@ fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     if let Some(v) = body.get("username") {
         let username = v.as_str();
         if !valid_username(username) {
-            return Err(fail(400, MSG_USERNAME));
+            return Err(fail(400, errors::INVALID_USERNAME));
         }
         let username = username.unwrap();
         if username.to_lowercase() != row.username.to_lowercase() {
@@ -505,16 +498,16 @@ fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     }
     if let Some(v) = body.get("avatar") {
         match v.as_str() {
-            Some(avatar) if js_len(avatar) <= MAX_AVATAR_LEN => {
+            Some(avatar) if js_len(avatar) <= LIMITS.avatar.max_chars => {
                 sets.push("avatar = ?");
                 values.push(SqlValue::Text(avatar.to_string()));
             }
-            _ => return Err(fail(400, "That image is too large. Try a smaller or cropped photo.")),
+            _ => return Err(fail(400, errors::AVATAR_TOO_LARGE)),
         }
     }
 
     if sets.is_empty() {
-        return Err(fail(400, "No changes to save yet."));
+        return Err(fail(400, errors::NO_CHANGES));
     }
 
     values.push(SqlValue::Integer(now_ms()));
@@ -523,27 +516,27 @@ fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
         &format!("UPDATE profiles SET {}, updated_at = ? WHERE id = ?", sets.join(", ")),
         params_from_iter(values),
     )?;
-    let updated = profile_by_id(&conn, ctx.id)?.ok_or_else(|| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))?;
+    let updated = profile_by_id(&conn, ctx.id)?.ok_or_else(|| fail(500, errors::INTERNAL))?;
     ok(json!({ "profile": updated.public() }))
 }
 
 fn change_password(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     let Some(current) = str_field(body, "currentPassword") else {
-        return Err(fail(400, "Enter your current password to continue."));
+        return Err(fail(400, errors::CURRENT_PASSWORD_REQUIRED));
     };
-    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
 
     if !crypto::verify_password(current, &row.salt, &row.password_hash) {
-        std::thread::sleep(LOGIN_FAIL_DELAY);
-        return Err(fail(401, "That’s not your current password. Give it another try."));
+        std::thread::sleep(LIMITS.login_fail_delay());
+        return Err(fail(401, errors::WRONG_CURRENT_PASSWORD));
     }
     let new_password = str_field(body, "newPassword");
     if !valid_password(new_password) {
-        return Err(fail(400, "New passwords can be 8–128 characters."));
+        return Err(fail(400, errors::INVALID_NEW_PASSWORD));
     }
     let (salt, iv, cipher) = (str_field(body, "salt"), str_field(body, "iv"), str_field(body, "cipher"));
     if !valid_salt(salt) || !valid_iv(iv) || !valid_cipher(cipher) {
-        return Err(fail(400, "We couldn’t save that change. Your data is safe, so please try again."));
+        return Err(fail(400, errors::SAVE_FAILED));
     }
 
     let (salt, hash) = hash_new_password(new_password.unwrap(), salt)?;
@@ -556,21 +549,21 @@ fn change_password(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     // Invalidate other sessions so old passwords stop working elsewhere
     conn.execute("DELETE FROM sessions WHERE profile_id = ?", [row.id])?;
     let token = create_session(&conn, row.id)?;
-    let updated = profile_by_id(&conn, row.id)?.ok_or_else(|| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))?;
+    let updated = profile_by_id(&conn, row.id)?.ok_or_else(|| fail(500, errors::INTERNAL))?;
     ok(json!({ "token": token, "profile": updated.public() }))
 }
 
 fn delete_self(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     let Some(password) = str_field(body, "password") else {
-        return Err(fail(400, "Enter your password to confirm."));
+        return Err(fail(400, errors::PASSWORD_REQUIRED));
     };
     if ctx.role == "owner" {
-        return Err(fail(403, "The main account can’t be deleted. It keeps every profile on this device running."));
+        return Err(fail(403, errors::OWNER_UNDELETABLE));
     }
-    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
     if !crypto::verify_password(password, &row.salt, &row.password_hash) {
-        std::thread::sleep(LOGIN_FAIL_DELAY);
-        return Err(fail(401, "That password doesn’t match. Please try again."));
+        std::thread::sleep(LIMITS.login_fail_delay());
+        return Err(fail(401, errors::WRONG_PASSWORD));
     }
     db(b)?.execute("DELETE FROM profiles WHERE id = ?", [row.id])?; // cascades sessions
     no_content()
@@ -593,20 +586,20 @@ fn create_profile(b: &Backend, body: &Value) -> Reply {
     let display_name = str_field(body, "displayName");
     let password = str_field(body, "password");
     if !valid_username(username) {
-        return Err(fail(400, MSG_USERNAME));
+        return Err(fail(400, errors::INVALID_USERNAME));
     }
     if !valid_display_name(display_name) {
-        return Err(fail(400, MSG_DISPLAY_NAME));
+        return Err(fail(400, errors::INVALID_DISPLAY_NAME));
     }
     if !valid_password(password) {
-        return Err(fail(400, MSG_PASSWORD));
+        return Err(fail(400, errors::INVALID_PASSWORD));
     }
     let (username, display_name, password) = (username.unwrap(), display_name.unwrap().trim(), password.unwrap());
 
     {
         let conn = db(b)?;
-        if profile_count(&conn)? >= MAX_PROFILES {
-            return Err(fail(409, format!("You’ve reached the limit of {MAX_PROFILES} profiles. Remove one to add someone new.")));
+        if profile_count(&conn)? >= LIMITS.max_profiles {
+            return Err(fail(409, errors::PROFILE_LIMIT));
         }
         assert_unique_username(&conn, username)?;
     }
@@ -619,14 +612,14 @@ fn create_profile(b: &Backend, body: &Value) -> Reply {
          VALUES (?, ?, 'user', ?, ?, ?, ?)",
         params![username, display_name, salt, hash, now, now],
     )?;
-    let profile = profile_by_id(&conn, conn.last_insert_rowid())?.ok_or_else(|| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))?;
+    let profile = profile_by_id(&conn, conn.last_insert_rowid())?.ok_or_else(|| fail(500, errors::INTERNAL))?;
     Ok((201, json!({ "profile": profile.public() })))
 }
 
 fn rename_profile(b: &Backend, id: &str, body: &Value) -> Reply {
     let display_name = str_field(body, "displayName");
     if !valid_display_name(display_name) {
-        return Err(fail(400, MSG_DISPLAY_NAME));
+        return Err(fail(400, errors::INVALID_DISPLAY_NAME));
     }
     let conn = db(b)?;
     let row = id
@@ -635,13 +628,13 @@ fn rename_profile(b: &Backend, id: &str, body: &Value) -> Reply {
         .map(|id| profile_by_id(&conn, id))
         .transpose()?
         .flatten()
-        .ok_or_else(|| fail(404, "We couldn’t find that profile. It may have been removed already."))?;
+        .ok_or_else(|| fail(404, errors::PROFILE_NOT_FOUND))?;
 
     conn.execute(
         "UPDATE profiles SET display_name = ?, updated_at = ? WHERE id = ?",
         params![display_name.unwrap().trim(), now_ms(), row.id],
     )?;
-    let updated = profile_by_id(&conn, row.id)?.ok_or_else(|| fail(500, "Something unexpected happened on our side. Your data is safe, so please try again."))?;
+    let updated = profile_by_id(&conn, row.id)?.ok_or_else(|| fail(500, errors::INTERNAL))?;
     ok(json!({ "profile": updated.public() }))
 }
 
@@ -653,9 +646,9 @@ fn delete_profile(b: &Backend, ctx: &AuthCtx, id: &str) -> Reply {
         .map(|id| profile_by_id(&conn, id))
         .transpose()?
         .flatten()
-        .ok_or_else(|| fail(404, "We couldn’t find that profile. It may have been removed already."))?;
+        .ok_or_else(|| fail(404, errors::PROFILE_NOT_FOUND))?;
     if row.id == ctx.id {
-        return Err(fail(400, "The main account can’t be deleted. It keeps every profile on this device running."));
+        return Err(fail(400, errors::OWNER_UNDELETABLE));
     }
     conn.execute("DELETE FROM profiles WHERE id = ?", [row.id])?; // cascades sessions
     no_content()
@@ -665,12 +658,12 @@ fn delete_profile(b: &Backend, ctx: &AuthCtx, id: &str) -> Reply {
 
 fn reset_profiles(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     let Some(password) = str_field(body, "password") else {
-        return Err(fail(400, "Enter your password to confirm."));
+        return Err(fail(400, errors::PASSWORD_REQUIRED));
     };
-    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, "Your session has ended. Sign in again to continue."))?;
+    let row = profile_by_id(&*db(b)?, ctx.id)?.ok_or_else(|| fail(401, errors::SESSION_EXPIRED))?;
     if !crypto::verify_password(password, &row.salt, &row.password_hash) {
-        std::thread::sleep(LOGIN_FAIL_DELAY);
-        return Err(fail(401, "That password doesn’t match. Please try again."));
+        std::thread::sleep(LIMITS.login_fail_delay());
+        return Err(fail(401, errors::WRONG_PASSWORD));
     }
 
     let mut conn = db(b)?;
@@ -721,7 +714,8 @@ mod tests {
     fn setup_validates_and_runs_once() {
         let b = Backend::in_memory();
         let r = call(&b, "POST", "/api/auth/setup", json!({ "username": "ab", "displayName": "A", "password": "password123" }), None);
-        assert_eq!((r.status, r.body["error"].as_str()), (400, Some(MSG_USERNAME)));
+        assert_eq!((r.status, r.body["code"].as_str()), (400, Some(errors::INVALID_USERNAME)));
+        assert_eq!(r.body["params"], json!({ "min": 3, "max": 24 }));
 
         let token = setup_owner(&b);
         let me = call(&b, "GET", "/api/auth/me", Value::Null, Some(&token));
@@ -746,7 +740,7 @@ mod tests {
         assert_eq!(call(&b, "POST", "/api/auth/logout", Value::Null, Some(&token)).status, 204);
         assert_eq!(call(&b, "GET", "/api/auth/me", Value::Null, Some(&token)).status, 401);
 
-        for _ in 0..LOCKOUT_MAX_FAILURES {
+        for _ in 0..LIMITS.login.max_failures {
             let bad = call(&b, "POST", "/api/auth/login", json!({ "username": "olivia", "password": "wrong-pass" }), None);
             assert_eq!(bad.status, 401);
         }
@@ -850,7 +844,8 @@ mod tests {
             assert_eq!(r.status, 201);
         }
         let over = call(&b, "POST", "/api/profiles", json!({ "username": "extra", "displayName": "E", "password": "password123" }), Some(&owner));
-        assert_eq!((over.status, over.body["error"].as_str()), (409, Some("You’ve reached the limit of 6 profiles. Remove one to add someone new.")));
+        assert_eq!((over.status, over.body["code"].as_str()), (409, Some(errors::PROFILE_LIMIT)));
+        assert_eq!(over.body["params"]["max"], 6);
 
         let list = call(&b, "GET", "/api/profiles", Value::Null, Some(&owner));
         let profiles = list.body["profiles"].as_array().unwrap();

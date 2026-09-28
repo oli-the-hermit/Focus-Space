@@ -11,6 +11,7 @@ import { isDragLeavingElement } from '../../lib/dnd';
 import { Button } from '../ui/Button';
 import { Card, PanelHeader } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
+import { format } from '../../lib/i18n';
 
 export const SessionsList: React.FC = () => {
   const {
@@ -69,7 +70,7 @@ export const SessionsList: React.FC = () => {
   const handleDeleteSession = (session: Session) => {
     openModal('CONFIRM_DELETE', {
       title: strings.sessions.deleteConfirmTitle,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', session.name),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: session.name }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteSession(session.id)
     });
@@ -82,7 +83,7 @@ export const SessionsList: React.FC = () => {
   };
 
   const openSessionMenu = (e: React.MouseEvent, session: Session) => {
-    const cm = strings.contextMenu;
+    const cm = strings.actions;
     contextMenu(e, [
       { key: 'start', label: cm.startSession, icon: <IconPlay size={15} />, onSelect: () => startSession(session) },
       { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: () => handleEditSession(session) },
@@ -104,7 +105,7 @@ export const SessionsList: React.FC = () => {
         title={strings.timer.sessionsTitle}
         action={
           <Button variant="tonal" size="sm" id="addSessionBtn" icon={<IconPlus size={15} strokeWidth={2.4} />} onClick={handleAddSession}>
-            {strings.timer.newSessionBtn.replace('+ ', '')}
+            {strings.actions.newSession}
           </Button>
         }
       />

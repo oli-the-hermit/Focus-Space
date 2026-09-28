@@ -166,7 +166,7 @@ async function main() {
       await page.keyboard.press('Escape');
 
       // ── Modals and the pickers inside them ──
-      const cm = strings.contextMenu;
+      const cm = strings.actions;
       await shot(theme, '30-modal-new-session', fromGlobalMenu(cm.newSession));
       await shot(theme, '31-select-open', async () => { await page.locator('.modal .select-trigger').first().click(); });
       await closeOverlays();

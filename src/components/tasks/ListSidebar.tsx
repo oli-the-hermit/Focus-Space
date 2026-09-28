@@ -55,8 +55,8 @@ export const ListSidebar: React.FC = () => {
 
   const openListMenu = (e: React.MouseEvent, list: TaskList) => {
     contextMenu(e, [
-      { key: 'open', label: strings.contextMenu.open, icon: <IconList size={15} />, onSelect: () => setActiveList(list.id) },
-      { key: 'new-task', label: strings.contextMenu.newTask, icon: <IconPlus size={15} />, onSelect: () => openModal('NEW_TASK', { listId: list.id }) },
+      { key: 'open', label: strings.actions.open, icon: <IconList size={15} />, onSelect: () => setActiveList(list.id) },
+      { key: 'new-task', label: strings.actions.newTask, icon: <IconPlus size={15} />, onSelect: () => openModal('NEW_TASK', { listId: list.id }) },
       { key: 'rename', label: strings.tasks.renameTooltip, icon: <IconEdit size={15} />, onSelect: () => openModal('RENAME_LIST', { list }) },
       { key: 'dup', label: strings.tasks.duplicateTooltip, icon: <IconCopy size={15} />, onSelect: () => duplicateList(list.id) },
       { key: 'd1', divider: true },
@@ -84,7 +84,7 @@ export const ListSidebar: React.FC = () => {
         title={strings.tasks.sidebarTitle}
         action={
           <Button variant="tonal" size="sm" id="addListBtn" icon={<IconPlus size={15} strokeWidth={2.4} />} onClick={handleCreateList}>
-            {strings.tasks.newListBtn.replace('+ ', '')}
+            {strings.tasks.newListBtn}
           </Button>
         }
       />
@@ -113,7 +113,7 @@ export const ListSidebar: React.FC = () => {
                 onDrop={e => handleDrop(e, list.id)}
                 onClick={() => setActiveList(list.id)}
               >
-                <IconGrip title={strings.tasks.dragToReorder} />
+                <IconGrip title={strings.common.dragToReorder} />
                 <span className="list-nav-item-name">{list.name}</span>
                 <span className="list-nav-count">{done}/{total}</span>
                 <IconButton

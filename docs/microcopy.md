@@ -1,6 +1,6 @@
 # Focus Space — Microcopy & System States
 
-The single reference for every user-facing message in Focus Space: what the app says, where it says it, and what the user can do next. The source of truth for the text itself is [`src/constants/strings.ts`](../src/constants/strings.ts). Server messages live in [`server/app.js`](../server/app.js) and its Rust port [`src-tauri/src/backend/handlers.rs`](../src-tauri/src/backend/handlers.rs), and **must stay word-for-word identical**.
+The single reference for every user-facing message in Focus Space: what the app says, where it says it, and what the user can do next. The source of truth for the text itself is [`src/constants/strings.ts`](../src/constants/strings.ts), including every server error: both backends ([`server/app.js`](../server/app.js) and its Rust port) send only an error **code**, and the frontend shows `strings.errors.api[code]`.
 
 ## Voice guide
 
@@ -199,8 +199,16 @@ The single reference for every user-facing message in Focus Space: what the app 
 
 ## Implementation notes
 
-- **Where the text lives.** Frontend copy is in `strings.ts`, grouped by area, plus two groups added in this pass: `toasts` (every confirmation toast) and `errors` (client fallbacks used when the server sends no message). Components should read keys, never literals.
-- **Two backends, one voice.** When you change a server message, change it in both `server/app.js` and `handlers.rs`, then run `cargo test --lib` in `src-tauri`. One test asserts on the profile-limit text.
+- **Where the text lives.** All copy is in `strings.ts`, grouped by area. Notable groups:
+  - `actions`: command labels shared by buttons, tooltips, menus and alerts that run the same command.
+  - `toasts`: every confirmation toast.
+  - `errors.api`: one message per server error code.
+  - `frequency`, `shortcuts`, `keys`, `units`: labels for data values, keyboard help and duration units.
+
+  The UI primitives in `components/ui` have their own small dictionary (`ui/UiLabels.tsx`: Close, Search…, Today…), which the app can override with `UiLabelsProvider`. ESLint rejects literal text in JSX and in `label`/`title`/`message`-style props.
+- **Placeholders and plurals.** Fill `{placeholders}` with `format(template, vars)` from `src/lib/i18n.ts`, never `.replace()`. Anything with a count uses `{ one, other }` forms and `plural(count, forms)`. Dates use `LOCALE` from the same file; weekday names come from `weekdayNames()`.
+- **Numbers inside messages come from limits.** Username, password and display-name lengths, the profile limit, the lockout time and the photo size are in `shared/limits.json`, which both backends and the frontend read. Messages take them as `{min}`, `{max}`, `{seconds}` and `{mb}`, so never type the number into a string.
+- **Two backends, one voice.** A new server error needs a code in `server/errors.js` and `src-tauri/src/backend/errors.rs`, plus a message in `strings.errors.api`. `npm run audit:errors` checks all three; `npm run test:rust` runs the Rust tests.
 - **Delete dialogs share one template.** `sessions.deleteConfirmPrompt` is used for sessions, lists, tasks, events, goals and rewards, so keep it generic. `modals.confirmDeleteDefaultMsg` must contain the word `item` exactly once, because the list sidebar swaps it for the list name.
 - **Icons, not emoji.** The account menu uses `IconUser`, `IconSettings` and `IconLogOut`. Completion-log rows use `IconCheck`. Goal and landmark reward badges show that reward's own emoji.
 - **To wire the *(needs wiring)* states:** add the strings to `strings.ts` first, then call them from:

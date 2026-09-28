@@ -2,11 +2,14 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Card, PanelHeader } from '../ui/Card';
+import { weekdayNames } from '../../lib/i18n';
+
+/** Sunday first, to index by Date.getDay(). */
+const DAY_NAMES = weekdayNames('short', 'sunday');
 
 export const ProductivityChart: React.FC = () => {
   const { state } = useApp();
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const minsPerDay = [0, 0, 0, 0, 0, 0, 0];
 
   state.sessionLogs.forEach(s => {
@@ -41,7 +44,7 @@ export const ProductivityChart: React.FC = () => {
                   style={{ height: `${pct}%` }}
                 />
               </div>
-              <span className="day-bar-lbl">{dayNames[dIdx]}</span>
+              <span className="day-bar-lbl">{DAY_NAMES[dIdx]}</span>
             </div>
           );
         })}

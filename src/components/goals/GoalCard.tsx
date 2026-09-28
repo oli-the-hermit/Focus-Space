@@ -2,11 +2,14 @@ import React from 'react';
 import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconCheck, IconEdit, IconCopy, IconFlag, IconReset, IconTrash } from '../ui/icons';
+import { IconCheck, IconCopy, IconEdit, IconFlag, IconPlus, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { ScheduleBadge } from './ScheduleBadge';
 import { IconButton } from '../ui/IconButton';
 import { ProgressBar } from '../ui/ProgressBar';
+import { format } from '../../lib/i18n';
+import { frequencyLabel } from '../../constants/frequencies';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface GoalCardProps {
   goal: Goal;
@@ -36,9 +39,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     ? (totalLandmarks > 0 ? Math.round((doneLandmarks / totalLandmarks) * 100) : 0)
     : (goal.completed ? 100 : 0);
   const isComplete = pct === 100;
-  const landmarksLabel = strings.goals.landmarksCountLabel
-    .replace('{done}', String(doneLandmarks))
-    .replace('{total}', String(totalLandmarks));
+  const landmarksLabel = format(strings.goals.landmarksCountLabel, { done: doneLandmarks, total: totalLandmarks });
 
   const linkedReward = goal.rewardId ? state.rewards.find(r => r.id === goal.rewardId) : null;
 
@@ -49,7 +50,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
   const handleDeleteGoal = () => {
     openModal('CONFIRM_DELETE', {
       title: strings.goals.deleteGoalTitle,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', goalName),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: goalName }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteGoal(goal.id)
     });
@@ -67,7 +68,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     deleteLandmark(goal.id, lmId);
   };
 
-  const cm = strings.contextMenu;
+  const cm = strings.actions;
 
   const openGoalMenu = (e: React.MouseEvent) =>
     contextMenu(e, [
@@ -75,7 +76,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
       { key: 'landmark', label: cm.addLandmark, icon: <IconFlag size={15} />, onSelect: handleAddLandmark },
       !hasLandmarks && {
         key: 'toggle',
-        label: goal.completed ? cm.markNotDone : cm.markDone,
+        label: goal.completed ? cm.markNotDone : strings.common.markComplete,
         icon: goal.completed ? <IconReset size={15} /> : <IconCheck size={15} />,
         onSelect: () => toggleGoal(goal.id)
       },
@@ -90,7 +91,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     contextMenu(e, [
       {
         key: 'toggle',
-        label: lm.completed ? cm.markNotDone : cm.markDone,
+        label: lm.completed ? cm.markNotDone : strings.common.markComplete,
         icon: lm.completed ? <IconReset size={15} /> : <IconCheck size={15} />,
         onSelect: () => toggleLandmark(goal.id, lm.id)
       },
@@ -108,10 +109,10 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
           <div className="goal-card-title">{goalName}</div>
           <div className="goal-card-meta">
             <span className={`goal-type-badge badge-${goalType}`}>
-              {goalType.charAt(0).toUpperCase() + goalType.slice(1)}
+              {frequencyLabel(goalType)}
             </span>
             {linkedReward && (
-              <span className="goal-reward-badge">{linkedReward.emoji || linkedReward.icon || '🎁'} {linkedReward.name}</span>
+              <span className="goal-reward-badge">{linkedReward.emoji || linkedReward.icon || DEFAULT_REWARD_EMOJI} {linkedReward.name}</span>
             )}
           </div>
           <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
@@ -161,7 +162,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 />
                 <span className="landmark-text">{lmName}</span>
                 <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
-                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji || lmReward.icon || '🎁'} {lmReward.name}</span>}
+                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji || lmReward.icon || DEFAULT_REWARD_EMOJI} {lmReward.name}</span>}
                 <div className="landmark-actions">
                   <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
                     <IconEdit size={12} />
@@ -193,8 +194,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
         ) : (
           <div />
         )}
-        <button className="add-landmark-btn" onClick={handleAddLandmark}>
-          {strings.goals.addLandmarkBtn}
+        <button type="button" className="add-landmark-btn" onClick={handleAddLandmark}>
+          <IconPlus size={15} strokeWidth={2.4} />
+          {strings.actions.addLandmark}
         </button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { IconButton } from '../ui/IconButton';
 import { Card, CardHeader } from '../ui/Card';
 import { Chip } from '../ui/Chip';
 import { EmptyState } from '../ui/EmptyState';
+import { format, plural } from '../../lib/i18n';
 
 export interface TaskListCardProps {
   /** Defaults to the list selected in the Tasks sidebar. */
@@ -32,7 +33,7 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId }) => {
     if (!activeList) return;
     openModal('CONFIRM_DELETE', {
       title: strings.tasks.deleteTooltip,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', activeList.name),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: activeList.name }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteList(activeList.id)
     });
@@ -41,7 +42,7 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId }) => {
   const openListMenu = (e: React.MouseEvent) => {
     if (!activeList) return;
     contextMenu(e, [
-      { key: 'new-task', label: strings.contextMenu.newTask, icon: <IconPlus size={15} />, onSelect: () => openModal('NEW_TASK', { listId: activeList.id }) },
+      { key: 'new-task', label: strings.actions.newTask, icon: <IconPlus size={15} />, onSelect: () => openModal('NEW_TASK', { listId: activeList.id }) },
       { key: 'rename', label: strings.tasks.renameTooltip, icon: <IconEdit size={15} />, onSelect: () => openModal('RENAME_LIST', { list: activeList }) },
       { key: 'dup', label: strings.tasks.duplicateTooltip, icon: <IconCopy size={15} />, onSelect: () => duplicateList(activeList.id) },
       { key: 'd1', divider: true },
@@ -58,7 +59,7 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId }) => {
         subtitle={activeList && (
           <>
             <Chip tone="accent">
-              {strings.tasks.tasksRemaining.replace('{count}', String(remainingCount))}
+              {plural(remainingCount, strings.tasks.tasksRemaining)}
             </Chip>
             {usedBy.map(s => (
               <Chip key={s.id} title={s.name}>

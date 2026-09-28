@@ -84,7 +84,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
       <div className="top-bar-tools">
         {mini.supported && (
           <IconButton
-            label={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
+            label={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
             active={mini.isOpen}
             onClick={mini.toggle}
             aria-pressed={mini.isOpen}

@@ -7,6 +7,7 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 import { Field, TextInput } from '../ui/Field';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -53,7 +54,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <Field label={strings.modals.landmarkNameLabel} htmlFor="landmarkName">
+      <Field label={strings.modals.landmarkNameLabel} htmlFor="landmarkName">
         <TextInput
           id="landmarkName"
           value={name}
@@ -71,7 +72,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         onDueChange={setDueDate}
       />
 
-      <Field label={strings.rewards.rewardOnCompletion} group>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         <Select
           value={rewardId}
           onChange={val => setRewardId(val)}
@@ -82,7 +83,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
             ...state.rewards.map(r => ({
               value: r.id,
               label: r.name,
-              icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>
+              icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>
             }))
           ]}
         />
@@ -92,7 +93,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         dirty={dirty}
         onCancel={onClose}
         primaryDisabled={datesInvalid}
-        primaryLabel={landmark ? strings.common.save : strings.modals.addLandmarkBtn}
+        primaryLabel={landmark ? strings.common.save : strings.actions.addLandmark}
       />
     </form>
   );

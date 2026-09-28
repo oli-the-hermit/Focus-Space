@@ -9,6 +9,7 @@ import { Stepper } from '../ui/Stepper';
 import { IconClose, IconList } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 import { Field, TextArea, TextInput } from '../ui/Field';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface SessionModalProps {
   session?: Session | null;
@@ -77,7 +78,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
     }
 
     if (draft) {
-      const emoji = draft.emoji.trim() || '🎁';
+      const emoji = draft.emoji.trim() || DEFAULT_REWARD_EMOJI;
       addReward({
         name: draft.name.trim(),
         description: draft.description.trim(),
@@ -101,7 +102,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <Field label={strings.modals.sessionNameLabel} htmlFor="sessionName">
+      <Field label={strings.modals.sessionNameLabel} htmlFor="sessionName">
         <TextInput
           id="sessionName"
           value={name}
@@ -112,7 +113,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
       </Field>
 
       <div className="form-row">
-        <Field label={strings.modals.focusLabel} htmlFor="sessionFocus">
+        <Field label={strings.modals.focusLabel} htmlFor="sessionFocus">
           <Stepper
             id="sessionFocus"
             value={focusMinutes}
@@ -123,7 +124,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
             suffix={strings.modals.minutesSuffix}
           />
         </Field>
-        <Field label={strings.modals.breakLabel} htmlFor="sessionBreak">
+        <Field label={strings.modals.breakLabel} htmlFor="sessionBreak">
           <Stepper
             id="sessionBreak"
             value={breakMinutes}
@@ -136,7 +137,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
         </Field>
       </div>
 
-      <Field label={strings.modals.taskListsLabel} group>
+      <Field label={strings.modals.taskListsLabel} group>
         {attachedLists.length > 0 ? (
           <div className="chip-set">
             {attachedLists.map(list => (
@@ -179,7 +180,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
         />
       </Field>
 
-      <Field label={strings.rewards.rewardOnCompletion} group>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         {rewardDraft ? (
           <div className="inline-subform">
             <div className="inline-subform-head">
@@ -222,14 +223,14 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
               ...state.rewards.map(r => ({
                 value: r.id,
                 label: r.name,
-                icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>,
-                meta: r.status === 'claimed' ? strings.rewards.badgeClaimed : undefined
+                icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>,
+                meta: r.status === 'claimed' ? strings.rewards.claimed : undefined
               }))
             ]}
             createOption={{
               label: strings.modals.createRewardOption,
               placeholder: strings.modals.newRewardPlaceholder,
-              onCreate: rewardName => setRewardDraft({ name: rewardName, emoji: '🎁', description: '' })
+              onCreate: rewardName => setRewardDraft({ name: rewardName, emoji: DEFAULT_REWARD_EMOJI, description: '' })
             }}
           />
         )}

@@ -3,10 +3,11 @@ import { useApp } from '../../context/AppContext';
 import { TaskListPanel } from './TaskListPanel';
 import { Select } from '../ui/Select';
 import { strings } from '../../constants/strings';
-import { IconList } from '../ui/icons';
+import { IconList, IconPlus } from '../ui/icons';
 import { Card, CardHeader } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { Chip } from '../ui/Chip';
+import { format, plural } from '../../lib/i18n';
 
 /**
  * Timer page center column: every task list attached to the active session,
@@ -57,7 +58,7 @@ export const SessionTaskLists: React.FC = () => {
   const pickerOptions = available.map(l => ({
     value: l.id,
     label: l.name,
-    meta: strings.tasks.tasksLeft.replace('{count}', String(l.tasks.filter(t => !t.completed).length))
+    meta: format(strings.tasks.tasksLeft, { count: l.tasks.filter(t => !t.completed).length })
   }));
 
   return (
@@ -68,7 +69,7 @@ export const SessionTaskLists: React.FC = () => {
         titleTooltip={session.name}
         aside={lists.length > 0 && (
           <Chip tone="accent">
-            {strings.tasks.tasksRemaining.replace('{count}', String(remaining))}
+            {plural(remaining, strings.tasks.tasksRemaining)}
           </Chip>
         )}
       />
@@ -109,8 +110,13 @@ export const SessionTaskLists: React.FC = () => {
             className="select--add"
             value=""
             onChange={val => val && attach(val)}
-            placeholder={`+ ${strings.timer.addAnotherList}`}
             ariaLabel={strings.timer.addAnotherList}
+            renderValue={() => (
+              <>
+                <span className="select-option-icon"><IconPlus size={16} strokeWidth={2.4} /></span>
+                <span className="select-value">{strings.timer.addAnotherList}</span>
+              </>
+            )}
             options={pickerOptions}
             createOption={{
               label: strings.modals.newTaskListOption,

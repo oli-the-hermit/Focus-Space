@@ -9,6 +9,9 @@ import { FormActions } from '../ui/FormActions';
 import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
+import { initials } from '../../lib/formatUtils';
+import { LIMITS } from '../../constants/limits';
+import { format } from '../../lib/i18n';
 
 export interface UserMenuModalProps {
   /** Which view to show; null closes the modal (with its exit animation). */
@@ -16,13 +19,6 @@ export interface UserMenuModalProps {
   onClose: () => void;
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-}
-
-const MIN_PASSWORD = 8;
 
 export const UserMenuModal: React.FC<UserMenuModalProps> = ({ view, onClose }) => {
   // Remember the last view so the content stays put while the modal closes.
@@ -64,7 +60,7 @@ const ProfileView: React.FC = () => {
     displayName !== (profile.displayName ?? '') ||
     username !== (profile.username ?? '') ||
     avatar !== (profile.avatar ?? '');
-  const pwLongEnough = newPw.length >= MIN_PASSWORD;
+  const pwLongEnough = newPw.length >= LIMITS.password.min;
   const pwMatch = newPw.length > 0 && newPw === confirmPw;
   const pwValid = curPw.length > 0 && pwLongEnough && pwMatch;
   const dirty = identityDirty || (pwOpen && !!(curPw || newPw || confirmPw));
@@ -100,15 +96,15 @@ const ProfileView: React.FC = () => {
   const pickAvatar = (file: File | undefined | null) => {
     setError('');
     if (!file) return;
-    if (file.size > 1_000_000) {
-      setError(strings.profile.photoTooLarge);
+    if (file.size > LIMITS.avatar.sourceMaxBytes) {
+      setError(format(strings.profile.photoTooLarge, { mb: LIMITS.avatar.sourceMaxBytes / 1_000_000 }));
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const size = 256;
+        const size = LIMITS.avatar.sizePx;
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
@@ -119,7 +115,7 @@ const ProfileView: React.FC = () => {
         const w = img.width * scale;
         const h = img.height * scale;
         ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-        setAvatar(canvas.toDataURL('image/jpeg', 0.85));
+        setAvatar(canvas.toDataURL('image/jpeg', LIMITS.avatar.jpegQuality));
       };
       img.src = reader.result as string;
     };
@@ -150,7 +146,7 @@ const ProfileView: React.FC = () => {
         showToast(strings.profile.savedMsg);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : strings.profile.usernameTakenMsg);
+      setError(err instanceof Error ? err.message : strings.errors.requestInterrupted);
     } finally {
       setSaving(false);
     }
@@ -216,7 +212,7 @@ const ProfileView: React.FC = () => {
               id="profileName"
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
-              maxLength={40}
+              maxLength={LIMITS.displayName.max}
             />
           </Field>
           <Field label={strings.profile.usernameLabel} htmlFor="profileUsername">
@@ -224,7 +220,7 @@ const ProfileView: React.FC = () => {
               id="profileUsername"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              maxLength={24}
+              maxLength={LIMITS.username.max}
               autoComplete="username"
             />
           </Field>
@@ -237,7 +233,7 @@ const ProfileView: React.FC = () => {
           <span className="password-row-icon"><IconLock size={18} /></span>
           <div className="password-row-text">
             <span className="password-row-title">{strings.profile.passwordLabel}</span>
-            <span className="password-row-hint">{strings.profile.passwordHint}</span>
+            <span className="password-row-hint">{format(strings.profile.passwordHint, { min: LIMITS.password.min })}</span>
           </div>
           {pwOpen ? (
             <Button size="sm" onClick={closePassword}>
@@ -286,7 +282,7 @@ const ProfileView: React.FC = () => {
               <ul className="pw-rules" aria-live="polite">
                 <li className={pwLongEnough ? 'is-met' : ''}>
                   <IconCheck size={14} strokeWidth={2.6} />
-                  {strings.profile.ruleLength}
+                  {format(strings.profile.ruleLength, { min: LIMITS.password.min })}
                 </li>
                 <li className={pwMatch ? 'is-met' : ''}>
                   <IconCheck size={14} strokeWidth={2.6} />
@@ -313,10 +309,10 @@ const ProfileView: React.FC = () => {
               <p className="danger-panel-msg">{strings.profile.deleteOwnConfirmMsg}</p>
               <div className="modal-actions">
                 <Button onClick={() => setDeleteStep('none')}>
-                  {strings.profile.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={() => setDeleteStep('password')}>
-                  {strings.profile.deleteBtn}
+                  {strings.common.delete}
                 </Button>
               </div>
             </div>
@@ -339,10 +335,10 @@ const ProfileView: React.FC = () => {
                     setDeletePw('');
                   }}
                 >
-                  {strings.profile.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={execDelete} disabled={saving}>
-                  {strings.profile.deleteBtn}
+                  {strings.common.delete}
                 </Button>
               </div>
             </div>
@@ -360,7 +356,7 @@ const ProfileView: React.FC = () => {
         dirty={dirty}
         cancelLabel={strings.common.discardChanges}
         onCancel={discard}
-        primaryLabel={strings.profile.saveBtn}
+        primaryLabel={strings.common.saveChanges}
         primaryDisabled={!canSave}
         onPrimary={save}
       />

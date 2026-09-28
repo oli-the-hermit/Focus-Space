@@ -7,13 +7,14 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 import { Field, TextInput } from '../ui/Field';
+import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface GoalModalProps {
   goal?: Goal | null;
   onClose: () => void;
 }
 
-const GOAL_TYPES: GoalFrequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'custom'];
 
 export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   const { state, addGoal, updateGoal } = useApp();
@@ -71,7 +72,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <Field label={strings.modals.goalNameLabel} htmlFor="goalName">
+      <Field label={strings.modals.goalNameLabel} htmlFor="goalName">
         <TextInput
           id="goalName"
           value={name}
@@ -81,15 +82,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         />
       </Field>
 
-      <Field label={strings.modals.frequencyLabel} group>
+      <Field label={strings.modals.frequencyLabel} group>
         <Select
           value={type}
           onChange={val => setType(val as GoalFrequency)}
           ariaLabel={strings.modals.frequencyLabel}
-          options={GOAL_TYPES.map(t => ({
-            value: t,
-            label: t.charAt(0).toUpperCase() + t.slice(1)
-          }))}
+          options={FREQUENCY_OPTIONS}
         />
       </Field>
 
@@ -101,7 +99,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         onDueChange={setDueDate}
       />
 
-      <Field label={strings.rewards.rewardOnCompletion} group>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         <Select
           value={rewardId}
           onChange={val => setRewardId(val)}
@@ -112,7 +110,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
             ...state.rewards.map(r => ({
               value: r.id,
               label: r.name,
-              icon: <span className="emoji-glyph">{r.emoji || r.icon || '🎁'}</span>
+              icon: <span className="emoji-glyph">{r.emoji || r.icon || DEFAULT_REWARD_EMOJI}</span>
             }))
           ]}
         />

@@ -6,6 +6,7 @@ import { IconCheck, IconChevronLeft, IconChevronRight, IconClose, IconLogo } fro
 import { TOUR_CHAPTERS, TOUR_STEPS, TourStep } from './tourSteps';
 import { Button } from '../ui/Button';
 import { IconButton } from '../ui/IconButton';
+import { format } from '../../lib/i18n';
 
 interface Box {
   top: number;
@@ -256,7 +257,7 @@ export const OnboardingTour: React.FC = () => {
   if (!tourActive) return null;
 
   const name = profile?.displayName?.trim() || profile?.username || '';
-  const title = step.kind === 'welcome' ? step.title.replace('{name}', name) : step.title;
+  const title = step.kind === 'welcome' ? format(step.title, { name }) : step.title;
   const isLast = index === steps.length - 1;
   const cardStyle: React.CSSProperties = isSpot
     ? cardPos
@@ -296,9 +297,7 @@ export const OnboardingTour: React.FC = () => {
           <div className="tour-meta">
             <span className="overline">{chapterInfo.name}</span>
             <span className="tour-count">
-              {strings.onboarding.stepCounter
-                .replace('{current}', String(chapterInfo.current))
-                .replace('{total}', String(chapterInfo.total))}
+              {format(strings.onboarding.stepCounter, { current: chapterInfo.current, total: chapterInfo.total })}
             </span>
           </div>
         )}

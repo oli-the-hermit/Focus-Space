@@ -8,6 +8,7 @@
  */
 import { strings } from '../constants/strings';
 import type { CalendarEvent, NotificationSettings, TimerPhase } from '../types';
+import { format } from './i18n';
 
 export type AlertKind = 'focus-done' | 'break-done' | 'event-soon';
 export type AlertActionId = 'start-next' | 'start-session' | 'open-app';
@@ -62,17 +63,15 @@ export function buildEventAlert(
 ): AlertPayload {
   const actions: AlertAction[] = event.sessionId
     ? [
-        { id: 'start-session', label: strings.alerts.startSession, primary: true },
+        { id: 'start-session', label: strings.actions.startSession, primary: true },
         { id: 'open-app', label: strings.alerts.openApp }
       ]
     : [{ id: 'open-app', label: strings.alerts.openApp, primary: true }];
   return {
     id: `event-${event.id}`,
     kind: 'event-soon',
-    title: strings.alerts.eventSoonTitle.replace('{time}', event.startTime),
-    body: strings.alerts.eventSoonBody
-      .replace('{title}', event.title)
-      .replace('{minutes}', String(Math.max(0, minutesLeft))),
+    title: format(strings.alerts.eventSoonTitle, { time: event.startTime }),
+    body: format(strings.alerts.eventSoonBody, { title: event.title, minutes: Math.max(0, minutesLeft) }),
     actions,
     autoDismissSec: settings.autoDismissSec || DEFAULT_AUTO_DISMISS_SEC,
     sessionId: event.sessionId ?? null

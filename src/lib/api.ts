@@ -1,18 +1,39 @@
 import { isTauri } from './desktop';
 import { strings } from '../constants/strings';
+import { format, type TemplateVars } from './i18n';
 
+/** Codes both backends can send; each has its message in strings.errors.api. */
+export type ApiErrorCode = keyof typeof strings.errors.api;
+
+/** Error body from server/app.js and the Rust port: a code, never a sentence. */
 export interface ApiErrorBody {
-  error?: string;
+  code?: string;
+  params?: TemplateVars;
 }
 
 export class ApiError extends Error {
   status: number;
+  code?: ApiErrorCode;
 
-  constructor(status: number, message: string) {
-    super(message || strings.errors.requestInterruptedCode.replace('{status}', String(status)));
+  constructor(status: number, message: string, code?: ApiErrorCode) {
+    super(message || format(strings.errors.requestInterruptedCode, { status }));
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
+}
+
+function isKnownCode(code: unknown): code is ApiErrorCode {
+  return typeof code === 'string' && code in strings.errors.api;
+}
+
+/** Turns an error body into the user-facing message for its code. */
+function errorFrom(status: number, data: unknown): ApiError {
+  const body = (data ?? {}) as ApiErrorBody;
+  if (isKnownCode(body.code)) {
+    return new ApiError(status, format(strings.errors.api[body.code], body.params ?? {}), body.code);
+  }
+  return new ApiError(status, format(strings.errors.requestInterruptedCode, { status }));
 }
 
 /** Mirrors `ApiResponse` in src-tauri/src/backend/mod.rs. */
@@ -23,11 +44,7 @@ interface DesktopApiResponse {
 
 function unwrap<T>(status: number, data: unknown): T {
   if (status === 204) return undefined as T;
-  if (status < 200 || status >= 300) {
-    const message =
-      (data as ApiErrorBody | null)?.error || strings.errors.requestInterruptedCode.replace('{status}', String(status));
-    throw new ApiError(status, message);
-  }
+  if (status < 200 || status >= 300) throw errorFrom(status, data);
   return data as T;
 }
 

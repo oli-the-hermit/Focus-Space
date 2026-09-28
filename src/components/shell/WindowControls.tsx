@@ -48,8 +48,8 @@ export const WindowControls: React.FC = () => {
         type="button"
         className="window-btn is-close"
         onClick={run(closeCurrentWindow)}
-        title={strings.windowControls.close}
-        aria-label={strings.windowControls.close}
+        title={strings.common.close}
+        aria-label={strings.common.close}
       >
         <IconClose size={17} />
       </button>

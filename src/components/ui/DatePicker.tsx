@@ -6,6 +6,7 @@ import { formatDateLabel } from '../../lib/formatUtils';
 import { useUiLabels } from './UiLabels';
 import { IconButton } from './IconButton';
 import { TextButton } from './TextButton';
+import { LOCALE, weekdayNames } from '../../lib/i18n';
 
 export interface DatePickerProps {
   /** 'YYYY-MM-DD', or '' when empty. */
@@ -20,7 +21,8 @@ export interface DatePickerProps {
   min?: string;
 }
 
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+/** Two-letter weekday headers, Monday first. */
+const WEEKDAYS = weekdayNames('short').map(d => d.slice(0, 2));
 
 function addDays(dateStr: string, days: number): string {
   const d = parseDateStr(dateStr);
@@ -113,7 +115,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   const viewDate = parseDateStr(focusDate);
-  const monthLabel = viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthLabel = viewDate.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
   const cells = buildMonthCells(focusDate);
 
   return (

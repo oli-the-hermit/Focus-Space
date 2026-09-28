@@ -2,11 +2,14 @@
 //!
 //! KEEP IN SYNC with `server/app.js`: the web build talks to Express over HTTP,
 //! the desktop build calls `api_request` with the same method + path + JSON body
-//! and gets back the same status codes, JSON shapes and error messages.
+//! and gets back the same status codes, JSON shapes and error codes. Limits come
+//! from shared/limits.json; user-facing messages live only in the frontend.
 
 pub mod crypto;
 pub mod db;
+mod errors;
 mod handlers;
+mod limits;
 
 use std::collections::HashMap;
 use std::path::Path;

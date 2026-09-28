@@ -1,0 +1,17 @@
+{
+  "$comment": "Single source for input limits and auth policy. Read by the frontend (src/constants/limits.ts), the web API (server/limits.js) and the desktop API (src-tauri/src/backend/limits.rs, embedded at compile time). Error texts that mention these numbers get them as params, so changing a value here updates every message.",
+  "username": { "min": 3, "max": 24, "pattern": "^[a-zA-Z0-9._-]+$" },
+  "displayName": { "min": 1, "max": 40 },
+  "password": { "min": 8, "max": 128 },
+  "avatar": {
+    "$comment": "The app crops photos to a square JPEG before upload; the server checks the resulting data URL.",
+    "sourceMaxBytes": 1000000,
+    "sizePx": 256,
+    "jpegQuality": 0.85,
+    "maxChars": 200000
+  },
+  "maxProfiles": 6,
+  "login": { "maxFailures": 5, "lockoutSeconds": 30, "failDelayMs": 250 },
+  "sessionTtlDays": 30,
+  "maxBlobBytes": 1572864
+}

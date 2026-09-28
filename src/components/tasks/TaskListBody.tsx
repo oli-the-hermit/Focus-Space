@@ -11,6 +11,7 @@ import { Button } from '../ui/Button';
 import { TextInput } from '../ui/Field';
 import { EmptyState } from '../ui/EmptyState';
 import { ProgressBar } from '../ui/ProgressBar';
+import { format } from '../../lib/i18n';
 
 export interface TaskListBodyProps {
   list: TaskList;
@@ -36,7 +37,7 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   const total = list.tasks.length;
   const done = list.tasks.filter(t => t.completed).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const completedLabel = strings.tasks.completedOf.replace('{done}', String(done)).replace('{total}', String(total));
+  const completedLabel = format(strings.tasks.completedOf, { done, total });
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedId(id);
@@ -73,18 +74,18 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   const handleDeleteTask = (lId: string, task: Task) => {
     openModal('CONFIRM_DELETE', {
       title: strings.common.delete,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', task.text),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: task.text }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteTask(lId, task.id)
     });
   };
 
   const openTaskMenu = (e: React.MouseEvent, task: Task) => {
-    const cm = strings.contextMenu;
+    const cm = strings.actions;
     contextMenu(e, [
       task.completed
         ? { key: 'undo', label: cm.markNotDone, icon: <IconReset size={15} />, onSelect: () => toggleTask(list.id, task.id, false) }
-        : { key: 'done', label: cm.markDone, icon: <IconCheck size={15} />, onSelect: () => toggleTask(list.id, task.id, true) },
+        : { key: 'done', label: strings.common.markComplete, icon: <IconCheck size={15} />, onSelect: () => toggleTask(list.id, task.id, true) },
       { key: 'rename', label: strings.common.rename, icon: <IconEdit size={15} />, onSelect: () => handleRenameTask(list.id, task) },
       { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateTask(list.id, task.id) },
       { key: 'd1', divider: true },

@@ -3,18 +3,13 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Popover } from '../ui/Popover';
 import { IconLogOut, IconSettings, IconUser } from '../ui/icons';
+import { initials } from '../../lib/formatUtils';
 
 export interface UserBadgeProps {
   onOpenProfile: () => void;
   onOpenSettings: () => void;
   /** Avatar only (for the navigation rail). */
   compact?: boolean;
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
 export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSettings, compact = false }) => {

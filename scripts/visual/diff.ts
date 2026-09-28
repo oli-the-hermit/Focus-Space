@@ -18,8 +18,11 @@ const [baseArg, currArg] = process.argv.slice(2);
 const BASE_DIR = path.resolve(ROOT, baseArg ?? 'documentation/visual/baseline');
 const CURR_DIR = path.resolve(ROOT, currArg ?? 'documentation/visual/current');
 const DIFF_DIR = `${CURR_DIR}-diff`;
-/** Share of changed pixels below which a view counts as unchanged (anti-aliasing noise). */
-const TOLERANCE = 0.0005;
+/**
+ * Share of changed pixels a view may have and still count as unchanged. Runs are
+ * deterministic (frozen clock, fresh DB, reduced motion), so any change is real.
+ */
+const TOLERANCE = 0;
 
 function listPngs(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];

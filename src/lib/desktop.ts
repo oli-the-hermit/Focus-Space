@@ -8,6 +8,7 @@
  */
 import type { TimerSnapshot } from './timerSnapshot';
 import { EVT_ALERT_ACTION, type AlertActionMessage, type AlertPayload } from './notify';
+import { strings } from '../constants/strings';
 
 export const MINI_WINDOW_LABEL = 'mini';
 /** URL hash that makes `main.tsx` render the mini player instead of the app. */
@@ -92,7 +93,7 @@ export async function openDesktopMini(onDestroyed: () => void): Promise<void> {
   const mini = new WebviewWindow(MINI_WINDOW_LABEL, {
     // App-relative, so it resolves to the dev server or the bundled UI alike.
     url: `index.html${MINI_WINDOW_HASH}`,
-    title: 'Focus Space · Mini player',
+    title: strings.mini.windowTitle,
     width: Math.max(MINI_MIN_WIDTH, prefs.width ?? MINI_WIDTH),
     height: Math.max(MINI_MIN_HEIGHT, prefs.height ?? MINI_HEIGHT),
     minWidth: MINI_MIN_WIDTH,

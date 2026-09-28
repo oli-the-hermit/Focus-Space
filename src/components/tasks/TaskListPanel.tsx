@@ -9,6 +9,7 @@ import { strings } from '../../constants/strings';
 import { IconChevronDown, IconCopy, IconEdit, IconPlus, IconTrash, IconUnlink } from '../ui/icons';
 import { IconButton } from '../ui/IconButton';
 import { Chip } from '../ui/Chip';
+import { format } from '../../lib/i18n';
 
 export interface TaskListPanelProps {
   list: TaskList;
@@ -37,7 +38,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
   const handleDelete = () => {
     openModal('CONFIRM_DELETE', {
       title: strings.tasks.deleteTooltip,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', list.name),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: list.name }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteList(list.id)
     });
@@ -47,7 +48,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
   const menuItems: MenuItem[] = [
     {
       key: 'new-task',
-      label: strings.contextMenu.newTask,
+      label: strings.actions.newTask,
       icon: <IconPlus size={15} />,
       onSelect: () => openModal('NEW_TASK', { listId: list.id })
     },
@@ -104,7 +105,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
               label: l.name,
               meta: inUseElsewhere
                 ? strings.timer.listInUse
-                : strings.tasks.tasksLeft.replace('{count}', String(l.tasks.filter(t => !t.completed).length)),
+                : format(strings.tasks.tasksLeft, { count: l.tasks.filter(t => !t.completed).length }),
               disabled: inUseElsewhere
             };
           })}
@@ -116,7 +117,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
         />
 
         <Chip tone="accent" className="list-panel-count">
-          {strings.tasks.tasksLeft.replace('{count}', String(remaining))}
+          {format(strings.tasks.tasksLeft, { count: remaining })}
         </Chip>
 
         <Menu ariaLabel={strings.timer.moreListActions} items={menuItems} />

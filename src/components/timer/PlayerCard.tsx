@@ -21,6 +21,9 @@ import { MenuItem } from '../ui/Menu';
 import { Card } from '../ui/Card';
 import { Scrubber } from './Scrubber';
 import { cx } from '../../lib/cx';
+import { format } from '../../lib/i18n';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
+import { shortcutHint } from '../../constants/shortcuts';
 
 /**
  * The timer, laid out like a music player: artwork tile with the countdown,
@@ -45,17 +48,17 @@ export const PlayerCard: React.FC = () => {
   const nextPhaseLabel = isBreak ? strings.timer.focusPhase : strings.timer.breakPhase;
   const nextPhaseMins = isBreak ? (session?.focusMinutes || 25) : (session?.breakMinutes || 5);
 
-  const cm = strings.contextMenu;
+  const cm = strings.actions;
   const menuItems = (): (MenuItem | false)[] => [
     {
       key: 'toggle',
       label: isRunning ? cm.pauseTimer : cm.startTimer,
       icon: isRunning ? <IconPause size={15} /> : <IconPlay size={15} />,
-      hint: 'Space',
+      hint: shortcutHint('toggleTimer'),
       onSelect: toggleTimer
     },
-    { key: 'reset', label: cm.resetTimer, icon: <IconReset size={16} />, hint: 'R', onSelect: resetTimer },
-    { key: 'skip', label: isBreak ? cm.skipToFocus : cm.skipToBreak, icon: <IconSkip size={16} />, hint: 'S', onSelect: skipPhase },
+    { key: 'reset', label: cm.resetTimer, icon: <IconReset size={16} />, hint: shortcutHint('reset'), onSelect: resetTimer },
+    { key: 'skip', label: isBreak ? cm.skipToFocus : cm.skipToBreak, icon: <IconSkip size={16} />, hint: shortcutHint('skip'), onSelect: skipPhase },
     { key: 'd1', divider: true },
     {
       key: 'sound',
@@ -67,7 +70,7 @@ export const PlayerCard: React.FC = () => {
       key: 'mini',
       label: mini.isOpen ? cm.closeMini : cm.openMini,
       icon: <IconMiniPlayer size={16} />,
-      hint: 'M',
+      hint: shortcutHint('miniPlayer'),
       onSelect: mini.toggle
     },
     !!session && { key: 'd2', divider: true },
@@ -95,11 +98,11 @@ export const PlayerCard: React.FC = () => {
         <span className="player-art-phase">
           {isBreak ? strings.timer.breakPhase : strings.timer.focusPhase}
         </span>
-        <span className="player-art-time" role="timer" aria-label={strings.timer.remainingAria.replace('{time}', formatClock(remaining))}>
+        <span className="player-art-time" role="timer" aria-label={format(strings.timer.remainingAria, { time: formatClock(remaining) })}>
           {formatClock(remaining)}
         </span>
         <span className="player-art-foot">
-          {strings.timer.completedToday.replace('{count}', String(state.timer.sessionsCompletedToday))}
+          {format(strings.timer.completedToday, { count: state.timer.sessionsCompletedToday })}
         </span>
       </div>
 
@@ -133,8 +136,8 @@ export const PlayerCard: React.FC = () => {
           className="ctrl-btn secondary"
           id="resetBtn"
           onClick={resetTimer}
-          title={strings.timer.resetTooltip}
-          aria-label={strings.timer.resetTooltip}
+          title={strings.actions.resetTimer}
+          aria-label={strings.actions.resetTimer}
         >
           <IconReset size={20} />
         </button>
@@ -163,8 +166,8 @@ export const PlayerCard: React.FC = () => {
           className={`ctrl-btn ghost ${mini.isOpen ? 'is-on' : ''}`}
           onClick={mini.toggle}
           disabled={!mini.supported}
-          title={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
-          aria-label={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
+          title={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
+          aria-label={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
           aria-pressed={mini.isOpen}
         >
           <IconMiniPlayer size={19} />
@@ -185,7 +188,7 @@ export const PlayerCard: React.FC = () => {
               {strings.timer.rewardOnCompletion.replace(':', '')}
             </span>
             <span className="player-foot-value" title={reward.name}>
-              {reward.emoji || reward.icon || '🎁'} {reward.name}
+              {reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI} {reward.name}
             </span>
           </div>
         )}

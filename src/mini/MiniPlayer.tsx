@@ -76,7 +76,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
   const drag = draggable ? { 'data-tauri-drag-region': true } : {};
 
   const menuItems = (): (MenuItem | false)[] => {
-    const cm = strings.contextMenu;
+    const cm = strings.actions;
     return [
       !!snapshot && {
         key: 'toggle',
@@ -197,8 +197,8 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
                   type="button"
                   className="mini-win-btn"
                   onClick={controls.onExpand}
-                  aria-label={strings.mini.expand}
-                  title={strings.mini.expand}
+                  aria-label={strings.actions.openApp}
+                  title={strings.actions.openApp}
                 >
                   <IconExpand size={13} />
                 </button>
@@ -255,7 +255,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
           <div className="mini-bottom" {...drag}>
             <span className="mini-time-small" {...drag}>{formatClock(total - remaining)}</span>
             <div className="mini-controls">
-              <button type="button" className="mini-ctrl" onClick={() => onCommand('reset')} aria-label={strings.timer.resetTooltip} title={strings.timer.resetTooltip}>
+              <button type="button" className="mini-ctrl" onClick={() => onCommand('reset')} aria-label={strings.actions.resetTimer} title={strings.actions.resetTimer}>
                 <IconReset size={16} />
               </button>
               <button

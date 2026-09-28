@@ -2,9 +2,10 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatDateStr, getTodayStr, getWeekRange, parseDateStr } from '../../lib/dateUtils';
 import { strings } from '../../constants/strings';
-import { IconChevronLeft, IconChevronRight } from '../ui/icons';
+import { IconChevronLeft, IconChevronRight, IconPlus } from '../ui/icons';
 import { Button } from '../ui/Button';
 import { IconButton } from '../ui/IconButton';
+import { LOCALE } from '../../lib/i18n';
 
 export const CalendarTopbar: React.FC = () => {
   const { state, setCalendarView, setCalendarDate, openModal } = useApp();
@@ -50,13 +51,13 @@ export const CalendarTopbar: React.FC = () => {
 
   let dateTitleText = '';
   if (view === 'week') {
-    const startStr = parseDateStr(weekDays[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = parseDateStr(weekDays[6]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const startStr = parseDateStr(weekDays[0]).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric' });
+    const endStr = parseDateStr(weekDays[6]).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric', year: 'numeric' });
     dateTitleText = `${startStr} – ${endStr}`;
   } else if (view === 'day') {
-    dateTitleText = currDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    dateTitleText = currDate.toLocaleDateString(LOCALE, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   } else {
-    dateTitleText = currDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    dateTitleText = currDate.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
   }
 
   return (
@@ -100,8 +101,8 @@ export const CalendarTopbar: React.FC = () => {
             {strings.calendar.views.month}
           </button>
         </div>
-        <Button variant="primary" id="addCalEventBtn" onClick={handleSchedule}>
-          {strings.calendar.scheduleSessionBtn}
+        <Button variant="primary" id="addCalEventBtn" icon={<IconPlus size={16} strokeWidth={2.4} />} onClick={handleSchedule}>
+          {strings.actions.scheduleSession}
         </Button>
       </div>
     </div>

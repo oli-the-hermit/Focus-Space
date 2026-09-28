@@ -1,5 +1,8 @@
 import { Session, TaskList, Goal, Reward, CalendarEvent } from '../types';
 
+/** Shown for a reward that has no emoji of its own. */
+export const DEFAULT_REWARD_EMOJI = '🎁';
+
 export const DEFAULT_SESSIONS: Session[] = [
   { id: 's1', name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: 'r1' },
   { id: 's2', name: 'Deep Work', focusMinutes: 50, breakMinutes: 10, rewardId: 'r2' },

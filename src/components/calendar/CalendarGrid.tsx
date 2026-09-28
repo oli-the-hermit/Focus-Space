@@ -8,6 +8,9 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { isDragLeavingElement } from '../../lib/dnd';
 import { IconButton } from '../ui/IconButton';
 import { Card } from '../ui/Card';
+import { format, weekdayNames } from '../../lib/i18n';
+
+const DAY_NAMES = weekdayNames('short');
 
 const FIRST_HOUR = 7;
 const LAST_HOUR = 22;
@@ -31,7 +34,6 @@ export const CalendarGrid: React.FC = () => {
   const view = state.calendarView;
   const todayStr = getTodayStr();
   const weekDays = getWeekRange(state.calendarDate);
-  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const handleDragStart = (e: React.DragEvent, eventId: string) => {
     setDraggedEventId(eventId);
@@ -79,7 +81,7 @@ export const CalendarGrid: React.FC = () => {
   const handleDeleteEvent = (event: CalendarEvent) => {
     openModal('CONFIRM_DELETE', {
       title: strings.common.delete,
-      message: strings.sessions.deleteConfirmPrompt.replace('{name}', event.title),
+      message: format(strings.sessions.deleteConfirmPrompt, { name: event.title }),
       confirmLabel: strings.common.delete,
       onConfirm: () => deleteCalendarEvent(event.id)
     });
@@ -97,8 +99,8 @@ export const CalendarGrid: React.FC = () => {
 
   const openSlotMenu = (e: React.MouseEvent, date: string, time: string) =>
     contextMenu(e, [
-      { key: 'schedule', label: strings.contextMenu.scheduleHere, icon: <IconCalendar size={16} />, onSelect: () => handleQuickAdd(date, time) },
-      view !== 'day' && { key: 'day', label: strings.contextMenu.openDay, icon: <IconList size={16} />, onSelect: () => openDayView(date) }
+      { key: 'schedule', label: strings.actions.scheduleHere, icon: <IconCalendar size={16} />, onSelect: () => handleQuickAdd(date, time) },
+      view !== 'day' && { key: 'day', label: strings.actions.openDay, icon: <IconList size={16} />, onSelect: () => openDayView(date) }
     ]);
 
   // 1. MONTH VIEW
@@ -138,7 +140,7 @@ export const CalendarGrid: React.FC = () => {
     return (
       <Card className="calendar-container is-month">
         <div className="cal-month-header-row" id="calendarGridHeader">
-          {dayNames.map(d => (
+          {DAY_NAMES.map(d => (
             <div key={d} className="cal-month-header-cell">{d}</div>
           ))}
         </div>
@@ -195,7 +197,7 @@ export const CalendarGrid: React.FC = () => {
                         openDayView(cell.dStr);
                       }}
                     >
-                      {strings.calendar.moreEvents.replace('{count}', String(hiddenCount))}
+                      {format(strings.calendar.moreEvents, { count: hiddenCount })}
                     </button>
                   )}
                 </div>
@@ -226,7 +228,7 @@ export const CalendarGrid: React.FC = () => {
         <div className="cal-header-cell cal-header-cell--time" />
         {activeDays.map(dStr => {
           const dObj = parseDateStr(dStr);
-          const dayLabel = dayNames[dObj.getDay() === 0 ? 6 : dObj.getDay() - 1];
+          const dayLabel = DAY_NAMES[dObj.getDay() === 0 ? 6 : dObj.getDay() - 1];
           const isToday = dStr === todayStr;
 
           return (

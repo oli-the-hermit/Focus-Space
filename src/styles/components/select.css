@@ -62,6 +62,7 @@
   font-weight: var(--weight-semibold);
 }
 .select--add .select-value.is-placeholder { color: var(--accent-text); }
+.select--add .select-option-icon { width: auto; color: inherit; }
 .select--add .select-trigger:hover:not(:disabled) { background: var(--surface-2); }
 .select--add .select-chevron { background: var(--surface-2); color: var(--accent-text); }
 

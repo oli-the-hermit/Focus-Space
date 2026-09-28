@@ -14,6 +14,7 @@ import {
 import { useDirty } from '../../hooks/useDirty';
 import { Button } from '../ui/Button';
 import { Field } from '../ui/Field';
+import { plural } from '../../lib/i18n';
 
 export interface NotificationModalProps {
   isOpen: boolean;
@@ -109,7 +110,7 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <Select<number>
             value={draft.autoDismissSec}
             onChange={val => set({ autoDismissSec: val })}
-            options={AUTO_DISMISS_OPTIONS.map(v => ({ value: v, label: n.autoDismissValue.replace('{count}', String(v)) }))}
+            options={AUTO_DISMISS_OPTIONS.map(v => ({ value: v, label: plural(v, n.autoDismissValue) }))}
           />
         </Field>
       </div>

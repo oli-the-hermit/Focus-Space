@@ -6,20 +6,21 @@ import { Reward, RewardTrigger, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Field, TextArea, TextInput } from '../ui/Field';
+import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
+import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface RewardModalProps {
   reward?: Reward | null;
   onClose: () => void;
 }
 
-const FREQUENCY_OPTIONS: GoalFrequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'custom'];
 
 export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => {
   const { state, addReward, updateReward, createSession } = useApp();
 
   const [name, setName] = useState(reward ? reward.name : '');
   const [description, setDescription] = useState(reward ? (reward.description || reward.desc || '') : '');
-  const [emoji, setEmoji] = useState(reward ? (reward.emoji || reward.icon || '🎁') : '🎁');
+  const [emoji, setEmoji] = useState(reward ? (reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI) : DEFAULT_REWARD_EMOJI);
   const [frequency, setFrequency] = useState<GoalFrequency>(
     reward ? (reward.frequency || reward.type || 'daily') : 'daily'
   );
@@ -46,7 +47,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalName = name.trim() || strings.rewards.untitledReward;
-    const finalEmoji = emoji.trim() || '🎁';
+    const finalEmoji = emoji.trim() || DEFAULT_REWARD_EMOJI;
     const finalSessionId = linkedSessionId || null;
     const finalGoalId = linkedGoalId || null;
 
@@ -98,7 +99,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <Field label={strings.modals.rewardNameLabel}>
+      <Field label={strings.modals.rewardNameLabel}>
         <TextInput
           value={name}
           onChange={e => setName(e.target.value)}
@@ -107,7 +108,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         />
       </Field>
 
-      <Field label={strings.modals.descriptionLabel} spaced>
+      <Field label={strings.modals.descriptionLabel} spaced>
         <TextArea
           value={description}
           onChange={e => setDescription(e.target.value)}
@@ -117,28 +118,25 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
       </Field>
 
       <div className="form-row form-group-spaced">
-        <Field label={strings.modals.emojiLabel}>
+        <Field label={strings.modals.emojiLabel}>
           <TextInput
             className="emoji-input"
             value={emoji}
             onChange={e => setEmoji(e.target.value)}
-            placeholder="🎁"
+            placeholder={DEFAULT_REWARD_EMOJI}
             maxLength={4}
           />
         </Field>
-        <Field label={strings.modals.frequencyPeriodLabel}>
+        <Field label={strings.modals.frequencyPeriodLabel}>
           <Select
             value={frequency}
             onChange={val => setFrequency(val as GoalFrequency)}
-            options={FREQUENCY_OPTIONS.map(f => ({
-              value: f,
-              label: f.charAt(0).toUpperCase() + f.slice(1)
-            }))}
+            options={FREQUENCY_OPTIONS}
           />
         </Field>
       </div>
 
-      <Field label={strings.rewards.linkSessionLabel} spaced>
+      <Field label={strings.rewards.linkSessionLabel} spaced>
         <Select
           value={linkedSessionId}
           onChange={val => setLinkedSessionId(val)}
@@ -163,7 +161,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         />
       </Field>
 
-      <Field label={strings.rewards.linkGoalLabel} spaced>
+      <Field label={strings.rewards.linkGoalLabel} spaced>
         <Select
           value={linkedGoalId}
           onChange={val => setLinkedGoalId(val)}

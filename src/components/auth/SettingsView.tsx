@@ -5,18 +5,13 @@ import { strings } from '../../constants/strings';
 import { Profile, ThemeMode } from '../../types';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
+import { IconPlus } from '../ui/icons';
+import { format } from '../../lib/i18n';
+import { formatFullDate, initials } from '../../lib/formatUtils';
+import { LIMITS } from '../../constants/limits';
 
-export const MAX_PROFILES = 6;
+const MAX_PROFILES = LIMITS.maxProfiles;
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-}
-
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-}
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: strings.settings.themeLight },
@@ -65,8 +60,8 @@ export const SettingsView: React.FC = () => {
       setError(strings.auth.fieldRequired);
       return;
     }
-    if (addPw.length < 8) {
-      setError(strings.auth.weakPassword);
+    if (addPw.length < LIMITS.password.min) {
+      setError(format(strings.auth.weakPassword, { min: LIMITS.password.min }));
       return;
     }
     if (addPw !== addConfirm) {
@@ -115,7 +110,7 @@ export const SettingsView: React.FC = () => {
       await api.del(`/api/profiles/${target.id}`, undefined, token);
       setDeleting(null);
       await loadProfiles();
-      showToast(strings.toasts.profileRemoved.replace('{name}', target.displayName));
+      showToast(format(strings.toasts.profileRemoved, { name: target.displayName }));
     } catch (err) {
       setError(err instanceof Error ? err.message : strings.errors.deleteProfile);
       setDeleting(null);
@@ -168,9 +163,7 @@ export const SettingsView: React.FC = () => {
           <div className="section-divider" />
           <h4 className="section-title">{strings.settings.profilesSectionTitle}</h4>
           <p className="settings-subtitle">
-            {strings.settings.profileCounter
-              .replace('{count}', String(profileCount))
-              .replace('{max}', String(MAX_PROFILES))}
+            {format(strings.settings.profileCounter, { count: profileCount, max: MAX_PROFILES })}
           </p>
 
           <div className="profile-list">
@@ -185,7 +178,7 @@ export const SettingsView: React.FC = () => {
                     {p.role === 'owner' && <span className="role-badge">{strings.auth.mainBadge}</span>}
                   </span>
                   <span className="profile-row-meta">
-                    @{p.username} · {formatDate(p.createdAt)}
+                    @{p.username} · {formatFullDate(p.createdAt)}
                   </span>
                 </div>
                 <div className="profile-row-actions">
@@ -198,11 +191,11 @@ export const SettingsView: React.FC = () => {
                           if (e.key === 'Enter') renameProfile(p.id);
                           if (e.key === 'Escape') setRenamingId(null);
                         }}
-                        maxLength={40}
+                        maxLength={LIMITS.displayName.max}
                         autoFocus
                       />
                       <Button variant="primary" onClick={() => renameProfile(p.id)} disabled={busy}>
-                        {strings.settings.renameBtn}
+                        {strings.common.rename}
                       </Button>
                     </div>
                   ) : (
@@ -213,9 +206,9 @@ export const SettingsView: React.FC = () => {
                           setRenameVal(p.displayName);
                         }}
                         disabled={p.id === profile?.id}
-                        title={p.id === profile?.id ? 'Main account' : strings.settings.renameBtn}
+                        title={p.id === profile?.id ? 'Main account' : strings.common.rename}
                       >
-                        {strings.settings.renameBtn}
+                        {strings.common.rename}
                       </Button>
                       {p.id !== profile?.id && (
                         <Button
@@ -223,7 +216,7 @@ export const SettingsView: React.FC = () => {
                           onClick={() => setDeleting(p)}
                           disabled={busy}
                         >
-                          {strings.settings.deleteBtn}
+                          {strings.common.delete}
                         </Button>
                       )}
                     </>
@@ -236,10 +229,10 @@ export const SettingsView: React.FC = () => {
           {showAddForm ? (
             <div className="add-profile-form">
               <Field label={strings.auth.displayNameLabel}>
-                <TextInput value={addName} onChange={e => setAddName(e.target.value)} maxLength={40} autoFocus />
+                <TextInput value={addName} onChange={e => setAddName(e.target.value)} maxLength={LIMITS.displayName.max} autoFocus />
               </Field>
               <Field label={strings.auth.usernameLabel}>
-                <TextInput value={addUsername} onChange={e => setAddUsername(e.target.value)} maxLength={24} />
+                <TextInput value={addUsername} onChange={e => setAddUsername(e.target.value)} maxLength={LIMITS.username.max} />
               </Field>
               <div className="form-row">
                 <Field label={strings.auth.passwordLabel}>
@@ -251,7 +244,7 @@ export const SettingsView: React.FC = () => {
               </div>
               <div className="modal-actions">
                 <Button onClick={() => setShowAddForm(false)}>
-                  {strings.profile.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button variant="primary" onClick={addProfile} disabled={busy || profileCount >= MAX_PROFILES}>
                   {strings.settings.addProfileTitle}
@@ -260,9 +253,10 @@ export const SettingsView: React.FC = () => {
             </div>
           ) : (
             <Button
+              icon={<IconPlus size={16} strokeWidth={2.4} />}
               onClick={() => setShowAddForm(true)}
               disabled={profileCount >= MAX_PROFILES}
-              title={profileCount >= MAX_PROFILES ? `Max ${MAX_PROFILES} profiles` : undefined}
+              title={profileCount >= MAX_PROFILES ? format(strings.settings.maxProfilesReached, { max: MAX_PROFILES }) : undefined}
             >
               {strings.settings.addProfileBtn}
             </Button>
@@ -285,13 +279,13 @@ export const SettingsView: React.FC = () => {
               <p className="danger-panel-msg">{strings.settings.resetConfirmMsg}</p>
               <div className="modal-actions">
                 <Button onClick={() => setResetStep('none')}>
-                  {strings.settings.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button
                   variant="danger"
                   onClick={() => setResetStep('password')}
                 >
-                  {strings.profile.deleteBtn}
+                  {strings.common.delete}
                 </Button>
               </div>
             </div>
@@ -320,10 +314,10 @@ export const SettingsView: React.FC = () => {
                     setResetPw('');
                   }}
                 >
-                  {strings.settings.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={execReset} disabled={busy}>
-                  {strings.profile.deleteBtn}
+                  {strings.common.delete}
                 </Button>
               </div>
             </div>
@@ -332,15 +326,15 @@ export const SettingsView: React.FC = () => {
           {deleting && (
             <div className="danger-panel">
               <p className="danger-panel-title">
-                {strings.settings.deleteBtn} “{deleting.displayName}”
+                {strings.common.delete} “{deleting.displayName}”
               </p>
               <p className="danger-panel-msg">{strings.settings.deleteProfileConfirmMsg}</p>
               <div className="modal-actions">
                 <Button onClick={() => setDeleting(null)}>
-                  {strings.settings.cancelBtn}
+                  {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={() => deleteProfile(deleting)} disabled={busy}>
-                  {strings.profile.deleteBtn}
+                  {strings.common.delete}
                 </Button>
               </div>
             </div>

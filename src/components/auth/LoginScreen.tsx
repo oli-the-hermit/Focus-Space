@@ -5,6 +5,8 @@ import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { IconLogo } from '../ui/icons';
+import { LIMITS } from '../../constants/limits';
+import { format } from '../../lib/i18n';
 
 export const LoginScreen: React.FC = () => {
   const { login, setup } = useApp();
@@ -62,8 +64,8 @@ export const LoginScreen: React.FC = () => {
         setError(strings.auth.fieldRequired);
         return;
       }
-      if (password.length < 8) {
-        setError(strings.auth.weakPassword);
+      if (password.length < LIMITS.password.min) {
+        setError(format(strings.auth.weakPassword, { min: LIMITS.password.min }));
         return;
       }
       if (password !== confirm) {
@@ -104,8 +106,8 @@ export const LoginScreen: React.FC = () => {
               <TextInput
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
-                placeholder="e.g. Enzo"
-                maxLength={40}
+                placeholder={strings.auth.displayNamePlaceholder}
+                maxLength={LIMITS.displayName.max}
                 autoFocus
               />
             </Field>
@@ -115,10 +117,10 @@ export const LoginScreen: React.FC = () => {
             <TextInput
               value={username}
               onChange={e => setUsername(e.target.value)}
-              placeholder="username"
+              placeholder={strings.auth.usernamePlaceholder}
               autoComplete="username"
               autoFocus={mode === 'login'}
-              maxLength={24}
+              maxLength={LIMITS.username.max}
             />
           </Field>
 

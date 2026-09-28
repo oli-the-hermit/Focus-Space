@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { GoalCard } from './GoalCard';
-import { FilterGridLayout, FilterTabOption } from '../ui/FilterGridLayout';
+import { FilterGridLayout } from '../ui/FilterGridLayout';
+import { FREQUENCY_FILTER_TABS } from '../../constants/frequencies';
 import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
+import { IconPlus } from '../ui/icons';
 
-const FREQUENCY_TABS: FilterTabOption[] = [
-  { key: 'all', label: 'All' },
-  { key: 'daily', label: 'Daily' },
-  { key: 'weekly', label: 'Weekly' },
-  { key: 'monthly', label: 'Monthly' },
-  { key: 'yearly', label: 'Yearly' },
-  { key: 'custom', label: 'Custom' }
-];
 
 export const GoalsGrid: React.FC = () => {
   const { state, openModal } = useApp();
@@ -28,12 +22,12 @@ export const GoalsGrid: React.FC = () => {
 
   return (
     <FilterGridLayout
-      tabs={FREQUENCY_TABS}
+      tabs={FREQUENCY_FILTER_TABS}
       activeTab={filter}
       onTabChange={setFilter}
       actionButton={
-        <Button variant="primary" id="addGoalBtn" onClick={handleAddGoal}>
-          {strings.goals.newGoalBtn}
+        <Button variant="primary" id="addGoalBtn" icon={<IconPlus size={16} strokeWidth={2.4} />} onClick={handleAddGoal}>
+          {strings.actions.newGoal}
         </Button>
       }
       hasItems={filteredGoals.length > 0}

@@ -17,6 +17,7 @@ import {
   IconTarget,
   IconTimer
 } from '../ui/icons';
+import { shortcutHint } from '../../constants/shortcuts';
 
 type Creator = 'session' | 'list' | 'task' | 'schedule' | 'goal' | 'reward';
 
@@ -39,9 +40,9 @@ export function useGlobalMenuItems(): () => (MenuItem | false)[] {
   const mini = useMiniPlayer();
 
   return () => {
-    const cm = strings.contextMenu;
+    const cm = strings.actions;
     const creators: Record<Creator, MenuItem | false> = {
-      session: { key: 'session', label: cm.newSession, icon: <IconTimer size={16} />, hint: 'N', onSelect: () => openModal('NEW_SESSION') },
+      session: { key: 'session', label: cm.newSession, icon: <IconTimer size={16} />, hint: shortcutHint('newSession'), onSelect: () => openModal('NEW_SESSION') },
       list: { key: 'list', label: cm.newList, icon: <IconList size={16} />, onSelect: () => openModal('NEW_LIST') },
       task: !!state.activeListId && {
         key: 'task',
@@ -69,18 +70,18 @@ export function useGlobalMenuItems(): () => (MenuItem | false)[] {
         key: 'timer',
         label: running ? cm.pauseTimer : cm.startTimer,
         icon: running ? <IconPause size={15} /> : <IconPlay size={15} />,
-        hint: 'Space',
+        hint: shortcutHint('toggleTimer'),
         onSelect: toggleTimer
       },
       mini.supported && {
         key: 'mini',
         label: mini.isOpen ? cm.closeMini : cm.openMini,
         icon: <IconMiniPlayer size={16} />,
-        hint: 'M',
+        hint: shortcutHint('miniPlayer'),
         onSelect: mini.toggle
       },
       { key: 'd2', divider: true },
-      { key: 'help', label: cm.help, icon: <IconHelp size={16} />, hint: '?', onSelect: () => setHelpOpen(true) }
+      { key: 'help', label: cm.help, icon: <IconHelp size={16} />, hint: shortcutHint('help'), onSelect: () => setHelpOpen(true) }
     ];
   };
 }

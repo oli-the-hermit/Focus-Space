@@ -1,27 +1,26 @@
 // KEEP IN SYNC with src-tauri/src/backend/ (the desktop app's Rust port of this API).
-// Routes, validation, status codes and error messages must match in both.
+// Routes, validation, status codes and error codes must match in both. Limits come
+// from shared/limits.json; errors are codes (server/errors.js), never sentences.
 import express from 'express';
 import { getDb } from './db.js';
 import { hashPassword, verifyPassword, generateToken, hashToken } from './crypto.js';
+import { LIMITS, USERNAME_RE, SESSION_TTL_MS, LOCKOUT_MS } from './limits.js';
+import { E, fail, ApiFailure } from './errors.js';
 
-const SESSION_TTL_MS = 30 * 24 * 3600 * 1000; // 30 days
-const MAX_PROFILES = 6;
-const LOCKOUT_MAX_FAILURES = 5;
-const LOCKOUT_MS = 30_000;
-const LOGIN_FAIL_DELAY_MS = 250;
-const MAX_BLOB_BYTES = 1.5 * 1024 * 1024; // 1.5 MB encrypted blob cap
-
-const USERNAME_RE = /^[a-zA-Z0-9._-]{3,24}$/;
+const MAX_BLOB_BYTES = LIMITS.maxBlobBytes; // encrypted data blob cap
+const LOGIN_FAIL_DELAY_MS = LIMITS.login.failDelayMs;
 
 // ── Validation helpers ───────────────────────────────────────────
+const inRange = (n, { min, max }) => n >= min && n <= max;
+
 function validateUsername(v) {
-  return typeof v === 'string' && USERNAME_RE.test(v);
+  return typeof v === 'string' && inRange(v.length, LIMITS.username) && USERNAME_RE.test(v);
 }
 function validateDisplayName(v) {
-  return typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 40;
+  return typeof v === 'string' && inRange(v.trim().length, LIMITS.displayName);
 }
 function validatePassword(v) {
-  return typeof v === 'string' && v.length >= 8 && v.length <= 128;
+  return typeof v === 'string' && inRange(v.length, LIMITS.password);
 }
 function validateIv(v) {
   if (typeof v !== 'string' || v.length === 0 || v.length > 24) return false;
@@ -52,7 +51,7 @@ function isBlocked(key) {
 function recordFailure(key) {
   const entry = attempts.get(key) || { count: 0, blockedUntil: null };
   entry.count += 1;
-  if (entry.count >= LOCKOUT_MAX_FAILURES) {
+  if (entry.count >= LIMITS.login.maxFailures) {
     entry.blockedUntil = Date.now() + LOCKOUT_MS;
     entry.count = 0;
   }
@@ -79,7 +78,7 @@ setInterval(() => {
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'Your session has ended. Sign in again to continue.' });
+  if (!token) return fail(res, 401, E.SESSION_EXPIRED);
 
   const row = getDb()
     .prepare(
@@ -89,10 +88,10 @@ function requireAuth(req, res, next) {
     )
     .get(hashToken(token));
 
-  if (!row) return res.status(401).json({ error: 'Your session has ended. Sign in again to continue.' });
+  if (!row) return fail(res, 401, E.SESSION_EXPIRED);
   if (row.expires_at < Date.now()) {
     getDb().prepare('DELETE FROM sessions WHERE token_hash = ?').run(row.token_hash);
-    return res.status(401).json({ error: 'Your session has ended. Sign in again to continue.' });
+    return fail(res, 401, E.SESSION_EXPIRED);
   }
 
   // Sliding expiry
@@ -113,7 +112,7 @@ function requireAuth(req, res, next) {
 
 function requireOwner(req, res, next) {
   if (req.profile.role !== 'owner') {
-    return res.status(403).json({ error: 'Only the main account can do this.' });
+    return fail(res, 403, E.OWNER_ONLY);
   }
   next();
 }
@@ -142,11 +141,7 @@ function createSession(profileId) {
 
 function assertUniqueUsername(username) {
   const exists = getDb().prepare('SELECT id FROM profiles WHERE username = ? COLLATE NOCASE').get(username);
-  if (exists) {
-    const err = new Error('That username is already in use. Try a different one.');
-    err.status = 409;
-    throw err;
-  }
+  if (exists) throw new ApiFailure(409, E.USERNAME_TAKEN);
 }
 
 // ── App ──────────────────────────────────────────────────────────
@@ -164,13 +159,13 @@ function createApp() {
   app.post('/api/auth/setup', async (req, res, next) => {
     try {
       const { username, displayName, password } = req.body || {};
-      if (!validateUsername(username)) return res.status(400).json({ error: 'Usernames use 3–24 characters: letters, numbers, dots, dashes or underscores.' });
-      if (!validateDisplayName(displayName)) return res.status(400).json({ error: 'Display names can be 1–40 characters.' });
-      if (!validatePassword(password)) return res.status(400).json({ error: 'Passwords can be 8–128 characters.' });
+      if (!validateUsername(username)) return fail(res, 400, E.INVALID_USERNAME);
+      if (!validateDisplayName(displayName)) return fail(res, 400, E.INVALID_DISPLAY_NAME);
+      if (!validatePassword(password)) return fail(res, 400, E.INVALID_PASSWORD);
 
       const db = getDb();
       const existing = db.prepare('SELECT COUNT(*) AS n FROM profiles').get().n;
-      if (existing > 0) return res.status(409).json({ error: 'This device already has a main account. Sign in instead.' });
+      if (existing > 0) return fail(res, 409, E.ALREADY_SET_UP);
 
       const { salt, hash } = await hashPassword(password);
       const now = Date.now();
@@ -193,11 +188,11 @@ function createApp() {
     try {
       const { username, password } = req.body || {};
       if (typeof username !== 'string' || typeof password !== 'string') {
-        return res.status(400).json({ error: 'Enter your username and password to continue.' });
+        return fail(res, 400, E.CREDENTIALS_REQUIRED);
       }
 
       const key = getAttemptKey(req, username);
-      if (isBlocked(key)) return res.status(429).json({ error: 'Too many sign-in attempts in a row. Take a short break and try again in 30 seconds.' });
+      if (isBlocked(key)) return fail(res, 429, E.TOO_MANY_ATTEMPTS);
 
       const row = getDb().prepare('SELECT * FROM profiles WHERE username = ? COLLATE NOCASE').get(username);
       
@@ -212,7 +207,7 @@ function createApp() {
       if (!ok) {
         recordFailure(key);
         await delay(LOGIN_FAIL_DELAY_MS);
-        return res.status(401).json({ error: 'That username and password don’t match. Check for typos or Caps Lock and try again.' });
+        return fail(res, 401, E.INVALID_CREDENTIALS);
       }
 
       recordSuccess(key);
@@ -251,7 +246,7 @@ function createApp() {
     try {
       const { iv, cipher } = req.body || {};
       if (!validateIv(iv) || !validateCipher(cipher)) {
-        return res.status(400).json({ error: 'We couldn’t save that change. Your data is safe, so please try again.' });
+        return fail(res, 400, E.SAVE_FAILED);
       }
       getDb()
         .prepare('UPDATE profiles SET data_iv = ?, data_cipher = ?, updated_at = ? WHERE id = ?')
@@ -271,24 +266,24 @@ function createApp() {
 
       const patch = {};
       if (displayName !== undefined) {
-        if (!validateDisplayName(displayName)) return res.status(400).json({ error: 'Display names can be 1–40 characters.' });
+        if (!validateDisplayName(displayName)) return fail(res, 400, E.INVALID_DISPLAY_NAME);
         patch.display_name = displayName.trim();
       }
       if (username !== undefined) {
-        if (!validateUsername(username)) return res.status(400).json({ error: 'Usernames use 3–24 characters: letters, numbers, dots, dashes or underscores.' });
+        if (!validateUsername(username)) return fail(res, 400, E.INVALID_USERNAME);
         if (username.toLowerCase() !== row.username.toLowerCase()) {
           assertUniqueUsername(username);
         }
         patch.username = username;
       }
       if (avatar !== undefined) {
-        if (typeof avatar !== 'string' || avatar.length > 200_000) {
-          return res.status(400).json({ error: 'That image is too large. Try a smaller or cropped photo.' });
+        if (typeof avatar !== 'string' || avatar.length > LIMITS.avatar.maxChars) {
+          return fail(res, 400, E.AVATAR_TOO_LARGE);
         }
         patch.avatar = avatar;
       }
 
-      if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'No changes to save yet.' });
+      if (Object.keys(patch).length === 0) return fail(res, 400, E.NO_CHANGES);
 
       const sets = Object.keys(patch).map(k => `${k} = ?`).join(', ');
       const values = Object.values(patch);
@@ -304,7 +299,7 @@ function createApp() {
     try {
       const { currentPassword, newPassword, salt, iv, cipher } = req.body || {};
       if (typeof currentPassword !== 'string') {
-        return res.status(400).json({ error: 'Enter your current password to continue.' });
+        return fail(res, 400, E.CURRENT_PASSWORD_REQUIRED);
       }
       const db = getDb();
       const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
@@ -312,13 +307,13 @@ function createApp() {
       const isCurrentValid = await verifyPassword(currentPassword || '', row.salt, row.password_hash);
       if (!isCurrentValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
-        return res.status(401).json({ error: 'That’s not your current password. Give it another try.' });
+        return fail(res, 401, E.WRONG_CURRENT_PASSWORD);
       }
       if (!validatePassword(newPassword)) {
-        return res.status(400).json({ error: 'New passwords can be 8–128 characters.' });
+        return fail(res, 400, E.INVALID_NEW_PASSWORD);
       }
       if (!validateSalt(salt) || !validateIv(iv) || !validateCipher(cipher)) {
-        return res.status(400).json({ error: 'We couldn’t save that change. Your data is safe, so please try again.' });
+        return fail(res, 400, E.SAVE_FAILED);
       }
 
       const { hash } = await hashPassword(newPassword, salt);
@@ -340,17 +335,17 @@ function createApp() {
     try {
       const { password } = req.body || {};
       if (typeof password !== 'string') {
-        return res.status(400).json({ error: 'Enter your password to confirm.' });
+        return fail(res, 400, E.PASSWORD_REQUIRED);
       }
       if (req.profile.role === 'owner') {
-        return res.status(403).json({ error: 'The main account can’t be deleted. It keeps every profile on this device running.' });
+        return fail(res, 403, E.OWNER_UNDELETABLE);
       }
       const row = getDb().prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
       
       const isPasswordValid = await verifyPassword(password || '', row.salt, row.password_hash);
       if (!isPasswordValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
-        return res.status(401).json({ error: 'That password doesn’t match. Please try again.' });
+        return fail(res, 401, E.WRONG_PASSWORD);
       }
       getDb().prepare('DELETE FROM profiles WHERE id = ?').run(row.id); // cascades sessions
       res.status(204).end();
@@ -368,14 +363,14 @@ function createApp() {
   app.post('/api/profiles', requireAuth, requireOwner, async (req, res, next) => {
     try {
       const { username, displayName, password } = req.body || {};
-      if (!validateUsername(username)) return res.status(400).json({ error: 'Usernames use 3–24 characters: letters, numbers, dots, dashes or underscores.' });
-      if (!validateDisplayName(displayName)) return res.status(400).json({ error: 'Display names can be 1–40 characters.' });
-      if (!validatePassword(password)) return res.status(400).json({ error: 'Passwords can be 8–128 characters.' });
+      if (!validateUsername(username)) return fail(res, 400, E.INVALID_USERNAME);
+      if (!validateDisplayName(displayName)) return fail(res, 400, E.INVALID_DISPLAY_NAME);
+      if (!validatePassword(password)) return fail(res, 400, E.INVALID_PASSWORD);
 
       const db = getDb();
       const count = db.prepare('SELECT COUNT(*) AS n FROM profiles').get().n;
-      if (count >= MAX_PROFILES) {
-        return res.status(409).json({ error: `You’ve reached the limit of ${MAX_PROFILES} profiles. Remove one to add someone new.` });
+      if (count >= LIMITS.maxProfiles) {
+        return fail(res, 409, E.PROFILE_LIMIT);
       }
       assertUniqueUsername(username);
 
@@ -399,11 +394,11 @@ function createApp() {
     try {
       const { displayName } = req.body || {};
       if (!validateDisplayName(displayName)) {
-        return res.status(400).json({ error: 'Display names can be 1–40 characters.' });
+        return fail(res, 400, E.INVALID_DISPLAY_NAME);
       }
       const db = getDb();
       const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.params.id);
-      if (!row) return res.status(404).json({ error: 'We couldn’t find that profile. It may have been removed already.' });
+      if (!row) return fail(res, 404, E.PROFILE_NOT_FOUND);
 
       db.prepare('UPDATE profiles SET display_name = ?, updated_at = ? WHERE id = ?')
         .run(displayName.trim(), Date.now(), row.id);
@@ -417,9 +412,9 @@ function createApp() {
   app.delete('/api/profiles/:id', requireAuth, requireOwner, (req, res) => {
     const db = getDb();
     const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.params.id);
-    if (!row) return res.status(404).json({ error: 'We couldn’t find that profile. It may have been removed already.' });
+    if (!row) return fail(res, 404, E.PROFILE_NOT_FOUND);
     if (row.id === req.profile.id) {
-      return res.status(400).json({ error: 'The main account can’t be deleted. It keeps every profile on this device running.' });
+      return fail(res, 400, E.OWNER_UNDELETABLE);
     }
     db.prepare('DELETE FROM profiles WHERE id = ?').run(row.id); // cascades sessions
     res.status(204).end();
@@ -430,7 +425,7 @@ function createApp() {
     try {
       const { password } = req.body || {};
       if (typeof password !== 'string') {
-        return res.status(400).json({ error: 'Enter your password to confirm.' });
+        return fail(res, 400, E.PASSWORD_REQUIRED);
       }
       const db = getDb();
       const row = db.prepare('SELECT * FROM profiles WHERE id = ?').get(req.profile.id);
@@ -438,7 +433,7 @@ function createApp() {
       const isPasswordValid = await verifyPassword(password || '', row.salt, row.password_hash);
       if (!isPasswordValid) {
         await delay(LOGIN_FAIL_DELAY_MS);
-        return res.status(401).json({ error: 'That password doesn’t match. Please try again.' });
+        return fail(res, 401, E.WRONG_PASSWORD);
       }
 
       const reset = db.transaction(() => {
@@ -452,16 +447,19 @@ function createApp() {
     }
   });
 
+  // Unknown API routes answer in JSON, like the desktop backend (not Express's HTML page).
+  app.use('/api', (req, res) => fail(res, 404, E.NOT_FOUND));
+
   // ── Error handler ─────────────────────────────────────────────
   // Express only treats a handler as an error handler when it declares all four arguments.
   app.use((err, req, res, _next) => {
-    if (err.status === 400 && err.type === 'entity.parse.failed') {
-      return res.status(400).json({ error: 'We couldn’t save that change. Your data is safe, so please try again.' });
-    }
-    if (err.status) return res.status(err.status).json({ error: err.message });
-    if (err.type === 'entity.too.large') return res.status(413).json({ error: 'That’s more than we can save at once. Try a smaller image or fewer changes.' });
+    if (err instanceof ApiFailure) return fail(res, err.status, err.code);
+    // body-parser errors carry a status and an English message; map them to codes.
+    // (entity.too.large used to fall through to its raw "request entity too large" text.)
+    if (err.type === 'entity.too.large') return fail(res, 413, E.PAYLOAD_TOO_LARGE);
+    if (err.status >= 400 && err.status < 500) return fail(res, err.status, E.SAVE_FAILED);
     console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Something unexpected happened on our side. Your data is safe, so please try again.' });
+    fail(res, 500, E.INTERNAL);
   });
 
   return app;

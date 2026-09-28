@@ -19,13 +19,7 @@ import {
   Profile,
   ThemeMode
 } from '../types';
-import {
-  DEFAULT_SESSIONS,
-  DEFAULT_TASK_LISTS,
-  DEFAULT_GOALS,
-  DEFAULT_REWARDS,
-  DEFAULT_CALENDAR_EVENTS
-} from '../constants/defaults';
+import { DEFAULT_CALENDAR_EVENTS, DEFAULT_GOALS, DEFAULT_REWARDS, DEFAULT_REWARD_EMOJI, DEFAULT_SESSIONS, DEFAULT_TASK_LISTS } from '../constants/defaults';
 import { api } from '../lib/api';
 import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../lib/crypto';
 import { strings } from '../constants/strings';
@@ -53,6 +47,7 @@ import {
   scheduleDesktopAlert,
   showDesktopAlert
 } from '../lib/desktop';
+import { format } from '../lib/i18n';
 
 interface ToastItem {
   id: string;
@@ -1128,7 +1123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => {
       const ev = prev.calendarEvents.find(e => e.id === eventId);
       if (!ev) return prev;
-      showToast(strings.toasts.eventMoved.replace('{date}', targetDate).replace('{time}', targetTime));
+      showToast(format(strings.toasts.eventMoved, { date: targetDate, time: targetTime }));
       return {
         ...prev,
         calendarEvents: prev.calendarEvents.map(e =>
@@ -1178,7 +1173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeSessionId: prev.activeSessionId || newSession.id
       };
     });
-    showToast(strings.toasts.sessionCreated.replace('{name}', newSession.name));
+    showToast(format(strings.toasts.sessionCreated, { name: newSession.name }));
     return newSession.id;
   };
 
@@ -1297,7 +1292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeListId: activate ? newList.id : prev.activeListId,
       selectedListIdForTimer: prev.selectedListIdForTimer || newList.id
     }));
-    showToast(strings.toasts.listCreated.replace('{name}', name));
+    showToast(format(strings.toasts.listCreated, { name }));
     return newList.id;
   };
 
@@ -1389,7 +1384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timestamp: now,
           date: getTodayStr()
         });
-        showToast(strings.toasts.taskDone.replace('{duration}', formatDuration(durationSeconds)));
+        showToast(format(strings.toasts.taskDone, { duration: formatDuration(durationSeconds) }));
       }
 
       return {
@@ -1452,7 +1447,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCalendarEvent = (event: Omit<CalendarEvent, 'id'>) => {
     const newEvent: CalendarEvent = { ...event, id: uid() };
     setState(prev => ({ ...prev, calendarEvents: [...prev.calendarEvents, newEvent] }));
-    showToast(strings.toasts.eventScheduled.replace('{title}', newEvent.title));
+    showToast(format(strings.toasts.eventScheduled, { title: newEvent.title }));
   };
 
   const updateCalendarEvent = (id: string, event: Partial<CalendarEvent>) => {
@@ -1513,7 +1508,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rewards: updatedRewards
       };
     });
-    showToast(strings.toasts.goalCreated.replace('{name}', newGoal.name));
+    showToast(format(strings.toasts.goalCreated, { name: newGoal.name }));
   };
 
   const updateGoal = (id: string, goal: Partial<Goal>) => {
@@ -1766,8 +1761,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       name: reward.name,
       description: reward.description || reward.desc || '',
       desc: reward.description || reward.desc || '',
-      emoji: reward.emoji || reward.icon || '🎁',
-      icon: reward.emoji || reward.icon || '🎁',
+      emoji: reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI,
+      icon: reward.emoji || reward.icon || DEFAULT_REWARD_EMOJI,
       trigger: inferredTrigger,
       linkedSessionId: linkedSession,
       linkedGoalId: linkedGoal,
@@ -1792,7 +1787,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         goals: updatedGoals
       };
     });
-    showToast(strings.toasts.rewardCreated.replace('{name}', newReward.name));
+    showToast(format(strings.toasts.rewardCreated, { name: newReward.name }));
     return newReward.id;
   };
 

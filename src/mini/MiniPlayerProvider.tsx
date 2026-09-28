@@ -144,7 +144,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const win = await pip.requestWindow({ width: MINI_WIDTH, height: MINI_HEIGHT });
     copyStyles(win.document);
     win.document.documentElement.classList.add('mini-root');
-    win.document.title = strings.mini.pipTitle;
+    win.document.title = strings.app.title;
     win.addEventListener('pagehide', () => {
       setPipWindow(null);
       setIsOpen(false);

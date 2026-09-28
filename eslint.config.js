@@ -15,6 +15,15 @@ const NO_HARDCODED_TEXT = [
   {
     selector: 'JSXAttribute[name.name=/^(placeholder|title|alt|aria-label)$/] > Literal[value=/[A-Za-z]{2,}/]',
     message: 'Move user-facing text to src/constants/strings.ts.'
+  },
+  {
+    // Text handed to components through objects, e.g. menu items and tabs: { label: 'Daily' }.
+    selector: 'Property[key.name=/^(label|title|message|placeholder|ariaLabel|confirmLabel|primaryLabel|cancelLabel|emptyMessage|tooltip|hint)$/] > Literal[value=/[A-Za-z]{2,}/]',
+    message: 'Move user-facing text to src/constants/strings.ts.'
+  },
+  {
+    selector: 'JSXAttribute[name.name=/^(placeholder|title|alt|aria-label|label)$/] TemplateLiteral > TemplateElement[value.raw=/[A-Za-z]{2,}/]',
+    message: 'Build user-facing text with format() from lib/i18n and a template in strings.ts.'
   }
 ];
 
@@ -47,8 +56,14 @@ export default tseslint.config(
       'no-empty': 'warn',
       // Off: "initialize, then assign in every branch" is intentional and readable here.
       'no-useless-assignment': 'off',
-      'no-restricted-syntax': ['warn', ...NO_HARDCODED_TEXT]
+      // Phase 6 complete: user-facing text lives in constants/strings.ts.
+      'no-restricted-syntax': ['error', ...NO_HARDCODED_TEXT]
     }
+  },
+  {
+    // The dictionaries themselves and seed data.
+    files: ['src/constants/strings.ts', 'src/constants/defaults.ts'],
+    rules: { 'no-restricted-syntax': 'off' }
   },
   {
     // UI primitives stay app-agnostic: text comes in through props, data through the caller.

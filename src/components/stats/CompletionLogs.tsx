@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { formatDuration } from '../../lib/formatUtils';
+import { formatDuration, formatTimeOfDay } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
 import { IconCheck } from '../ui/icons';
 import { Card, PanelHeader } from '../ui/Card';
@@ -22,7 +22,7 @@ export const CompletionLogs: React.FC = () => {
           </EmptyState>
         ) : (
           sortedLogs.map(log => {
-            const dStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dStr = formatTimeOfDay(log.timestamp);
             return (
               <div key={log.id} className="log-item">
                 <div className="log-item-left">

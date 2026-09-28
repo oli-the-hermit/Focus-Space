@@ -69,7 +69,10 @@
 .goal-card-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); margin-top: auto; }
 .goal-complete-toggle { display: inline-flex; align-items: center; gap: var(--space-10); font-size: var(--text-sm); color: var(--text-2); cursor: pointer; }
 .add-landmark-btn {
-  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--button-height-sm);
   padding: 0 var(--space-14);
   border-radius: var(--radius-pill);
   color: var(--accent-text);

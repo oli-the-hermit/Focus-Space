@@ -3,6 +3,7 @@ import { daysBetween, getTodayStr } from '../../lib/dateUtils';
 import { formatShortDate } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
 import { IconCalendar } from '../ui/icons';
+import { format, plural } from '../../lib/i18n';
 
 export interface ScheduleBadgeProps {
   startDate?: string | null;
@@ -17,9 +18,9 @@ export const ScheduleBadge: React.FC<ScheduleBadgeProps> = ({ startDate, dueDate
   const today = getTodayStr();
 
   let range: string;
-  if (startDate && dueDate) range = `${formatShortDate(startDate)} → ${formatShortDate(dueDate)}`;
-  else if (dueDate) range = strings.goals.dueOn.replace('{date}', formatShortDate(dueDate));
-  else range = strings.goals.startsOn.replace('{date}', formatShortDate(startDate!));
+  if (startDate && dueDate) range = format(strings.goals.dateRange, { start: formatShortDate(startDate), end: formatShortDate(dueDate) });
+  else if (dueDate) range = format(strings.goals.dueOn, { date: formatShortDate(dueDate) });
+  else range = format(strings.goals.startsOn, { date: formatShortDate(startDate!) });
 
   let status = '';
   let tone: 'neutral' | 'warn' | 'done' = 'neutral';
@@ -27,15 +28,15 @@ export const ScheduleBadge: React.FC<ScheduleBadgeProps> = ({ startDate, dueDate
     tone = 'done';
   } else if (startDate && startDate > today) {
     const d = daysBetween(today, startDate);
-    status = strings.goals.startsIn.replace('{count}', String(d)).replace('{s}', d === 1 ? '' : 's');
+    status = plural(d, strings.goals.startsIn);
   } else if (dueDate) {
     const d = daysBetween(today, dueDate);
-    if (d > 0) status = strings.goals.daysLeft.replace('{count}', String(d)).replace('{s}', d === 1 ? '' : 's');
+    if (d > 0) status = plural(d, strings.goals.daysLeft);
     else if (d === 0) {
       status = strings.goals.dueToday;
       tone = 'warn';
     } else {
-      status = strings.goals.overdue.replace('{count}', String(-d)).replace('{s}', d === -1 ? '' : 's');
+      status = plural(-d, strings.goals.overdue);
       tone = 'warn';
     }
   }

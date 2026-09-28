@@ -6,6 +6,8 @@ import { GITHUB_URL, githubIssueUrl } from '../../constants/links';
 import { isTauri, openExternal } from '../../lib/desktop';
 import { IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
+import { format } from '../../lib/i18n';
+import { SHORTCUTS } from '../../constants/shortcuts';
 
 type HelpView = 'home' | 'shortcuts' | 'whatsNew' | 'about';
 
@@ -77,7 +79,7 @@ export const HelpModal: React.FC = () => {
           <HelpRow
             icon={<IconSparkle size={20} />}
             title={strings.help.whatsNewTitle}
-            desc={strings.help.whatsNewDesc.replace('{version}', version)}
+            desc={format(strings.help.whatsNewDesc, { version })}
             onClick={() => setView('whatsNew')}
           />
           <HelpRow
@@ -96,7 +98,7 @@ export const HelpModal: React.FC = () => {
                 onClick={() =>
                   open(
                     githubIssueUrl(
-                      strings.help.reportBody.replace('{version}', version).replace('{platform}', platformLabel())
+                      format(strings.help.reportBody, { version, platform: platformLabel() })
                     )
                   )
                 }
@@ -116,11 +118,11 @@ export const HelpModal: React.FC = () => {
       {view === 'shortcuts' && (
         <div className="help-sub" key="shortcuts">
           <ul className="shortcut-list">
-            {strings.help.shortcuts.map(s => (
-              <li key={s.label} className="shortcut-row">
-                <span>{s.label}</span>
+            {SHORTCUTS.map(s => (
+              <li key={s.id} className="shortcut-row">
+                <span>{strings.shortcuts[s.id]}</span>
                 <span className="shortcut-keys">
-                  {s.keys.map(k => (
+                  {s.caps.map(k => (
                     <kbd key={k} className="kbd">{k}</kbd>
                   ))}
                 </span>
@@ -133,7 +135,7 @@ export const HelpModal: React.FC = () => {
 
       {view === 'whatsNew' && (
         <div className="help-sub" key="whatsNew">
-          <p className="help-version">{strings.help.versionLabel.replace('{version}', version)}</p>
+          <p className="help-version">{format(strings.help.versionLabel, { version })}</p>
           <ul className="whats-new-list">
             {strings.help.whatsNew.map(item => (
               <li key={item}>{item}</li>
@@ -150,7 +152,7 @@ export const HelpModal: React.FC = () => {
             </span>
             <div>
               <div className="about-name">{strings.app.title}</div>
-              <div className="about-version">{strings.help.versionLabel.replace('{version}', version)}</div>
+              <div className="about-version">{format(strings.help.versionLabel, { version })}</div>
             </div>
           </div>
           <p className="about-desc">{strings.app.description}</p>
@@ -166,7 +168,7 @@ export const HelpModal: React.FC = () => {
             {GITHUB_URL && (
               <TextButton className="about-github" onClick={() => open(GITHUB_URL)}>
                 <IconGithub size={15} />
-                GitHub
+                {strings.help.githubLabel}
               </TextButton>
             )}
           </p>
