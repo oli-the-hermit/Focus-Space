@@ -257,6 +257,68 @@ async function main() {
         failures.push(`${theme}/50-mini: ${(err as Error).message.split('\n')[0]}`);
       }
     }
+
+    // ── Behavior checks: the timer engine on a real clock. Runs last: it changes timer state. ──
+    // The clock is frozen per context, so this uses a new one. Its storage state carries
+    // the auth token, so it is already signed in.
+    const liveContext = await browser.newContext({
+      viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce', storageState: await context.storageState()
+    });
+    liveContext.setDefaultTimeout(5000);
+    const live = await liveContext.newPage();
+    try {
+      await live.goto(BASE);
+      await live.locator('.app-shell').waitFor({ timeout: 15_000 });
+      await live.locator('.nav-rail [data-tab="timer"]').click();
+      const time = live.locator('.player-art-time');
+      const status = live.locator('.status-chip');
+      const focusMain = () => live.locator('.app-main').click({ position: { x: 12, y: 12 } });
+      const before = (await time.textContent())?.trim();
+
+      await check('Space starts the timer and it counts down', async () => {
+        await focusMain();
+        await live.keyboard.press(' ');
+        await live.waitForTimeout(2500);
+        const after = (await time.textContent())?.trim();
+        const running = (await status.getAttribute('class'))?.split(' ').includes('is-running');
+        return !!before && after !== before && !!running;
+      });
+      await check('Space again pauses the timer', async () => {
+        await focusMain();
+        await live.keyboard.press(' ');
+        await settle(live, 300);
+        return (await live.locator('#statusText').textContent())?.trim() === strings.status.paused;
+      });
+      await check('S skips to the break', async () => {
+        await focusMain();
+        await live.keyboard.press('s');
+        await settle(live, 300);
+        return (await live.locator('.phase-chip').getAttribute('class'))?.split(' ').includes('is-break') ?? false;
+      });
+      await check('R resets to an idle focus phase', async () => {
+        await focusMain();
+        await live.keyboard.press('r');
+        await settle(live, 300);
+        const phase = (await live.locator('.phase-chip').getAttribute('class'))?.split(' ') ?? [];
+        return !phase.includes('is-break')
+          && (await live.locator('#statusText').textContent())?.trim() === strings.status.ready
+          && (await time.textContent())?.trim() === before;
+      });
+      await check('Signing out clears the session and signing back in starts on the timer', async () => {
+        await live.locator('.nav-rail [data-tab="tasks"]').click();
+        await live.locator('.user-badge-btn').first().click();
+        await live.getByRole('menuitem', { name: strings.userMenu.exit }).click();
+        await live.locator('.auth-form').waitFor({ timeout: 10_000 });
+        const inputs = live.locator('.auth-form input');
+        await inputs.nth(0).fill(SANDBOX.username);
+        await inputs.nth(1).fill(SANDBOX.password);
+        await live.getByRole('button', { name: strings.auth.signInBtn }).click();
+        await live.locator('.app-shell').waitFor({ timeout: 15_000 });
+        return (await live.locator('.nav-rail [data-tab="timer"][aria-current="page"]').count()) === 1;
+      });
+    } finally {
+      await liveContext.close();
+    }
   } finally {
     await browser.close();
     await vite.close();
