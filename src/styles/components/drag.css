@@ -1,0 +1,16 @@
+/* ── Drag & drop ────────────────────────────────────────── */
+.drag-handle {
+  flex: none;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--grip-tracking);
+  line-height: var(--leading-none);
+  color: var(--text-3);
+  cursor: grab;
+  user-select: none;
+  visibility: hidden;
+  padding-right: var(--space-4);
+}
+.draggable-item:hover .drag-handle,
+.draggable-item:focus-within .drag-handle { visibility: visible; }
+.draggable-item.dragging { background: var(--surface-3) !important; color: var(--text-3) !important; }
+.draggable-item.drag-over { box-shadow: inset 0 var(--ring-width-lg) 0 var(--accent); }

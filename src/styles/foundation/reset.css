@@ -1,0 +1,33 @@
+/* Reset, document defaults and scrollbars */
+
+/* ── Reset & document ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: var(--text-root); -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+button { font-family: inherit; font-size: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+button:disabled { cursor: default; }
+input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+a { color: var(--accent-text); text-decoration: none; }
+h1, h2, h3, h4 { font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+
+:focus { outline: none; }
+:focus-visible { outline: var(--ring-width) solid var(--focus-ring); outline-offset: var(--ring-width); }
+
+::selection { background: var(--accent); color: var(--on-accent); }
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: var(--surface-4) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: var(--radius-pill); border: 2px solid var(--bg); }

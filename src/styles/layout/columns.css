@@ -1,0 +1,13 @@
+/* ── Generic column layouts (Tasks tab) ─────────────────── */
+.master-two-column-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: var(--space-20);
+  align-items: start;
+}
+.master-two-column-layout .layout-sidebar-left { position: sticky; top: 0; }
+
+@media (max-width: 900px) {
+  .master-two-column-layout { grid-template-columns: minmax(0, 1fr); }
+  .master-two-column-layout .layout-sidebar-left { position: static; }
+}

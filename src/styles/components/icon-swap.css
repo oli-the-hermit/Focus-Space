@@ -1,0 +1,12 @@
+/* ── Icon swap (play ↔ pause, sound on ↔ off) ────────────── */
+.icon-swap { position: relative; display: inline-grid; place-items: center; }
+.icon-swap > span {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  transition: opacity var(--dur-2) var(--ease-standard), transform var(--dur-2) var(--ease-emphasized);
+}
+.icon-swap.is-on .icon-swap-off,
+.icon-swap.is-off .icon-swap-on { opacity: 0; transform: scale(0.5) rotate(-60deg); }
+.icon-swap.is-on .icon-swap-on,
+.icon-swap.is-off .icon-swap-off { opacity: 1; transform: none; }

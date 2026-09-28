@@ -1,0 +1,50 @@
+/* ── Task list body & rows (shared with Tasks tab) ──────── */
+.task-list-body { display: flex; flex-direction: column; }
+
+.list-progress { display: flex; flex-direction: column; gap: var(--space-8); margin: var(--space-4) 0 var(--space-2); }
+.list-progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.list-progress-pct { color: var(--accent-text); font-weight: var(--weight-bold); }
+
+.add-task-form { display: flex; gap: var(--space-8); margin: var(--space-14) 0 var(--space-8); }
+.add-task-form .form-input { flex: 1; }
+.add-task-form .btn-action { height: 44px; border-radius: var(--radius-md); }
+
+.task-list-items { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: 48px;
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-4);
+  border-radius: var(--radius-md);
+  transition: background var(--transition);
+}
+.task-row:hover,
+.task-row:focus-within { background: var(--row-hover); }
+.task-text { flex: 1; min-width: 0; font-size: var(--text-md); word-break: break-word; }
+.task-row.done .task-text { color: var(--text-3); text-decoration: line-through; }
+.task-time-badge {
+  flex: none;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--success-container);
+  color: var(--success);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+.task-row-actions { display: flex; gap: var(--space-2); flex: none; visibility: hidden; }
+.task-row:hover .task-row-actions,
+.task-row:focus-within .task-row-actions { visibility: visible; }
+.task-row .icon-btn.xs:hover:not(:disabled) { background: var(--surface-4); }
+.task-row .icon-btn.xs.danger:hover:not(:disabled) { background: var(--danger-container); }

@@ -1,0 +1,6 @@
+/* Form footer: actions row under a form */
+
+/* ── Form footer ────────────────────────────────────────── */
+.form-actions { margin-top: var(--space-4); }
+.form-actions-leading { margin-right: auto; }
+.form-actions-cancel { animation: pop-in var(--dur-2) var(--ease-decel); }

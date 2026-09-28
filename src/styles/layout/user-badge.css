@@ -1,0 +1,40 @@
+/* ── User badge (rail) ──────────────────────────────────── */
+.user-badge-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-4);
+  border-radius: var(--radius-pill);
+  transition: background var(--transition);
+}
+.user-badge-btn:hover { background: var(--surface-2); }
+.user-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--surface-3);
+  color: var(--text-1);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-heavy);
+}
+.user-avatar-img { width: 100%; height: 100%; border-radius: var(--radius-round); object-fit: cover; }
+.user-role-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-round);
+  background: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--bg);
+}
+.user-badge-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+
+.user-menu { min-width: 220px; }
+.user-menu-head { display: flex; flex-direction: column; padding: var(--space-8) var(--space-12) var(--space-10); }
+.user-menu-name { font-size: var(--text-md); font-weight: var(--weight-bold); }
+.user-menu-handle { font-size: var(--text-2xs); color: var(--text-2); }

@@ -1,5 +1,5 @@
 {
-  "$comment": "Guardrails for the SSoT refactor (documentation/refactor-plan.md). Every design value comes from src/styles/tokens.css. Phase 3 complete: violations are errors.",
+  "$comment": "Guardrails for the SSoT refactor (documentation/refactor-plan.md). Every design value comes from src/styles/foundation/tokens.css. Phase 3 complete: violations are errors.",
   "plugins": [
     "stylelint-declaration-strict-value"
   ],
@@ -126,7 +126,8 @@
   "overrides": [
     {
       "files": [
-        "src/styles/tokens.css"
+        "src/styles/foundation/tokens.css",
+        "src/styles/foundation/properties.css"
       ],
       "rules": {
         "color-no-hex": null,

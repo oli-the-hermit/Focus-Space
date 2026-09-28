@@ -1,0 +1,13 @@
+/* ── Progress ───────────────────────────────────────────── */
+.progress-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width var(--dur-4) var(--ease-emphasized);   /* eases rather than snaps */
+}

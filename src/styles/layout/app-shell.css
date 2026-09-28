@@ -1,0 +1,8 @@
+/* App shell grid: navigation rail | column */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  height: 100vh;
+  background: var(--bg);
+}

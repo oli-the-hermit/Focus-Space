@@ -1,0 +1,9 @@
+/* Empty state */
+
+.empty-state {
+  padding: var(--space-32) var(--space-16);
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--text-md);
+}
+.empty-state.small { padding: var(--space-20) var(--space-12); font-size: var(--text-sm); }

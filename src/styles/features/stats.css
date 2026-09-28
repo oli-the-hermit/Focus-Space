@@ -1,0 +1,82 @@
+/* ── Stats ──────────────────────────────────────────────── */
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-16);
+  margin-bottom: var(--space-20);
+}
+.stat-card { display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-20) var(--space-22); }
+.stat-card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--accent-text);
+  margin-bottom: var(--space-10);
+}
+.stat-card-val {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+}
+.stat-card-lbl { font-size: var(--text-sm); color: var(--text-2); }
+.stat-card.is-accent { background: var(--accent); color: var(--on-accent); }
+.stat-card.is-accent .stat-card-icon { background: var(--on-accent); color: var(--accent); }
+.stat-card.is-accent .stat-card-lbl { color: var(--on-accent-2); }
+
+.stats-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-20); }
+
+.productive-days-chart {
+  height: 260px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-12);
+  align-items: end;
+  padding-top: var(--space-8);
+}
+.day-bar-wrap { height: 100%; display: flex; flex-direction: column; align-items: center; gap: var(--space-8); }
+.day-bar-val { font-size: var(--text-2xs); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.day-bar-track {
+  flex: 1;
+  width: 100%;
+  max-width: 46px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.day-bar-fill {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: var(--accent-container);
+  transition: height var(--transition-md);
+}
+.day-bar-fill.top-day { background: var(--accent); }
+.day-bar-lbl { font-size: var(--text-2xs); font-weight: var(--weight-bold); color: var(--text-2); }
+
+.task-completion-logs { display: flex; flex-direction: column; gap: var(--space-6); max-height: 300px; overflow-y: auto; }
+.log-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.log-item-left { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
+.log-item-text { font-size: var(--text-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-item-tag { flex: none; font-size: var(--text-2xs); color: var(--text-3); }
+.log-item-right-wrap { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.log-item-time { font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.log-item-timestamp { font-size: var(--text-3xs); color: var(--text-3); }
+
+@media (max-width: 1100px) {
+  .stats-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-row { grid-template-columns: minmax(0, 1fr); }
+}

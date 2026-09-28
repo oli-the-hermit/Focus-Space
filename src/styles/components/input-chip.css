@@ -1,0 +1,52 @@
+/* ── Chips inside forms ─────────────────────────────────── */
+.chip-set { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.input-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 32px;
+  max-width: 100%;
+  padding: 0 var(--space-4) 0 var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--accent-container);
+  color: var(--on-accent-container);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+.input-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.input-chip-meta {
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  background: var(--on-accent-container);
+  color: var(--accent-container);
+  font-size: var(--text-3xs);
+  font-weight: var(--weight-heavy);
+  display: inline-grid;
+  place-items: center;
+}
+.input-chip-remove {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: inherit;
+}
+.input-chip-remove:hover { background: var(--on-accent-container); color: var(--accent-container); }
+
+.inline-subform {
+  --field-bg: var(--surface-1);
+  --field-hover: var(--surface-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-14);
+  border-radius: var(--radius-2xl);
+  background: var(--surface-2);
+}
+.inline-subform-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.inline-subform-title { font-size: var(--text-sm); font-weight: var(--weight-bold); }

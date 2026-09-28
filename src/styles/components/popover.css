@@ -1,0 +1,28 @@
+/* ── Popover ────────────────────────────────────────────── */
+.popover {
+  position: fixed;
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  color: var(--text-1);
+  box-shadow: var(--elev-overlay);
+  animation: popover-in var(--dur-2) var(--ease-emphasized);
+}
+.popover.is-above { animation-name: popover-in-above; }
+.popover.is-measuring { visibility: hidden; animation: none; }
+.popover.is-leaving { animation: popover-out var(--dur-1) var(--ease-accel) forwards; }
+
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes popover-in-above {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes popover-out {
+  to { opacity: 0; transform: scale(0.98); }
+}

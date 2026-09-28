@@ -1,0 +1,111 @@
+/* ── Onboarding tour ────────────────────────────────────── */
+.tour-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tour);
+  /* Everything underneath is inert while the tour runs. */
+  pointer-events: auto;
+}
+.tour-hole {
+  position: fixed;
+  /* The shadow is the dim layer; the element itself is the clear window. */
+  box-shadow: 0 0 0 200vmax var(--scrim);
+  pointer-events: none;
+  transition:
+    top var(--dur-4) var(--ease-emphasized),
+    left var(--dur-4) var(--ease-emphasized),
+    width var(--dur-4) var(--ease-emphasized),
+    height var(--dur-4) var(--ease-emphasized),
+    border-radius var(--dur-4) var(--ease-emphasized);
+  animation: tour-scrim-in var(--dur-3) var(--ease-decel);
+}
+@keyframes tour-scrim-in { from { box-shadow: 0 0 0 200vmax transparent; } }
+
+.tour-card {
+  position: fixed;
+  width: min(360px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-20) var(--space-20) var(--space-18);
+  border-radius: var(--radius-2xl);
+  background: var(--surface-3);
+  color: var(--text-1);
+  box-shadow: var(--elev-overlay);
+  animation: tour-card-in var(--dur-3) var(--ease-decel);
+}
+.tour-card.is-center {
+  top: 50%;
+  left: 50%;
+  width: min(440px, calc(100vw - 32px));
+  padding: var(--space-28);
+  gap: var(--space-12);
+  transform: translate(-50%, -50%);
+  animation-name: tour-center-in;
+}
+.tour-card.is-spot {
+  transition: top var(--dur-4) var(--ease-emphasized), left var(--dur-4) var(--ease-emphasized);
+}
+@keyframes tour-card-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tour-center-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Arrow pointing at the highlighted element */
+.tour-card.is-spot::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: inherit;
+  transform: rotate(45deg);
+  border-radius: var(--radius-2xs);
+}
+.tour-card.side-right::before { left: -6px; top: calc(var(--arrow, 24px) - 7px); }
+.tour-card.side-left::before { right: -6px; top: calc(var(--arrow, 24px) - 7px); }
+.tour-card.side-bottom::before { top: -6px; left: calc(var(--arrow, 24px) - 7px); }
+.tour-card.side-top::before { bottom: -6px; left: calc(var(--arrow, 24px) - 7px); }
+.tour-card.side-center::before { display: none; }
+
+.tour-close { position: absolute; top: 10px; right: 10px; color: var(--text-2); }
+.tour-close:hover:not(:disabled) { background: var(--surface-4); }
+.tour-badge {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-xl);
+  background: var(--accent);
+  color: var(--on-accent);
+  animation: tour-badge-in var(--dur-4) var(--ease-decel) both;
+  animation-delay: var(--dur-1);
+}
+.tour-badge.is-done { border-radius: var(--radius-round); }
+@keyframes tour-badge-in {
+  from { transform: scale(0.6) rotate(-12deg); }
+  to { transform: none; }
+}
+.tour-meta { display: flex; align-items: center; gap: var(--space-10); padding-right: var(--space-32); }
+.tour-meta .overline { color: var(--accent-text); }
+.tour-count { font-size: var(--text-2xs); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.tour-title { font-size: var(--text-lg); font-weight: var(--weight-bold); line-height: var(--leading-snug); padding-right: var(--space-28); }
+.tour-card.is-center .tour-title { font-size: var(--text-2xl); }
+.tour-body { color: var(--text-2); font-size: var(--text-md); line-height: var(--leading-normal); }
+.tour-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); margin-top: var(--space-6); }
+.tour-card.is-center .tour-footer { justify-content: flex-end; }
+.tour-actions { display: flex; gap: var(--space-8); margin-left: auto; }
+.tour-actions .btn-action { height: 38px; padding: 0 var(--space-16); }
+.tour-actions .btn-action:not(.primary) { background: var(--surface-4); }
+.tour-dots { display: flex; gap: var(--space-4); }
+.tour-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-4);
+  transition: width var(--dur-3) var(--ease-emphasized), background var(--dur-3) var(--ease-emphasized);
+}
+.tour-dot.is-current { width: 18px; background: var(--accent); }

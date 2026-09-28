@@ -2,13 +2,75 @@
    Focus Space — stylesheet entry
    Flat Material 2026: tonal surfaces, lime accent (#D1DD23),
    no gradients / blur / decorative shadows / separator borders.
+
+   Cascade layers, lowest to highest priority:
+     tokens  design tokens (custom properties only)
+     app     reset, components, layout, features and motion
+   Inside "app" the usual specificity-then-order rules apply, so the
+   import order below matters. Anything unlayered (e.g. a theme file
+   imported after this one) beats every layer without specificity hacks.
  ═══════════════════════════════════════════════════════════ */
-@import './styles/tokens.css';
-@import './styles/base.css';
-@import './styles/controls.css';
-@import './styles/shell.css';
-@import './styles/timer.css';
-@import './styles/pages.css';
-@import './styles/features.css';
-@import './styles/mini.css';
-@import './styles/motion.css';
+@layer tokens, app;
+
+/* Registered custom properties (@property) stay unlayered. */
+@import url('./styles/foundation/properties.css');
+
+@import url('./styles/foundation/tokens.css') layer(tokens);
+
+
+/* Foundation: reset, reduced motion, helpers */
+@import url('./styles/foundation/reset.css') layer(app);
+@import url('./styles/foundation/helpers.css') layer(app);
+@import url('./styles/foundation/reduced-motion.css') layer(app);
+
+/* Components: generic, reusable */
+@import url('./styles/components/card.css') layer(app);
+@import url('./styles/components/empty-state.css') layer(app);
+@import url('./styles/components/button.css') layer(app);
+@import url('./styles/components/chip.css') layer(app);
+@import url('./styles/components/progress.css') layer(app);
+@import url('./styles/components/checkbox.css') layer(app);
+@import url('./styles/components/drag.css') layer(app);
+@import url('./styles/components/form.css') layer(app);
+@import url('./styles/components/input-chip.css') layer(app);
+@import url('./styles/components/select.css') layer(app);
+@import url('./styles/components/popover.css') layer(app);
+@import url('./styles/components/menu.css') layer(app);
+@import url('./styles/components/picker.css') layer(app);
+@import url('./styles/components/stepper.css') layer(app);
+@import url('./styles/components/modal.css') layer(app);
+@import url('./styles/components/form-actions.css') layer(app);
+@import url('./styles/components/toast.css') layer(app);
+@import url('./styles/components/segmented.css') layer(app);
+@import url('./styles/components/collapsible.css') layer(app);
+@import url('./styles/components/switch.css') layer(app);
+@import url('./styles/components/icon-swap.css') layer(app);
+
+/* Layout: the app shell */
+@import url('./styles/layout/app-shell.css') layer(app);
+@import url('./styles/layout/nav-rail.css') layer(app);
+@import url('./styles/layout/user-badge.css') layer(app);
+@import url('./styles/layout/app-column.css') layer(app);
+@import url('./styles/layout/title-bar.css') layer(app);
+@import url('./styles/layout/columns.css') layer(app);
+
+/* Features: Focus Space pages and windows */
+@import url('./styles/features/timer.css') layer(app);
+@import url('./styles/features/session-tasks.css') layer(app);
+@import url('./styles/features/task-list.css') layer(app);
+@import url('./styles/features/sessions.css') layer(app);
+@import url('./styles/features/tasks.css') layer(app);
+@import url('./styles/features/calendar.css') layer(app);
+@import url('./styles/features/stats.css') layer(app);
+@import url('./styles/features/goals.css') layer(app);
+@import url('./styles/features/rewards.css') layer(app);
+@import url('./styles/features/celebration.css') layer(app);
+@import url('./styles/features/auth.css') layer(app);
+@import url('./styles/features/profile.css') layer(app);
+@import url('./styles/features/help.css') layer(app);
+@import url('./styles/features/tour.css') layer(app);
+@import url('./styles/features/alerts.css') layer(app);
+@import url('./styles/features/mini.css') layer(app);
+
+/* Cross-cutting motion: phase cross-fades, press feedback, page changes */
+@import url('./styles/motion.css') layer(app);

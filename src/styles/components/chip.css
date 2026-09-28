@@ -1,0 +1,19 @@
+/* ── Chips ──────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--chip-height);
+  max-width: 220px;
+  padding: 0 var(--space-10);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+}
+.chip--accent { background: var(--accent-container); color: var(--on-accent-container); }

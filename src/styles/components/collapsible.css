@@ -1,0 +1,8 @@
+/* ── Collapsible (height animates via grid rows) ────────── */
+.collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-3) var(--ease-emphasized);
+}
+.collapsible[data-open='true'] { grid-template-rows: 1fr; }
+.collapsible-inner { min-height: 0; overflow: hidden; }

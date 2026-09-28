@@ -1,0 +1,39 @@
+/* ── Celebration ────────────────────────────────────────── */
+.celebration-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-celebration);
+  display: grid;
+  place-items: center;
+  padding: var(--space-24);
+  background: var(--scrim);
+}
+.celebration-card {
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-40) var(--space-32) var(--space-32);
+  border-radius: var(--radius-3xl);
+  background: var(--accent);
+  color: var(--on-accent);
+  text-align: center;
+  box-shadow: var(--elev-overlay);
+  animation: modal-in var(--dur-3) var(--ease-emphasized);
+}
+.celebration-emoji { font-size: var(--text-6xl); line-height: var(--leading-none); animation: celebrate var(--dur-celebrate) var(--ease-emphasized); }
+.celebration-title { font-size: var(--text-3xl); font-weight: var(--weight-heavy); }
+.celebration-desc { color: var(--on-accent-2); }
+.celebration-confirm-btn.btn-action.primary {
+  margin-top: var(--space-14);
+  background: var(--on-accent);
+  color: var(--accent);
+}
+.celebration-confirm-btn.btn-action.primary:hover:not(:disabled) { background: var(--on-accent-2); }
+
+@keyframes celebrate {
+  0% { transform: scale(0.4) rotate(-12deg); }
+  60% { transform: scale(1.15) rotate(6deg); }
+  100% { transform: none; }
+}

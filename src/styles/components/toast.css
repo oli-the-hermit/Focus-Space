@@ -1,0 +1,31 @@
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-8);
+  pointer-events: none;
+}
+.toast {
+  max-width: 380px;
+  padding: var(--space-12) var(--space-18);
+  border-radius: var(--radius-lg);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  box-shadow: var(--elev-overlay);
+  animation: toast-in var(--dur-3) var(--ease-emphasized);
+}
+@keyframes toast-in {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+
+/* ── Toasts slide out ────────────────────────────────────── */
+.toast { transition: opacity var(--dur-2) var(--ease-accel), transform var(--dur-2) var(--ease-accel); }
+.toast.is-leaving { opacity: 0; transform: translateX(24px); }

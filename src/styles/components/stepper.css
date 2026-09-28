@@ -1,0 +1,35 @@
+/* ── Stepper ────────────────────────────────────────────── */
+.stepper {
+  display: grid;
+  grid-template-columns: var(--icon-button-size) minmax(0, 1fr) var(--icon-button-size);
+  align-items: center;
+  height: var(--field-height);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--field-bg);
+  transition: box-shadow var(--transition);
+}
+.stepper:focus-within { box-shadow: inset 0 0 0 var(--ring-width) var(--accent); }
+.stepper-btn {
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: var(--text-1);
+}
+.stepper-btn:hover:not(:disabled) { background: var(--surface-3); }
+.stepper-btn:disabled { color: var(--text-3); }
+.stepper-field { display: flex; align-items: baseline; justify-content: center; gap: var(--space-4); }
+.stepper-input {
+  width: 4ch;
+  border: none;
+  background: none;
+  color: var(--text-1);
+  text-align: right;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.stepper-suffix { font-size: var(--text-xs); color: var(--text-2); }

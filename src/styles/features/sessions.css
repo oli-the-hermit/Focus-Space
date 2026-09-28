@@ -1,0 +1,78 @@
+/* ── Session queue ──────────────────────────────────────── */
+.sessions-panel { padding: var(--space-20) var(--space-14) var(--space-14); }
+.sessions-list { display: flex; flex-direction: column; gap: var(--space-8); }
+
+.session-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-12) var(--space-8) var(--space-18);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.session-item:hover { background: var(--surface-3); }
+.session-item:focus-visible { outline-offset: 1px; }
+
+.session-grip { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); }
+
+.session-name-row { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
+.session-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-meta-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); min-height: 28px; }
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  font-size: var(--text-2xs);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.session-meta-item { display: inline-flex; align-items: center; gap: var(--space-4); }
+
+.session-actions { display: flex; gap: var(--space-1); flex: none; visibility: hidden; }
+.session-item:hover .session-actions,
+.session-item:focus-within .session-actions { visibility: visible; }
+.session-item .icon-btn.xs:hover:not(:disabled) { background: var(--surface-4); }
+
+.session-item.active { background: var(--accent); color: var(--on-accent); }
+.session-item.active:hover { background: var(--accent-hover); }
+.session-item.active .session-meta,
+.session-item.active .drag-handle,
+.session-item.active .icon-btn { color: var(--on-accent-2); }
+.session-item.active .icon-btn.xs:hover:not(:disabled) { background: var(--on-accent); color: var(--accent); }
+
+/* "Now playing" equalizer */
+.equalizer { display: inline-flex; align-items: flex-end; justify-content: center; gap: var(--space-2); flex: none; }
+.equalizer span {
+  width: 3px;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  transform-origin: bottom;
+}
+.equalizer span:nth-child(1) { transform: scaleY(0.45); }
+.equalizer span:nth-child(2) { transform: scaleY(1); }
+.equalizer span:nth-child(3) { transform: scaleY(0.7); }
+.equalizer.is-playing span { animation: eq-bounce var(--dur-equalizer) ease-in-out infinite; }
+.equalizer.is-playing span:nth-child(2) { animation-delay: calc(var(--dur-equalizer) / -3); }
+.equalizer.is-playing span:nth-child(3) { animation-delay: calc(var(--dur-equalizer) * -2 / 3); }
+
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}

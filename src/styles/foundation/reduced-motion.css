@@ -1,0 +1,11 @@
+/* ── Motion preferences ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* A near-zero duration (not 0) keeps animationend/transitionend events firing. */
+  /* stylelint-disable declaration-property-value-disallowed-list */
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  /* stylelint-enable declaration-property-value-disallowed-list */
+}

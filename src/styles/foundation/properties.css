@@ -1,0 +1,12 @@
+/* ── Phase colours ──
+   .player-card and .mini-player set --phase* to the accent or break
+   tokens. Registering them as colours lets them cross-fade when focus
+   becomes break (transitions in motion.css).
+   The one exception to "no raw values outside the token blocks":
+   @property initial-value cannot reference var(), so these repeat the
+   dark accent tokens above. Keep them in sync. */
+@property --phase       { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }  /* --accent */
+@property --phase-hover { syntax: '<color>'; inherits: true; initial-value: #DDE84A; }  /* --accent-hover */
+@property --on-phase    { syntax: '<color>'; inherits: true; initial-value: #1A1D00; }  /* --on-accent */
+@property --on-phase-2  { syntax: '<color>'; inherits: true; initial-value: #4A5200; }  /* --on-accent-2 */
+@property --phase-text  { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }  /* --accent-text */
