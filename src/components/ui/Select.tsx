@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useId, useMemo } from 'react';
 import { IconChevronDown, IconCheck, IconPlus, IconSearch } from './icons';
 import { Popover } from './Popover';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 
 export interface SelectOption<T = string> {
   value: T;
@@ -51,7 +51,7 @@ export const Select = <T extends string | number>({
   value,
   onChange,
   options,
-  placeholder = 'Select an option',
+  placeholder,
   disabled = false,
   id,
   name,
@@ -62,6 +62,7 @@ export const Select = <T extends string | number>({
   searchable,
   renderValue
 }: SelectProps<T>): React.ReactElement => {
+  const labels = useUiLabels();
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [query, setQuery] = useState('');
@@ -199,7 +200,7 @@ export const Select = <T extends string | number>({
     <>
       {selectedOption?.icon && <span className="select-option-icon">{selectedOption.icon}</span>}
       <span className={`select-value ${selectedOption ? '' : 'is-placeholder'}`}>
-        {selectedOption ? selectedOption.label : placeholder}
+        {selectedOption ? selectedOption.label : placeholder ?? labels.selectPlaceholder}
       </span>
       {variant === 'header' && selectedOption?.meta && (
         <span className="select-value-meta">{selectedOption.meta}</span>
@@ -254,20 +255,20 @@ export const Select = <T extends string | number>({
               ref={searchRef}
               type="text"
               value={query}
-              placeholder={strings.ui.search}
+              placeholder={labels.search}
               onChange={e => {
                 setQuery(e.target.value);
                 setHighlightedIndex(0);
               }}
               onKeyDown={handleNavKeyDown}
-              aria-label={strings.ui.searchOptions}
+              aria-label={labels.searchOptions}
             />
           </div>
         )}
 
-        <ul ref={listRef} id={listboxId} role="listbox" aria-label={ariaLabel || 'Options'} className="select-options">
+        <ul ref={listRef} id={listboxId} role="listbox" aria-label={ariaLabel || labels.options} className="select-options">
           {visibleOptions.length === 0 && !createOption && (
-            <li className="select-empty">{strings.ui.noMatches}</li>
+            <li className="select-empty">{labels.noMatches}</li>
           )}
           {visibleOptions.map((option, index) => {
             const isSelected = option.value === value;
@@ -306,7 +307,7 @@ export const Select = <T extends string | number>({
                   ref={createInputRef}
                   type="text"
                   value={draftName}
-                  placeholder={createOption.placeholder || 'Name'}
+                  placeholder={createOption.placeholder || labels.newItemName}
                   onChange={e => setDraftName(e.target.value)}
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
@@ -322,7 +323,7 @@ export const Select = <T extends string | number>({
                   className="select-create-confirm"
                   onClick={commitCreate}
                   disabled={!draftName.trim()}
-                  aria-label={strings.ui.create}
+                  aria-label={labels.create}
                 >
                   <IconCheck size={16} strokeWidth={2.6} />
                 </button>

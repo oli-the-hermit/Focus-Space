@@ -4,7 +4,7 @@ import { TabType } from '../../types';
 import { strings } from '../../constants/strings';
 import { UserBadge } from '../auth/UserBadge';
 import { UserMenuModal } from '../auth/UserMenuModal';
-import { IconCalendar, IconGift, IconStats, IconTarget, IconTasks, IconTimer } from '../ui/icons';
+import { IconCalendar, IconGift, IconLogo, IconStats, IconTarget, IconTasks, IconTimer } from '../ui/icons';
 import { isTauri } from '../../lib/desktop';
 
 const NAV_ITEMS: { tab: TabType; label: string; icon: React.ReactNode }[] = [
@@ -25,10 +25,7 @@ export const NavRail: React.FC = () => {
   return (
     <nav className="nav-rail" aria-label={strings.rail.navLabel} data-tour="nav">
       <div className="nav-rail-brand" title={strings.app.title} {...(isTauri() ? { 'data-tauri-drag-region': true } : {})}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <polyline points="12 7 12 12 15.5 14" />
-        </svg>
+        <IconLogo size={22} />
       </div>
 
       <div className="nav-rail-items">

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useBlockingOverlay } from '../../lib/overlays';
 
 /** A viewport point to anchor to instead of an element (right-click menus). */
 export interface AnchorPoint {
@@ -65,6 +66,8 @@ export const Popover: React.FC<PopoverProps> = ({
   const [pos, setPos] = useState<Position | null>(null);
   // Stays true for EXIT_MS after `open` turns false so the exit can play.
   const [mounted, setMounted] = useState(open);
+  // Open menus pause the global keyboard shortcuts.
+  useBlockingOverlay(role === 'menu' && (open || mounted));
 
   const onCloseRef = useRef(onClose);
   const onEscapeRef = useRef(onEscape);

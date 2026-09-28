@@ -27,7 +27,7 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { MiniPlayerProvider } from './mini/MiniPlayerProvider';
 import { strings } from './constants/strings';
 import { formatDuration } from './lib/formatUtils';
-import { IconCheck, IconClock, IconTimer } from './components/ui/icons';
+import { IconCheck, IconClock, IconLogo, IconTimer } from './components/ui/icons';
 import { ContextMenuProvider } from './components/ui/ContextMenu';
 import { useGlobalMenuItems } from './components/shell/globalMenu';
 import { HelpModal } from './components/help/HelpModal';
@@ -46,19 +46,7 @@ export const AppContent: React.FC = () => {
       <div className="auth-screen">
         <div className="auth-card auth-loading-card">
           <div className="auth-logo auth-loading-logo">
-            <svg
-              width="30"
-              height="30"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
+            <IconLogo size={30} />
           </div>
           <p className="auth-subtitle auth-loading-subtitle">
             {strings.auth.restoringSession}

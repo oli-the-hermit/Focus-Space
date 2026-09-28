@@ -3,7 +3,7 @@ import { Popover } from './Popover';
 import { IconCalendar, IconChevronLeft, IconChevronRight, IconClose } from './icons';
 import { formatDateStr, getDaysInMonth, getTodayStr, parseDateStr } from '../../lib/dateUtils';
 import { formatDateLabel } from '../../lib/formatUtils';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 import { IconButton } from './IconButton';
 import { TextButton } from './TextButton';
 
@@ -62,6 +62,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   ariaLabel,
   min
 }) => {
+  const labels = useUiLabels();
   const [open, setOpen] = useState(false);
   const [focusDate, setFocusDate] = useState<string>(value || getTodayStr());
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -143,8 +144,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           type="button"
           className="picker-clear"
           onClick={() => onChange('')}
-          aria-label={strings.ui.clearDate}
-          title={strings.ui.clear}
+          aria-label={labels.clearDate}
+          title={labels.clear}
         >
           <IconClose size={14} strokeWidth={2.4} />
         </button>
@@ -164,14 +165,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           <span className="date-popover-month">{monthLabel}</span>
           <div className="date-popover-nav">
             <IconButton
-              label={strings.ui.prevMonth}
+              label={labels.prevMonth}
               size="sm"
               onClick={() => setFocusDate(addMonths(focusDate, -1))}
             >
               <IconChevronLeft size={16} />
             </IconButton>
             <IconButton
-              label={strings.ui.nextMonth}
+              label={labels.nextMonth}
               size="sm"
               onClick={() => setFocusDate(addMonths(focusDate, 1))}
             >
@@ -217,11 +218,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 close();
               }}
             >
-              Clear
+              {labels.clear}
             </TextButton>
           )}
           <TextButton accent onClick={() => pick(todayStr)}>
-            Today
+            {labels.today}
           </TextButton>
         </div>
       </Popover>

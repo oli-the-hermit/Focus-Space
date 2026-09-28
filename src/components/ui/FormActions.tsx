@@ -1,5 +1,5 @@
 import React from 'react';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 import { Button } from './Button';
 
 export interface FormActionsProps {
@@ -23,27 +23,30 @@ export interface FormActionsProps {
  */
 export const FormActions: React.FC<FormActionsProps> = ({
   dirty,
-  cancelLabel = strings.common.cancel,
+  cancelLabel,
   onCancel,
   primaryLabel,
   primaryDisabled,
   onPrimary,
   leading
-}) => (
-  <div className="modal-actions form-actions">
-    {leading && <div className="form-actions-leading">{leading}</div>}
-    {dirty && (
-      <Button className="form-actions-cancel" onClick={onCancel}>
-        {cancelLabel}
+}) => {
+  const labels = useUiLabels();
+  return (
+    <div className="modal-actions form-actions">
+      {leading && <div className="form-actions-leading">{leading}</div>}
+      {dirty && (
+        <Button className="form-actions-cancel" onClick={onCancel}>
+          {cancelLabel ?? labels.cancel}
+        </Button>
+      )}
+      <Button
+        variant="primary"
+        type={onPrimary ? 'button' : 'submit'}
+        disabled={primaryDisabled}
+        onClick={onPrimary}
+      >
+        {primaryLabel}
       </Button>
-    )}
-    <Button
-      variant="primary"
-      type={onPrimary ? 'button' : 'submit'}
-      disabled={primaryDisabled}
-      onClick={onPrimary}
-    >
-      {primaryLabel}
-    </Button>
-  </div>
-);
+    </div>
+  );
+};

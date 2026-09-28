@@ -72,6 +72,7 @@ async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const failures: string[] = [];
   let count = 0;
+  let checks = 0;
 
   try {
     const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce' });
@@ -199,6 +200,28 @@ async function main() {
       await closeOverlays();
     }
 
+    // ── Behavior checks: keyboard shortcuts pause while a menu is open ──
+    const check = async (name: string, fn: () => Promise<boolean>) => {
+      checks++;
+      try { if (!(await fn())) failures.push(`check: ${name}`); } catch (err) { failures.push(`check: ${name}: ${(err as Error).message.split('\n')[0]}`); }
+    };
+    await check('N is ignored while a menu is open', async () => {
+      await openGlobalMenu();
+      await page.keyboard.press('n');
+      await settle(page, 300);
+      const opened = await page.locator('.modal-backdrop').count();
+      await page.keyboard.press('Escape');
+      await settle(page, 300);
+      return opened === 0;
+    });
+    await check('N opens a new session when nothing is open', async () => {
+      await page.locator('.app-main').click({ position: { x: 12, y: 12 } });
+      await page.keyboard.press('n');
+      await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
+      await closeOverlays();
+      return (await page.locator('.modal-backdrop').count()) === 0;
+    });
+
     // ── A completed task (checked checkbox). Runs last on the main page: it changes stats. ──
     await page.locator('.nav-rail [data-tab="tasks"]').click();
     await settle(page);
@@ -245,7 +268,7 @@ async function main() {
     fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   }
 
-  console.log(`Captured ${count} screenshots → ${path.relative(ROOT, OUT_DIR)}`);
+  console.log(`Captured ${count} screenshots → ${path.relative(ROOT, OUT_DIR)}; ran ${checks} behavior checks`);
   if (failures.length) {
     console.log(`\n${failures.length} view(s) failed:\n  ${failures.join('\n  ')}`);
     process.exitCode = 1;

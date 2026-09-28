@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useMiniPlayer } from '../mini/MiniPlayerProvider';
+import { isBlockingOverlayOpen } from '../lib/overlays';
 
 /** Typing in a field (or any editable element) never triggers a shortcut. */
 function isTyping(target: EventTarget | null): boolean {
@@ -28,7 +29,7 @@ export function useShortcuts() {
       if (isTyping(e.target)) return;
       const { app, mini } = ref.current;
       if (app.tourActive || app.helpOpen || app.activeModal) return;
-      if (document.querySelector('.modal-backdrop, .popover[role="menu"], .celebration-backdrop')) return;
+      if (isBlockingOverlayOpen()) return;
 
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       let handled = true;

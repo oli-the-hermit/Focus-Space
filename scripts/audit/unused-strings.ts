@@ -38,7 +38,11 @@ function isUsed(leaf: string[]): boolean {
       // Direct use of the full path (or a parent object passed around whole, e.g. items={strings.help.faq})
       // A leaf may be followed by a method call such as .replace(...)
       if (rest.length === 0 && new RegExp(`${prefix}(?![\\w$])`).test(src)) return true;
-      if (rest.length > 0 && new RegExp(`${prefix}\\b(?![.\\[\\w])`).test(src)) return true;
+      if (rest.length > 0) {
+        // Ignore alias assignments (handled below); anything else hands the whole object on.
+        const whole = [...src.matchAll(new RegExp(`${prefix}\\b(?![.\\[\\w])`, 'g'))];
+        if (whole.some(m => !/(?:const|let)\s+\w+\s*=\s*$/.test(src.slice(Math.max(0, m.index! - 40), m.index)))) return true;
+      }
       // Alias: const x = strings.a.b;  then x.c...
       const aliasRe = new RegExp(`(?:const|let)\\s+(\\w+)\\s*=\\s*${prefix}\\s*;`, 'g');
       for (const m of src.matchAll(aliasRe)) {
@@ -46,6 +50,11 @@ function isUsed(leaf: string[]): boolean {
         if (rest.length === 0) return true;
         const restRe = [alias, ...rest].map(esc).join('\\.');
         if (new RegExp(`\\b${restRe}(?![\\w$])`).test(src)) return true;
+        // A parent reached through the alias and used whole, e.g. { ...s.player }
+        for (let j = 1; j < rest.length; j++) {
+          const partial = [alias, ...rest.slice(0, j)].map(esc).join('\\.');
+          if (new RegExp(`\\b${partial}(?![\\w$.\\[])`).test(src)) return true;
+        }
         if (new RegExp(`\\b${esc(alias)}\\[`).test(src)) return true;
       }
     }

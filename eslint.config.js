@@ -45,7 +45,8 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'warn',
       // Silent catches (mostly localStorage) move behind one storage helper in Phase 7.
       'no-empty': 'warn',
-      'no-useless-assignment': 'warn',
+      // Off: "initialize, then assign in every branch" is intentional and readable here.
+      'no-useless-assignment': 'off',
       'no-restricted-syntax': ['warn', ...NO_HARDCODED_TEXT]
     }
   },
@@ -53,7 +54,8 @@ export default tseslint.config(
     // UI primitives stay app-agnostic: text comes in through props, data through the caller.
     files: ['src/components/ui/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['warn', {
+      // Phase 5 complete: UI primitives are app-agnostic.
+      'no-restricted-imports': ['error', {
         patterns: [
           { group: ['**/context/*', '**/context/**'], message: 'UI primitives must not read app state; pass it in as props.' },
           { group: ['**/lib/api', '**/lib/api.ts'], message: 'UI primitives must not call the API.' },

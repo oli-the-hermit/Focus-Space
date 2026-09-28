@@ -4,19 +4,7 @@ import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
 import { GITHUB_URL, githubIssueUrl } from '../../constants/links';
 import { isTauri, openExternal } from '../../lib/desktop';
-import {
-  IconBug,
-  IconChevronLeft,
-  IconChevronRight,
-  IconExternal,
-  IconGithub,
-  IconInfo,
-  IconKeyboard,
-  IconLock,
-  IconSparkle,
-  IconStar,
-  IconTimer
-} from '../ui/icons';
+import { IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 
 type HelpView = 'home' | 'shortcuts' | 'whatsNew' | 'about';
@@ -158,10 +146,7 @@ export const HelpModal: React.FC = () => {
         <div className="help-sub" key="about">
           <div className="about-head">
             <span className="about-logo" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15.5 14" />
-              </svg>
+              <IconLogo size={28} />
             </span>
             <div>
               <div className="about-name">{strings.app.title}</div>

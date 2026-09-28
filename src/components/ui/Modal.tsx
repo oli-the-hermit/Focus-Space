@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IconClose } from './icons';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
+import { useBlockingOverlay } from '../../lib/overlays';
 import { IconButton } from './IconButton';
 
 export interface ModalProps {
@@ -21,12 +22,14 @@ export interface ModalProps {
 const EXIT_MS = 180;
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = false, dismissible = false, children }) => {
+  const labels = useUiLabels();
   const modalRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
   // Keep the last content on screen while the exit animation plays.
   const [mounted, setMounted] = useState(isOpen);
+  useBlockingOverlay(isOpen || mounted);
   const lastRef = useRef({ title, children });
   if (isOpen) lastRef.current = { title, children };
 
@@ -77,7 +80,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
       >
         <div className="modal-header">
           <h3 className="modal-title" id="modalTitle">{shown.title}</h3>
-          <IconButton label={strings.ui.close} id="closeModalBtn" onClick={onClose}>
+          <IconButton label={labels.close} id="closeModalBtn" onClick={onClose}>
             <IconClose size={18} strokeWidth={2.2} />
           </IconButton>
         </div>

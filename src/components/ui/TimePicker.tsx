@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Popover } from './Popover';
 import { IconClock } from './icons';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 
 export interface TimePickerProps {
   /** 'HH:MM' (24h). */
@@ -39,6 +39,7 @@ export function normalizeTime(raw: string): string | null {
 }
 
 export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, id, ariaLabel, step = 15 }) => {
+  const labels = useUiLabels();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -79,7 +80,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, id, ari
         <button
           type="button"
           className="picker-icon-btn"
-          aria-label={strings.ui.chooseTime}
+          aria-label={labels.chooseTime}
           aria-haspopup="listbox"
           aria-expanded={open}
           // Keep focus in the input so its blur handler doesn't fight this toggle.
@@ -100,7 +101,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, id, ari
           className="picker-input"
           value={draft}
           aria-label={ariaLabel}
-          placeholder={strings.ui.timePlaceholder}
+          placeholder={labels.timePlaceholder}
           maxLength={5}
           onChange={e => setDraft(e.target.value)}
           onFocus={() => setOpen(true)}

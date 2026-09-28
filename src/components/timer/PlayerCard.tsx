@@ -18,6 +18,9 @@ import {
 import { IconSwap } from '../ui/IconSwap';
 import { useContextMenu } from '../ui/ContextMenu';
 import { MenuItem } from '../ui/Menu';
+import { Card } from '../ui/Card';
+import { Scrubber } from './Scrubber';
+import { cx } from '../../lib/cx';
 
 /**
  * The timer, laid out like a music player: artwork tile with the countdown,
@@ -77,8 +80,8 @@ export const PlayerCard: React.FC = () => {
   ];
 
   return (
-    <div
-      className={`card player-card ${isBreak ? 'is-break' : 'is-focus'} ${isRunning ? 'is-running' : ''} ${alertRinging ? 'is-ringing' : ''}`}
+    <Card
+      className={cx('player-card', isBreak ? 'is-break' : 'is-focus', isRunning && 'is-running', alertRinging && 'is-ringing')}
       onContextMenu={e => contextMenu(e, menuItems())}
     >
       <div className="player-head">
@@ -106,17 +109,7 @@ export const PlayerCard: React.FC = () => {
       </div>
 
       <div className="player-scrubber">
-        <div
-          className="scrubber-track"
-          role="progressbar"
-          aria-label={strings.timer.sessionProgress}
-          aria-valuenow={Math.round(pct)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <div className="scrubber-fill" style={{ width: `${pct}%` }} />
-          <div className="scrubber-knob" style={{ left: `${pct}%` }} />
-        </div>
+        <Scrubber value={pct} label={strings.timer.sessionProgress} knob />
         <div className="scrubber-times">
           <span>{formatClock(elapsed)}</span>
           <span className="scrubber-pct">{Math.round(pct)}%</span>
@@ -197,6 +190,6 @@ export const PlayerCard: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 };

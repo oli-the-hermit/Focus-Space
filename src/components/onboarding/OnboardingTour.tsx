@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconCheck, IconChevronLeft, IconChevronRight, IconClose } from '../ui/icons';
+import { IconCheck, IconChevronLeft, IconChevronRight, IconClose, IconLogo } from '../ui/icons';
 import { TOUR_CHAPTERS, TOUR_STEPS, TourStep } from './tourSteps';
 import { Button } from '../ui/Button';
 import { IconButton } from '../ui/IconButton';
@@ -287,10 +287,7 @@ export const OnboardingTour: React.FC = () => {
             {step.kind === 'done' ? (
               <IconCheck size={26} strokeWidth={2.6} />
             ) : (
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15.5 14" />
-              </svg>
+              <IconLogo size={26} />
             )}
           </span>
         )}

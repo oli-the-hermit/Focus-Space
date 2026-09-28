@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Popover } from './Popover';
 import { IconMore } from './icons';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 
 export interface MenuAction {
   key: string;
@@ -92,11 +92,12 @@ export interface MenuProps {
 /** Overflow menu: an icon button that opens a list of actions. */
 export const Menu: React.FC<MenuProps> = ({
   items,
-  ariaLabel = strings.ui.moreActions,
+  ariaLabel,
   trigger,
   triggerClassName = 'icon-btn',
   align = 'end'
 }) => {
+  const labels = useUiLabels();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -108,8 +109,8 @@ export const Menu: React.FC<MenuProps> = ({
         className={`${triggerClassName} ${open ? 'is-active' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={ariaLabel}
-        title={ariaLabel}
+        aria-label={ariaLabel ?? labels.moreActions}
+        title={ariaLabel ?? labels.moreActions}
         onClick={e => {
           e.stopPropagation();
           setOpen(o => !o);

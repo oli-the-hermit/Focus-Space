@@ -16,6 +16,7 @@ import {
 import { IconSwap } from '../components/ui/IconSwap';
 import { useContextMenuState } from '../components/ui/ContextMenu';
 import { MenuItem } from '../components/ui/Menu';
+import { Scrubber } from '../components/timer/Scrubber';
 
 export interface MiniWindowControls {
   pinned?: boolean;
@@ -248,9 +249,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
           </div>
 
           <div className="mini-scrubber" {...drag}>
-            <div className="scrubber-track" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-              <div className="scrubber-fill" style={{ width: `${pct}%` }} />
-            </div>
+            <Scrubber value={pct} label={strings.timer.sessionProgress} />
           </div>
 
           <div className="mini-bottom" {...drag}>

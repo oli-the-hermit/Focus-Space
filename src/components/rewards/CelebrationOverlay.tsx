@@ -2,9 +2,11 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
+import { useBlockingOverlay } from '../../lib/overlays';
 
 export const CelebrationOverlay: React.FC = () => {
   const { activeCelebrationReward, dismissCelebration } = useApp();
+  useBlockingOverlay(!!activeCelebrationReward);
 
   if (!activeCelebrationReward) return null;
 

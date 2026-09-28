@@ -8,7 +8,6 @@ export const strings = {
     discardChanges: 'Discard changes',
     delete: 'Delete',
     duplicate: 'Duplicate',
-    copy: 'Copy',
     edit: 'Edit',
     rename: 'Rename',
     close: 'Close',
@@ -454,7 +453,6 @@ export const strings = {
     }
   },
   contextMenu: {
-    label: 'Actions',
     newSession: 'New session',
     newList: 'New task list',
     newTask: 'New task',
@@ -500,22 +498,6 @@ export const strings = {
     startSession: 'Start session',
     openApp: 'Open app',
     dismiss: 'Dismiss'
-  },
-  ui: {
-    close: 'Close',
-    moreActions: 'More actions',
-    search: 'Search…',
-    searchOptions: 'Search options',
-    noMatches: 'No matches',
-    create: 'Create',
-    clearDate: 'Clear date',
-    clear: 'Clear',
-    prevMonth: 'Previous month',
-    nextMonth: 'Next month',
-    chooseTime: 'Choose time',
-    timePlaceholder: 'HH:MM',
-    decrease: 'Decrease',
-    increase: 'Increase'
   },
   // Toasts: one short line, past tense for done, present for status. No emoji.
   toasts: {

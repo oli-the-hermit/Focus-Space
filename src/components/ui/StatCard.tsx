@@ -1,4 +1,6 @@
 import React from 'react';
+import { cx } from '../../lib/cx';
+import { Card } from './Card';
 
 export interface StatCardProps {
   icon: React.ReactNode;
@@ -10,10 +12,10 @@ export interface StatCardProps {
 
 export const StatCard: React.FC<StatCardProps> = ({ icon, value, label, accent = false }) => {
   return (
-    <div className={`card stat-card ${accent ? 'is-accent' : ''}`}>
+    <Card className={cx('stat-card', accent && 'is-accent')}>
       <div className="stat-card-icon">{icon}</div>
       <div className="stat-card-val">{value}</div>
       <div className="stat-card-lbl">{label}</div>
-    </div>
+    </Card>
   );
 };

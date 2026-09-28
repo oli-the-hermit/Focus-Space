@@ -1,4 +1,5 @@
 import React from 'react';
+import { useUiLabels } from './UiLabels';
 import { EmptyState } from './EmptyState';
 
 export interface FilterTabOption {
@@ -24,9 +25,10 @@ export const FilterGridLayout: React.FC<FilterGridLayoutProps> = ({
   actionButton,
   headerSlot,
   children,
-  emptyMessage = 'No items found.',
+  emptyMessage,
   hasItems = true
 }) => {
+  const labels = useUiLabels();
   return (
     <div className="filter-grid-layout">
       {headerSlot && <div className="filter-grid-header-slot">{headerSlot}</div>}
@@ -50,7 +52,7 @@ export const FilterGridLayout: React.FC<FilterGridLayoutProps> = ({
 
       <div className="filter-grid-body">
         {!hasItems ? (
-          <EmptyState>{emptyMessage}</EmptyState>
+          <EmptyState>{emptyMessage ?? labels.noItems}</EmptyState>
         ) : (
           <div className="cards-grid">{children}</div>
         )}

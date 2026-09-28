@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { IconMinus, IconPlus } from './icons';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 
 export interface StepperProps {
   value: number;
@@ -25,6 +25,7 @@ export const Stepper: React.FC<StepperProps> = ({
   id,
   ariaLabel
 }) => {
+  const labels = useUiLabels();
   const [draft, setDraft] = useState(String(value));
 
   useEffect(() => setDraft(String(value)), [value]);
@@ -51,7 +52,7 @@ export const Stepper: React.FC<StepperProps> = ({
         className="stepper-btn"
         onClick={() => bump(-1)}
         disabled={value <= min}
-        aria-label={strings.ui.decrease}
+        aria-label={labels.decrease}
         tabIndex={-1}
       >
         <IconMinus size={16} strokeWidth={2.4} />
@@ -89,7 +90,7 @@ export const Stepper: React.FC<StepperProps> = ({
         className="stepper-btn"
         onClick={() => bump(1)}
         disabled={value >= max}
-        aria-label={strings.ui.increase}
+        aria-label={labels.increase}
         tabIndex={-1}
       >
         <IconPlus size={16} strokeWidth={2.4} />

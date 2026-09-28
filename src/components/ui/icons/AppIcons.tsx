@@ -130,6 +130,14 @@ export const IconCalendar: React.FC<IconProps> = p => (
   </StrokeIcon>
 );
 
+/** The Focus Space mark: a clock face with a bolder stroke than IconClock. */
+export const IconLogo: React.FC<IconProps> = ({ strokeWidth = 2.4, ...p }) => (
+  <StrokeIcon strokeWidth={strokeWidth} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <polyline points="12 7 12 12 15.5 14" />
+  </StrokeIcon>
+);
+
 export const IconClock: React.FC<IconProps> = p => (
   <StrokeIcon {...p}>
     <circle cx="12" cy="12" r="9" />
@@ -387,5 +395,46 @@ export const IconEqualizer: React.FC<{ playing?: boolean; size?: number }> = ({ 
     <span />
     <span />
     <span />
+  </span>
+);
+
+/* ── Row actions (smaller default size for dense list rows) ── */
+export const IconEdit: React.FC<IconProps> = ({ size = 13, ...p }) => (
+  <StrokeIcon size={size} {...p}>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </StrokeIcon>
+);
+
+export const IconTrash: React.FC<IconProps> = ({ size = 13, ...p }) => (
+  <StrokeIcon size={size} {...p}>
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </StrokeIcon>
+);
+
+export const IconCopy: React.FC<IconProps> = ({ size = 13, ...p }) => (
+  <StrokeIcon size={size} {...p}>
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </StrokeIcon>
+);
+
+export const IconChevronDown: React.FC<IconProps> = ({ size = 16, strokeWidth = 2.2, ...p }) => (
+  <StrokeIcon size={size} strokeWidth={strokeWidth} {...p}>
+    <polyline points="6 9 12 15 18 9" />
+  </StrokeIcon>
+);
+
+export const IconChevronUp: React.FC<IconProps> = ({ size = 16, strokeWidth = 2.2, ...p }) => (
+  <StrokeIcon size={size} strokeWidth={strokeWidth} {...p}>
+    <polyline points="18 15 12 9 6 15" />
+  </StrokeIcon>
+);
+
+/** Drag handle glyph ("⋮⋮", pulled together by --grip-tracking). */
+export const IconGrip: React.FC<React.HTMLAttributes<HTMLSpanElement>> = ({ className = 'drag-handle', ...props }) => (
+  <span className={className} {...props}>
+    ⋮⋮
   </span>
 );

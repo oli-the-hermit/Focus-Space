@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AnchorPoint, Popover } from './Popover';
 import { handleMenuKeyDown, MenuItem, MenuList, tidyMenuItems } from './Menu';
 import { IconCopy } from './icons';
-import { strings } from '../../constants/strings';
+import { useUiLabels } from './UiLabels';
 
 type MaybeItem = MenuItem | false | null | undefined;
 type OpenMenu = (e: React.MouseEvent | MouseEvent, items: MaybeItem[]) => void;
@@ -45,6 +45,10 @@ export function useContextMenuState() {
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const labels = useUiLabels();
+  // A ref keeps openMenu stable for the listeners that hold it.
+  const labelsRef = useRef(labels);
+  labelsRef.current = labels;
 
   const openMenu = useCallback<OpenMenu>((e, rawItems) => {
     e.preventDefault();
@@ -55,7 +59,7 @@ export function useContextMenuState() {
     const items = tidyMenuItems([
       !!text && {
         key: 'copy',
-        label: strings.common.copy,
+        label: labelsRef.current.copy,
         icon: <IconCopy size={15} />,
         onSelect: () => void navigator.clipboard?.writeText(text).catch(() => {})
       },
@@ -92,7 +96,7 @@ export function useContextMenuState() {
       matchWidth={false}
       className="menu context-menu"
       role="menu"
-      ariaLabel={strings.contextMenu.label}
+      ariaLabel={labels.actions}
     >
       <div ref={panelRef} onKeyDown={handleMenuKeyDown}>
         <MenuList items={menu.items} onPicked={close} />

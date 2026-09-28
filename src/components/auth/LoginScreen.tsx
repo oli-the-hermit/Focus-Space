@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
+import { IconLogo } from '../ui/icons';
 
 export const LoginScreen: React.FC = () => {
   const { login, setup } = useApp();
@@ -88,19 +89,7 @@ export const LoginScreen: React.FC = () => {
     <div className="auth-screen">
       <div className="auth-card">
         <div className="auth-logo">
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
+          <IconLogo size={30} />
         </div>
         <h1 className="auth-title">
           {mode === 'setup' ? strings.auth.setupTitle : strings.auth.signInTitle}
