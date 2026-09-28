@@ -1,6 +1,8 @@
 // KEEP IN SYNC with src-tauri/src/backend/ (the desktop app's Rust port of this API).
 // Routes, validation, status codes and error codes must match in both. Limits come
 // from shared/limits.json; errors are codes (server/errors.js), never sentences.
+// `npm run test:parity` runs shared/api-scenarios.json against both; add a step there
+// for any route or rule you change.
 import express from 'express';
 import { getDb } from './db.js';
 import { hashPassword, verifyPassword, generateToken, hashToken } from './crypto.js';
@@ -22,13 +24,24 @@ function validateDisplayName(v) {
 function validatePassword(v) {
   return typeof v === 'string' && inRange(v.length, LIMITS.password);
 }
+/**
+ * Decodes standard base64 with optional padding, or returns null. Buffer.from alone
+ * skips characters it doesn't know (and accepts base64url), so the input must also
+ * be exactly what re-encoding produces, like the Rust port's strict decoder.
+ */
+function decodeBase64(v) {
+  const buf = Buffer.from(v, 'base64');
+  const canonical = buf.toString('base64');
+  return v === canonical || v === canonical.replace(/=+$/, '') ? buf : null;
+}
 function validateIv(v) {
   if (typeof v !== 'string' || v.length === 0 || v.length > 24) return false;
-  return Buffer.from(v, 'base64').length === 12;
+  return decodeBase64(v)?.length === 12;
 }
 function validateCipher(v) {
   if (typeof v !== 'string' || v.length === 0 || v.length > MAX_BLOB_BYTES * 2) return false;
-  return Buffer.from(v, 'base64').length <= MAX_BLOB_BYTES;
+  const buf = decodeBase64(v);
+  return buf !== null && buf.length <= MAX_BLOB_BYTES;
 }
 function validateSalt(v) {
   if (typeof v !== 'string' || v.length !== 32) return false;

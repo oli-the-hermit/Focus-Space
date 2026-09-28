@@ -10,6 +10,8 @@ pub mod db;
 mod errors;
 mod handlers;
 mod limits;
+#[cfg(test)]
+mod parity;
 
 use std::collections::HashMap;
 use std::path::Path;

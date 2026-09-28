@@ -21,7 +21,9 @@
     "audit:css": "node scripts/audit/unused-css.ts",
     "audit:errors": "node scripts/audit/error-codes.ts",
     "test:rust": "cd src-tauri && cargo test --lib",
-    "check": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run audit:strings && npm run audit:css && npm run audit:errors",
+    "test:parity:web": "node scripts/parity/run-web.ts",
+    "test:parity": "npm run test:parity:web && npm run test:rust",
+    "check": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run audit:strings && npm run audit:css && npm run audit:errors && npm run test:parity:web",
     "visual:capture": "node scripts/visual/capture.ts",
     "visual:baseline": "node scripts/visual/capture.ts --out documentation/visual/baseline",
     "visual:diff": "node scripts/visual/diff.ts"

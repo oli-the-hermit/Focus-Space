@@ -1,6 +1,8 @@
 //! Route handlers, one per Express route in `server/app.js`. Validation rules,
 //! status codes and error codes match the web server exactly. Limits come from
 //! shared/limits.json (limits.rs); errors are codes (errors.rs), never sentences.
+//! parity.rs runs shared/api-scenarios.json here and run-web.ts runs it against
+//! Express (`npm run test:parity`).
 
 use std::sync::MutexGuard;
 use std::time::{SystemTime, UNIX_EPOCH};
