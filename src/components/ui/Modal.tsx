@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IconClose } from './icons';
 import { strings } from '../../constants/strings';
+import { IconButton } from './IconButton';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -76,9 +77,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, wide = fal
       >
         <div className="modal-header">
           <h3 className="modal-title" id="modalTitle">{shown.title}</h3>
-          <button type="button" className="icon-btn" id="closeModalBtn" aria-label={strings.ui.close} onClick={onClose}>
+          <IconButton label={strings.ui.close} id="closeModalBtn" onClick={onClose}>
             <IconClose size={18} strokeWidth={2.2} />
-          </button>
+          </IconButton>
         </div>
         <div className="modal-body" id="modalBody">
           {shown.children}

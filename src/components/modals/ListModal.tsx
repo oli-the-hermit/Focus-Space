@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { TaskList } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
+import { Field, TextInput } from '../ui/Field';
 
 export interface ListModalProps {
   list?: TaskList | null;
@@ -49,22 +50,18 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label" htmlFor="listName">{strings.modals.listNameLabel}</label>
-        <input
+      <Field label={strings.modals.listNameLabel} htmlFor="listName">
+        <TextInput
           id="listName"
-          type="text"
-          className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.listNamePlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
       {!list && (
-        <div className="form-group">
-          <span className="form-label">{strings.modals.assignSessionLabel}</span>
+        <Field label={strings.modals.assignSessionLabel} group>
           <Select
             value={sessionChoice}
             onChange={setSessionChoice}
@@ -79,7 +76,7 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
               { value: NEW_SESSION, label: `+ ${strings.modals.createSessionOption}`, searchText: strings.modals.createSessionOption }
             ]}
           />
-        </div>
+        </Field>
       )}
 
       <FormActions

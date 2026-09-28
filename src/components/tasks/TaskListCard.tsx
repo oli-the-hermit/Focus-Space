@@ -4,6 +4,10 @@ import { TaskListBody } from './TaskListBody';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconPlus, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
+import { IconButton } from '../ui/IconButton';
+import { Card, CardHeader } from '../ui/Card';
+import { Chip } from '../ui/Chip';
+import { EmptyState } from '../ui/EmptyState';
 
 export interface TaskListCardProps {
   /** Defaults to the list selected in the Tasks sidebar. */
@@ -46,61 +50,43 @@ export const TaskListCard: React.FC<TaskListCardProps> = ({ listId }) => {
   };
 
   return (
-    <div className="card tasks-content">
-      <div className="card-header" onContextMenu={openListMenu}>
-        <div className="card-header-main">
-          <h2 className="card-title" title={activeList?.name}>
-            {activeList ? activeList.name : strings.tasks.selectListPrompt}
-          </h2>
-          {activeList && (
-            <div className="card-subtitle-row">
-              <span className="chip chip--accent">
-                {strings.tasks.tasksRemaining.replace('{count}', String(remainingCount))}
-              </span>
-              {usedBy.map(s => (
-                <span key={s.id} className="chip" title={s.name}>
-                  {s.name}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {activeList && (
-          <div className="card-header-actions">
-            <button
-              className="icon-btn"
-              onClick={() => openModal('RENAME_LIST', { list: activeList })}
-              title={strings.tasks.renameTooltip}
-              aria-label={strings.tasks.renameTooltip}
-            >
-              <IconEdit size={16} />
-            </button>
-            <button
-              className="icon-btn"
-              onClick={() => duplicateList(activeList.id)}
-              title={strings.tasks.duplicateTooltip}
-              aria-label={strings.tasks.duplicateTooltip}
-            >
-              <IconCopy size={16} />
-            </button>
-            <button
-              className="icon-btn danger"
-              onClick={handleDeleteList}
-              title={strings.tasks.deleteTooltip}
-              aria-label={strings.tasks.deleteTooltip}
-            >
-              <IconTrash size={16} />
-            </button>
-          </div>
+    <Card className="tasks-content">
+      <CardHeader
+        onContextMenu={openListMenu}
+        title={activeList ? activeList.name : strings.tasks.selectListPrompt}
+        titleTooltip={activeList?.name}
+        subtitle={activeList && (
+          <>
+            <Chip tone="accent">
+              {strings.tasks.tasksRemaining.replace('{count}', String(remainingCount))}
+            </Chip>
+            {usedBy.map(s => (
+              <Chip key={s.id} title={s.name}>
+                {s.name}
+              </Chip>
+            ))}
+          </>
         )}
-      </div>
+        actions={activeList && (
+          <>
+            <IconButton label={strings.tasks.renameTooltip} onClick={() => openModal('RENAME_LIST', { list: activeList })}>
+              <IconEdit size={16} />
+            </IconButton>
+            <IconButton label={strings.tasks.duplicateTooltip} onClick={() => duplicateList(activeList.id)}>
+              <IconCopy size={16} />
+            </IconButton>
+            <IconButton label={strings.tasks.deleteTooltip} tone="danger" onClick={handleDeleteList}>
+              <IconTrash size={16} />
+            </IconButton>
+          </>
+        )}
+      />
 
       {activeList ? (
         <TaskListBody list={activeList} />
       ) : (
-        <div className="empty-state">{strings.tasks.emptyListPrompt}</div>
+        <EmptyState>{strings.tasks.emptyListPrompt}</EmptyState>
       )}
-    </div>
+    </Card>
   );
 };

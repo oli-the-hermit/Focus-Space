@@ -6,6 +6,7 @@ import { Landmark } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
+import { Field, TextInput } from '../ui/Field';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -52,18 +53,15 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label" htmlFor="landmarkName">{strings.modals.landmarkNameLabel}</label>
-        <input
+      <Field label={strings.modals.landmarkNameLabel} htmlFor="landmarkName">
+        <TextInput
           id="landmarkName"
-          type="text"
-          className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.landmarkNamePlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
       <DateRangeFields
         idPrefix="landmark"
@@ -73,8 +71,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         onDueChange={setDueDate}
       />
 
-      <div className="form-group">
-        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         <Select
           value={rewardId}
           onChange={val => setRewardId(val)}
@@ -89,7 +86,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
             }))
           ]}
         />
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}

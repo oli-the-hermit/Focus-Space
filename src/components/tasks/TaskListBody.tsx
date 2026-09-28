@@ -7,6 +7,10 @@ import { IconCheck, IconCopy, IconEdit, IconPlus, IconReset, IconTrash } from '.
 import { useContextMenu } from '../ui/ContextMenu';
 import { useFlip, useNewIds } from '../../hooks/useListMotion';
 import { isDragLeavingElement } from '../../lib/dnd';
+import { Button } from '../ui/Button';
+import { TextInput } from '../ui/Field';
+import { EmptyState } from '../ui/EmptyState';
+import { ProgressBar } from '../ui/ProgressBar';
 
 export interface TaskListBodyProps {
   list: TaskList;
@@ -32,6 +36,7 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   const total = list.tasks.length;
   const done = list.tasks.filter(t => t.completed).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const completedLabel = strings.tasks.completedOf.replace('{done}', String(done)).replace('{total}', String(total));
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedId(id);
@@ -90,36 +95,32 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   return (
     <div className="task-list-body">
       {total > 0 && (
-        <div className="list-progress" aria-label={`${pct}%`}>
+        <div className="list-progress">
           <div className="list-progress-row">
-            <span>{strings.tasks.completedOf.replace('{done}', String(done)).replace('{total}', String(total))}</span>
+            <span>{completedLabel}</span>
             <span className="list-progress-pct">{pct}%</span>
           </div>
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${pct}%` }} />
-          </div>
+          <ProgressBar value={pct} label={completedLabel} />
         </div>
       )}
 
       <form className="add-task-form" onSubmit={handleAddTask}>
-        <input
-          type="text"
-          className="form-input"
+        <TextInput
           placeholder={strings.tasks.addTaskPlaceholder}
           value={newTaskText}
           onChange={e => setNewTaskText(e.target.value)}
           autoComplete="off"
           aria-label={strings.tasks.addTaskPlaceholder}
         />
-        <button type="submit" className="btn-action primary" disabled={!newTaskText.trim()}>
+        <Button variant="primary" type="submit" disabled={!newTaskText.trim()}>
           <IconPlus size={16} strokeWidth={2.4} />
           {strings.tasks.addTaskBtn}
-        </button>
+        </Button>
       </form>
 
       <div className="task-list-items" ref={itemsRef}>
         {list.tasks.length === 0 ? (
-          <div className="empty-state small">{strings.tasks.emptyTasks}</div>
+          <EmptyState size="sm">{strings.tasks.emptyTasks}</EmptyState>
         ) : (
           list.tasks.map(task => (
             <TaskItem

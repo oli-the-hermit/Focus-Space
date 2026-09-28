@@ -12,6 +12,8 @@ import {
   webNotificationPermission
 } from '../../lib/notify';
 import { useDirty } from '../../hooks/useDirty';
+import { Button } from '../ui/Button';
+import { Field } from '../ui/Field';
 
 export interface NotificationModalProps {
   isOpen: boolean;
@@ -90,8 +92,7 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </label>
 
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">{n.leadTimeLabel}</label>
+        <Field label={n.leadTimeLabel}>
           <Select<number>
             value={draft.leadMinutes}
             onChange={val => set({ leadMinutes: val })}
@@ -103,15 +104,14 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               { value: 30, label: n.options.thirtyMin }
             ]}
           />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{n.autoDismissLabel}</label>
+        </Field>
+        <Field label={n.autoDismissLabel}>
           <Select<number>
             value={draft.autoDismissSec}
             onChange={val => set({ autoDismissSec: val })}
             options={AUTO_DISMISS_OPTIONS.map(v => ({ value: v, label: n.autoDismissValue.replace('{count}', String(v)) }))}
           />
-        </div>
+        </Field>
       </div>
 
       <label className="switch-row">
@@ -134,13 +134,13 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <span className="switch-row-hint">{permissionMsg}</span>
           </div>
           {permission === 'default' && (
-            <button
-              type="button"
-              className="btn-action tonal sm"
+            <Button
+              variant="tonal"
+              size="sm"
               onClick={() => requestWebNotificationPermission().then(setPermission)}
             >
               {n.requestPermBtn}
-            </button>
+            </Button>
           )}
         </div>
       )}

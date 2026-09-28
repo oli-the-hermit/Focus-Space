@@ -4,6 +4,7 @@ import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
 import { Task } from '../../types';
 import { strings } from '../../constants/strings';
+import { Field, TextInput } from '../ui/Field';
 
 export interface TaskModalProps {
   listId: string;
@@ -32,17 +33,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({ listId, task, onClose }) =
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label className="form-label">{strings.modals.taskTextLabel}</label>
-        <input
-          type="text"
-          className="form-input"
+      <Field label={strings.modals.taskTextLabel}>
+        <TextInput
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder={strings.modals.taskTextPlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}

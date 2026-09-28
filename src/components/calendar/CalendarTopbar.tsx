@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { formatDateStr, getTodayStr, getWeekRange, parseDateStr } from '../../lib/dateUtils';
 import { strings } from '../../constants/strings';
 import { IconChevronLeft, IconChevronRight } from '../ui/icons';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 export const CalendarTopbar: React.FC = () => {
   const { state, setCalendarView, setCalendarDate, openModal } = useApp();
@@ -60,14 +62,14 @@ export const CalendarTopbar: React.FC = () => {
   return (
     <div className="calendar-topbar">
       <div className="cal-nav-group">
-        <button className="btn-action tonal" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</button>
+        <Button variant="tonal" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</Button>
         <div className="cal-step-group">
-          <button className="icon-btn" id="calPrevBtn" onClick={handlePrev} aria-label={strings.calendar.prevBtn} title={strings.calendar.prevBtn}>
+          <IconButton label={strings.calendar.prevBtn} id="calPrevBtn" onClick={handlePrev}>
             <IconChevronLeft size={20} />
-          </button>
-          <button className="icon-btn" id="calNextBtn" onClick={handleNext} aria-label={strings.calendar.nextBtn} title={strings.calendar.nextBtn}>
+          </IconButton>
+          <IconButton label={strings.calendar.nextBtn} id="calNextBtn" onClick={handleNext}>
             <IconChevronRight size={20} />
-          </button>
+          </IconButton>
         </div>
         <span className="cal-title-date" id="calDateTitle">
           {dateTitleText}
@@ -98,9 +100,9 @@ export const CalendarTopbar: React.FC = () => {
             {strings.calendar.views.month}
           </button>
         </div>
-        <button className="btn-action primary" id="addCalEventBtn" onClick={handleSchedule}>
+        <Button variant="primary" id="addCalEventBtn" onClick={handleSchedule}>
           {strings.calendar.scheduleSessionBtn}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ import { TaskListPanel } from './TaskListPanel';
 import { Select } from '../ui/Select';
 import { strings } from '../../constants/strings';
 import { IconList } from '../ui/icons';
+import { Card, CardHeader } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
+import { Chip } from '../ui/Chip';
 
 /**
  * Timer page center column: every task list attached to the active session,
@@ -21,9 +24,9 @@ export const SessionTaskLists: React.FC = () => {
 
   if (!session) {
     return (
-      <div className="card session-tasks">
-        <div className="empty-state">{strings.timer.noSession}</div>
-      </div>
+      <Card className="session-tasks">
+        <EmptyState>{strings.timer.noSession}</EmptyState>
+      </Card>
     );
   }
 
@@ -58,18 +61,17 @@ export const SessionTaskLists: React.FC = () => {
   }));
 
   return (
-    <div className="card session-tasks">
-      <div className="card-header">
-        <div className="card-header-main">
-          <span className="overline">{strings.timer.sessionTasksTitle}</span>
-          <h2 className="card-title" title={session.name}>{session.name}</h2>
-        </div>
-        {lists.length > 0 && (
-          <span className="chip chip--accent">
+    <Card className="session-tasks">
+      <CardHeader
+        overline={strings.timer.sessionTasksTitle}
+        title={session.name}
+        titleTooltip={session.name}
+        aside={lists.length > 0 && (
+          <Chip tone="accent">
             {strings.tasks.tasksRemaining.replace('{count}', String(remaining))}
-          </span>
+          </Chip>
         )}
-      </div>
+      />
 
       {lists.length === 0 ? (
         <div className="session-tasks-empty">
@@ -118,6 +120,6 @@ export const SessionTaskLists: React.FC = () => {
           />
         </div>
       )}
-    </div>
+    </Card>
   );
 };

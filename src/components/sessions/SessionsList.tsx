@@ -8,6 +8,9 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { useFlip, useNewIds } from '../../hooks/useListMotion';
 import { getTodayStr } from '../../lib/dateUtils';
 import { isDragLeavingElement } from '../../lib/dnd';
+import { Button } from '../ui/Button';
+import { Card, PanelHeader } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
 
 export const SessionsList: React.FC = () => {
   const {
@@ -96,18 +99,19 @@ export const SessionsList: React.FC = () => {
   };
 
   return (
-    <div className="card panel-card sessions-panel">
-      <div className="panel-card-header">
-        <span className="panel-card-title">{strings.timer.sessionsTitle}</span>
-        <button className="btn-action tonal sm" id="addSessionBtn" onClick={handleAddSession}>
-          <IconPlus size={15} strokeWidth={2.4} />
-          {strings.timer.newSessionBtn.replace('+ ', '')}
-        </button>
-      </div>
+    <Card className="sessions-panel">
+      <PanelHeader
+        title={strings.timer.sessionsTitle}
+        action={
+          <Button variant="tonal" size="sm" id="addSessionBtn" icon={<IconPlus size={15} strokeWidth={2.4} />} onClick={handleAddSession}>
+            {strings.timer.newSessionBtn.replace('+ ', '')}
+          </Button>
+        }
+      />
 
       <div className="sessions-list" id="sessionsList" ref={listRef}>
         {state.sessions.length === 0 ? (
-          <div className="empty-state small">{strings.sessions.emptySessionsMsg}</div>
+          <EmptyState size="sm">{strings.sessions.emptySessionsMsg}</EmptyState>
         ) : (
           state.sessions.map(session => (
             <SessionItem
@@ -130,6 +134,6 @@ export const SessionsList: React.FC = () => {
           ))
         )}
       </div>
-    </div>
+    </Card>
   );
 };

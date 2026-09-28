@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
+import { Button } from '../ui/Button';
 
 export const CelebrationOverlay: React.FC = () => {
   const { activeCelebrationReward, dismissCelebration } = useApp();
@@ -25,13 +26,14 @@ export const CelebrationOverlay: React.FC = () => {
         <p className="celebration-desc" id="celebrationDesc">
           {activeCelebrationReward.description || activeCelebrationReward.desc || strings.celebration.desc}
         </p>
-        <button
-          className="btn-action primary celebration-confirm-btn"
+        <Button
+          variant="primary"
+          className="celebration-confirm-btn"
           id="closeCelebrationBtn"
           onClick={dismissCelebration}
         >
           {strings.celebration.awesomeBtn}
-        </button>
+        </Button>
       </div>
     </div>
   );

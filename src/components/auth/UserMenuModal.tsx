@@ -7,6 +7,8 @@ import { Profile } from '../../types';
 import { SettingsView } from './SettingsView';
 import { FormActions } from '../ui/FormActions';
 import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
+import { Button } from '../ui/Button';
+import { Field, TextInput } from '../ui/Field';
 
 export interface UserMenuModalProps {
   /** Which view to show; null closes the modal (with its exit animation). */
@@ -209,29 +211,23 @@ const ProfileView: React.FC = () => {
         </div>
 
         <div className="profile-fields">
-          <div className="form-group">
-            <label className="form-label" htmlFor="profileName">{strings.profile.nameLabel}</label>
-            <input
+          <Field label={strings.profile.nameLabel} htmlFor="profileName">
+            <TextInput
               id="profileName"
-              className="form-input"
-              type="text"
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
               maxLength={40}
             />
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="profileUsername">{strings.profile.usernameLabel}</label>
-            <input
+          </Field>
+          <Field label={strings.profile.usernameLabel} htmlFor="profileUsername">
+            <TextInput
               id="profileUsername"
-              className="form-input"
-              type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
               maxLength={24}
               autoComplete="username"
             />
-          </div>
+          </Field>
         </div>
       </div>
 
@@ -244,54 +240,48 @@ const ProfileView: React.FC = () => {
             <span className="password-row-hint">{strings.profile.passwordHint}</span>
           </div>
           {pwOpen ? (
-            <button type="button" className="btn-action sm" onClick={closePassword}>
+            <Button size="sm" onClick={closePassword}>
               {strings.profile.keepPasswordBtn}
-            </button>
+            </Button>
           ) : (
-            <button type="button" className="btn-action tonal sm" onClick={openPassword}>
+            <Button variant="tonal" size="sm" onClick={openPassword}>
               {strings.profile.changePasswordBtn}
-            </button>
+            </Button>
           )}
         </div>
 
         <div className="collapsible" data-open={pwOpen}>
           <div className="collapsible-inner" {...inertUnless(pwOpen)}>
             <div className="password-fields">
-              <div className="form-group">
-                <label className="form-label" htmlFor="curPw">{strings.profile.currentPasswordLabel}</label>
-                <input
+              <Field label={strings.profile.currentPasswordLabel} htmlFor="curPw">
+                <TextInput
                   ref={curPwRef}
                   id="curPw"
-                  className="form-input"
                   type="password"
                   value={curPw}
                   onChange={e => setCurPw(e.target.value)}
                   autoComplete="current-password"
                 />
-              </div>
+              </Field>
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="newPw">{strings.profile.newPasswordLabel}</label>
-                  <input
+                <Field label={strings.profile.newPasswordLabel} htmlFor="newPw">
+                  <TextInput
                     id="newPw"
-                    className="form-input"
                     type="password"
                     value={newPw}
                     onChange={e => setNewPw(e.target.value)}
                     autoComplete="new-password"
                   />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="confirmPw">{strings.profile.confirmPasswordLabel}</label>
-                  <input
+                </Field>
+                <Field label={strings.profile.confirmPasswordLabel} htmlFor="confirmPw">
+                  <TextInput
                     id="confirmPw"
-                    className="form-input"
                     type="password"
                     value={confirmPw}
                     onChange={e => setConfirmPw(e.target.value)}
                     autoComplete="new-password"
                   />
-                </div>
+                </Field>
               </div>
               <ul className="pw-rules" aria-live="polite">
                 <li className={pwLongEnough ? 'is-met' : ''}>
@@ -314,50 +304,46 @@ const ProfileView: React.FC = () => {
           <div className="section-divider" />
           <h4 className="section-title danger-text">{strings.profile.deleteOwnTitle}</h4>
           {deleteStep === 'none' && (
-            <button type="button" className="btn-action danger" onClick={() => setDeleteStep('confirm')}>
+            <Button variant="danger" onClick={() => setDeleteStep('confirm')}>
               {strings.profile.deleteOwnBtn}
-            </button>
+            </Button>
           )}
           {deleteStep === 'confirm' && (
             <div className="danger-panel">
               <p className="danger-panel-msg">{strings.profile.deleteOwnConfirmMsg}</p>
               <div className="modal-actions">
-                <button type="button" className="btn-action" onClick={() => setDeleteStep('none')}>
+                <Button onClick={() => setDeleteStep('none')}>
                   {strings.profile.cancelBtn}
-                </button>
-                <button type="button" className="btn-action danger" onClick={() => setDeleteStep('password')}>
+                </Button>
+                <Button variant="danger" onClick={() => setDeleteStep('password')}>
                   {strings.profile.deleteBtn}
-                </button>
+                </Button>
               </div>
             </div>
           )}
           {deleteStep === 'password' && (
             <div className="danger-panel">
               <p className="danger-panel-msg">{strings.profile.deleteOwnConfirmMsg}</p>
-              <div className="form-group">
-                <label className="form-label">{strings.auth.passwordLabel}</label>
-                <input
-                  className="form-input"
+              <Field label={strings.auth.passwordLabel}>
+                <TextInput
                   type="password"
                   value={deletePw}
                   onChange={e => setDeletePw(e.target.value)}
                   autoComplete="current-password"
                 />
-              </div>
+              </Field>
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-action"
+                <Button
                   onClick={() => {
                     setDeleteStep('none');
                     setDeletePw('');
                   }}
                 >
                   {strings.profile.cancelBtn}
-                </button>
-                <button type="button" className="btn-action danger" onClick={execDelete} disabled={saving}>
+                </Button>
+                <Button variant="danger" onClick={execDelete} disabled={saving}>
                   {strings.profile.deleteBtn}
-                </button>
+                </Button>
               </div>
             </div>
           )}

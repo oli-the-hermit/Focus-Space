@@ -1,5 +1,6 @@
 import React from 'react';
 import { strings } from '../../constants/strings';
+import { Button } from '../ui/Button';
 
 export interface ConfirmModalProps {
   title?: string;
@@ -21,12 +22,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         {message}
       </p>
       <div className="modal-actions">
-        <button type="button" className="btn-action" onClick={onClose}>
+        <Button onClick={onClose}>
           {strings.common.cancel}
-        </button>
-        <button
-          type="button"
-          className="btn-action danger"
+        </Button>
+        <Button
+          variant="danger"
           onClick={() => {
             onConfirm();
             onClose();
@@ -34,7 +34,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           autoFocus
         >
           {confirmLabel}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
+import { Card, PanelHeader } from '../ui/Card';
 
 export const ProductivityChart: React.FC = () => {
   const { state } = useApp();
@@ -22,10 +23,8 @@ export const ProductivityChart: React.FC = () => {
   const displayOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon to Sun
 
   return (
-    <div className="card stats-chart-card">
-      <div className="panel-card-header">
-        <span className="panel-card-title">{strings.stats.productiveDaysTitle}</span>
-      </div>
+    <Card className="stats-chart-card">
+      <PanelHeader title={strings.stats.productiveDaysTitle} />
 
       <div className="productive-days-chart" id="productiveDaysChart">
         {displayOrder.map(dIdx => {
@@ -47,6 +46,6 @@ export const ProductivityChart: React.FC = () => {
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 };

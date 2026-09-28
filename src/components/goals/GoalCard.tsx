@@ -5,6 +5,8 @@ import { strings } from '../../constants/strings';
 import { IconCheck, IconEdit, IconCopy, IconFlag, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { ScheduleBadge } from './ScheduleBadge';
+import { IconButton } from '../ui/IconButton';
+import { ProgressBar } from '../ui/ProgressBar';
 
 export interface GoalCardProps {
   goal: Goal;
@@ -34,6 +36,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
     ? (totalLandmarks > 0 ? Math.round((doneLandmarks / totalLandmarks) * 100) : 0)
     : (goal.completed ? 100 : 0);
   const isComplete = pct === 100;
+  const landmarksLabel = strings.goals.landmarksCountLabel
+    .replace('{done}', String(doneLandmarks))
+    .replace('{total}', String(totalLandmarks));
 
   const linkedReward = goal.rewardId ? state.rewards.find(r => r.id === goal.rewardId) : null;
 
@@ -112,34 +117,25 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
           <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
         </div>
         <div className="goal-card-actions">
-          <button className="icon-btn xs" onClick={handleEditGoal} title={strings.common.edit}>
+          <IconButton label={strings.common.edit} size="xs" onClick={handleEditGoal}>
             <IconEdit size={13} />
-          </button>
-          <button className="icon-btn xs" onClick={() => duplicateGoal(goal.id)} title={strings.common.duplicate}>
+          </IconButton>
+          <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateGoal(goal.id)}>
             <IconCopy size={13} />
-          </button>
-          <button className="icon-btn xs danger" onClick={handleDeleteGoal} title={strings.common.delete}>
+          </IconButton>
+          <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={handleDeleteGoal}>
             <IconTrash size={13} />
-          </button>
+          </IconButton>
         </div>
       </div>
 
       {hasLandmarks && (
         <div className="goal-card-progress">
           <div className="goal-progress-row">
-            <span>
-              {strings.goals.landmarksCountLabel
-                .replace('{done}', String(doneLandmarks))
-                .replace('{total}', String(totalLandmarks))}
-            </span>
+            <span>{landmarksLabel}</span>
             <span>{pct}%</span>
           </div>
-          <div className="goal-progress-track">
-            <div
-              className={`goal-progress-fill ${isComplete ? 'complete' : ''}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
+          <ProgressBar value={pct} size="lg" complete={isComplete} label={landmarksLabel} />
         </div>
       )}
 
@@ -167,15 +163,15 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
                 <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
                 {lmReward && <span className="landmark-reward-tag">{lmReward.emoji || lmReward.icon || '🎁'} {lmReward.name}</span>}
                 <div className="landmark-actions">
-                  <button className="icon-btn xs" onClick={() => handleEditLandmark(lm)} title={strings.common.edit}>
+                  <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
                     <IconEdit size={12} />
-                  </button>
-                  <button className="icon-btn xs" onClick={() => duplicateLandmark(goal.id, lm.id)} title={strings.common.duplicate}>
+                  </IconButton>
+                  <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateLandmark(goal.id, lm.id)}>
                     <IconCopy size={12} />
-                  </button>
-                  <button className="icon-btn xs danger" onClick={() => handleDeleteLandmark(lm.id)} title={strings.common.delete}>
+                  </IconButton>
+                  <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={() => handleDeleteLandmark(lm.id)}>
                     <IconTrash size={12} />
-                  </button>
+                  </IconButton>
                 </div>
               </div>
             );

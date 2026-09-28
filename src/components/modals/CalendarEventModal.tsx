@@ -8,6 +8,8 @@ import { Select } from '../ui/Select';
 import { DatePicker } from '../ui/DatePicker';
 import { TimePicker } from '../ui/TimePicker';
 import { Stepper } from '../ui/Stepper';
+import { Button } from '../ui/Button';
+import { Field, TextArea, TextInput } from '../ui/Field';
 
 export interface CalendarEventModalProps {
   event?: CalendarEvent | null;
@@ -70,33 +72,27 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label" htmlFor="eventTitle">{strings.modals.titleActivityLabel}</label>
-        <input
+      <Field label={strings.modals.titleActivityLabel} htmlFor="eventTitle">
+        <TextInput
           id="eventTitle"
-          type="text"
-          className="form-input"
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder={strings.modals.titleActivityPlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor="eventDate">{strings.modals.dateLabel}</label>
+        <Field label={strings.modals.dateLabel} htmlFor="eventDate">
           <DatePicker id="eventDate" value={date} onChange={val => val && setDate(val)} ariaLabel={strings.modals.dateLabel} />
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="eventTime">{strings.modals.startTimeLabel}</label>
+        </Field>
+        <Field label={strings.modals.startTimeLabel} htmlFor="eventTime">
           <TimePicker id="eventTime" value={startTime} onChange={setStartTime} ariaLabel={strings.modals.startTimeLabel} />
-        </div>
+        </Field>
       </div>
 
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor="eventDuration">{strings.modals.durationLabel}</label>
+        <Field label={strings.modals.durationLabel} htmlFor="eventDuration">
           <Stepper
             id="eventDuration"
             value={durationMins}
@@ -106,9 +102,8 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             step={5}
             suffix={strings.modals.minutesSuffix}
           />
-        </div>
-        <div className="form-group">
-          <span className="form-label">{strings.modals.linkedSessionLabel}</span>
+        </Field>
+        <Field label={strings.modals.linkedSessionLabel} group>
           <Select
             value={sessionId}
             onChange={val => {
@@ -138,19 +133,17 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               }
             }}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="form-group">
-        <label className="form-label">{strings.modals.detailsLabel}</label>
-        <textarea
-          className="form-input form-textarea"
+      <Field label={strings.modals.detailsLabel}>
+        <TextArea
           value={details}
           onChange={e => setDetails(e.target.value)}
           placeholder={strings.modals.detailsPlaceholder}
           rows={3}
         />
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}
@@ -158,9 +151,9 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         primaryLabel={event ? strings.common.saveChanges : strings.modals.scheduleEvent}
         leading={
           event && (
-            <button type="button" className="btn-action danger" onClick={handleDelete}>
+            <Button variant="danger" onClick={handleDelete}>
               {strings.common.delete}
-            </button>
+            </Button>
           )
         }
       />

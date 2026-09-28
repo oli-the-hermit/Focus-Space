@@ -147,6 +147,8 @@
   --icon-button-size-xs: 28px;
   --chip-height:      26px;
   --checkbox-size:    20px;
+  --progress-height:  6px;
+  --progress-height-lg: 8px;
   --grip-tracking:    -3px;      /* pulls the two ⋮ of the drag grip into one handle */
 
   /* ── Elevation (floating layers only) ── */

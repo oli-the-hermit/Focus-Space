@@ -1,5 +1,6 @@
 import React from 'react';
 import { strings } from '../../constants/strings';
+import { Button } from './Button';
 
 export interface FormActionsProps {
   /** The form differs from what it opened with. */
@@ -32,17 +33,17 @@ export const FormActions: React.FC<FormActionsProps> = ({
   <div className="modal-actions form-actions">
     {leading && <div className="form-actions-leading">{leading}</div>}
     {dirty && (
-      <button type="button" className="btn-action form-actions-cancel" onClick={onCancel}>
+      <Button className="form-actions-cancel" onClick={onCancel}>
         {cancelLabel}
-      </button>
+      </Button>
     )}
-    <button
+    <Button
+      variant="primary"
       type={onPrimary ? 'button' : 'submit'}
-      className="btn-action primary"
       disabled={primaryDisabled}
       onClick={onPrimary}
     >
       {primaryLabel}
-    </button>
+    </Button>
   </div>
 );

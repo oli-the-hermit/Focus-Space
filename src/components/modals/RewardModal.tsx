@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { Reward, RewardTrigger, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
+import { Field, TextArea, TextInput } from '../ui/Field';
 
 export interface RewardModalProps {
   reward?: Reward | null;
@@ -97,43 +98,35 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label">{strings.modals.rewardNameLabel}</label>
-        <input
-          type="text"
-          className="form-input"
+      <Field label={strings.modals.rewardNameLabel}>
+        <TextInput
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.rewardNamePlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.modals.descriptionLabel}</label>
-        <textarea
-          className="form-input form-textarea"
+      <Field label={strings.modals.descriptionLabel} spaced>
+        <TextArea
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder={strings.modals.descriptionPlaceholder}
           rows={2}
         />
-      </div>
+      </Field>
 
       <div className="form-row form-group-spaced">
-        <div className="form-group">
-          <label className="form-label">{strings.modals.emojiLabel}</label>
-          <input
-            type="text"
-            className="form-input emoji-input"
+        <Field label={strings.modals.emojiLabel}>
+          <TextInput
+            className="emoji-input"
             value={emoji}
             onChange={e => setEmoji(e.target.value)}
             placeholder="🎁"
             maxLength={4}
           />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{strings.modals.frequencyPeriodLabel}</label>
+        </Field>
+        <Field label={strings.modals.frequencyPeriodLabel}>
           <Select
             value={frequency}
             onChange={val => setFrequency(val as GoalFrequency)}
@@ -142,11 +135,10 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
               label: f.charAt(0).toUpperCase() + f.slice(1)
             }))}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.rewards.linkSessionLabel}</label>
+      <Field label={strings.rewards.linkSessionLabel} spaced>
         <Select
           value={linkedSessionId}
           onChange={val => setLinkedSessionId(val)}
@@ -169,10 +161,9 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
             }
           }}
         />
-      </div>
+      </Field>
 
-      <div className="form-group form-group-spaced">
-        <label className="form-label">{strings.rewards.linkGoalLabel}</label>
+      <Field label={strings.rewards.linkGoalLabel} spaced>
         <Select
           value={linkedGoalId}
           onChange={val => setLinkedGoalId(val)}
@@ -185,7 +176,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
             }))
           ]}
         />
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}

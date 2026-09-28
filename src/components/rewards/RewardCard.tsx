@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconGift, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
+import { IconButton } from '../ui/IconButton';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -78,16 +79,16 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
         </div>
         <div className="reward-card-actions">
           {!claimed && (
-            <button className="icon-btn xs" onClick={handleEdit} title={strings.common.edit}>
+            <IconButton label={strings.common.edit} size="xs" onClick={handleEdit}>
               <IconEdit size={13} />
-            </button>
+            </IconButton>
           )}
-          <button className="icon-btn xs" onClick={() => duplicateReward(reward.id)} title={strings.common.duplicate}>
+          <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateReward(reward.id)}>
             <IconCopy size={13} />
-          </button>
-          <button className="icon-btn xs danger" onClick={handleDelete} title={strings.common.delete}>
+          </IconButton>
+          <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={handleDelete}>
             <IconTrash size={13} />
-          </button>
+          </IconButton>
         </div>
       </div>
 

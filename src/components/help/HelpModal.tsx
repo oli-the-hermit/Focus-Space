@@ -17,6 +17,7 @@ import {
   IconStar,
   IconTimer
 } from '../ui/icons';
+import { TextButton } from '../ui/TextButton';
 
 type HelpView = 'home' | 'shortcuts' | 'whatsNew' | 'about';
 
@@ -65,10 +66,10 @@ export const HelpModal: React.FC = () => {
   return (
     <Modal isOpen={helpOpen} title={titles[view]} onClose={close} dismissible>
       {view !== 'home' && (
-        <button type="button" className="btn-text help-back" onClick={() => setView('home')}>
+        <TextButton className="help-back" onClick={() => setView('home')}>
           <IconChevronLeft size={16} />
           {strings.help.back}
-        </button>
+        </TextButton>
       )}
 
       {view === 'home' && (
@@ -178,10 +179,10 @@ export const HelpModal: React.FC = () => {
           <p className="help-note">
             {strings.help.credits}
             {GITHUB_URL && (
-              <button type="button" className="btn-text about-github" onClick={() => open(GITHUB_URL)}>
+              <TextButton className="about-github" onClick={() => open(GITHUB_URL)}>
                 <IconGithub size={15} />
                 GitHub
-              </button>
+              </TextButton>
             )}
           </p>
         </div>

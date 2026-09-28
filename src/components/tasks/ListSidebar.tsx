@@ -6,6 +6,10 @@ import { IconCopy, IconEdit, IconGrip, IconList, IconPlus, IconTrash } from '../
 import { useContextMenu } from '../ui/ContextMenu';
 import { useFlip, useNewIds } from '../../hooks/useListMotion';
 import { isDragLeavingElement } from '../../lib/dnd';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { Card, PanelHeader } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
 
 export const ListSidebar: React.FC = () => {
   const { state, setActiveList, openModal, deleteList, duplicateList, reorderTaskLists } = useApp();
@@ -75,18 +79,19 @@ export const ListSidebar: React.FC = () => {
   };
 
   return (
-    <div className="card tasks-sidebar">
-      <div className="panel-card-header">
-        <span className="panel-card-title">{strings.tasks.sidebarTitle}</span>
-        <button className="btn-action tonal sm" id="addListBtn" onClick={handleCreateList}>
-          <IconPlus size={15} strokeWidth={2.4} />
-          {strings.tasks.newListBtn.replace('+ ', '')}
-        </button>
-      </div>
+    <Card className="tasks-sidebar">
+      <PanelHeader
+        title={strings.tasks.sidebarTitle}
+        action={
+          <Button variant="tonal" size="sm" id="addListBtn" icon={<IconPlus size={15} strokeWidth={2.4} />} onClick={handleCreateList}>
+            {strings.tasks.newListBtn.replace('+ ', '')}
+          </Button>
+        }
+      />
 
       <div className="list-nav" id="listNav" ref={navRef}>
         {state.taskLists.length === 0 ? (
-          <div className="empty-state small">{strings.tasks.emptyLists}</div>
+          <EmptyState size="sm">{strings.tasks.emptyLists}</EmptyState>
         ) : (
           state.taskLists.map(list => {
             const isActive = list.id === state.activeListId;
@@ -111,18 +116,20 @@ export const ListSidebar: React.FC = () => {
                 <IconGrip title={strings.tasks.dragToReorder} />
                 <span className="list-nav-item-name">{list.name}</span>
                 <span className="list-nav-count">{done}/{total}</span>
-                <button
-                  className="icon-btn xs list-nav-item-del danger"
+                <IconButton
+                  label={strings.tasks.deleteTooltip}
+                  size="xs"
+                  tone="danger"
+                  className="list-nav-item-del"
                   onClick={e => handleDeleteList(e, list)}
-                  title={strings.tasks.deleteTooltip}
                 >
                   <IconTrash size={12} />
-                </button>
+                </IconButton>
               </div>
             );
           })
         )}
       </div>
-    </div>
+    </Card>
   );
 };

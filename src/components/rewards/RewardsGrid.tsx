@@ -4,6 +4,7 @@ import { RewardCard } from './RewardCard';
 import { RewardsStats } from './RewardsStats';
 import { FilterGridLayout, FilterTabOption } from '../ui/FilterGridLayout';
 import { strings } from '../../constants/strings';
+import { Button } from '../ui/Button';
 
 const FREQUENCY_TABS: FilterTabOption[] = [
   { key: 'all', label: 'All' },
@@ -33,9 +34,9 @@ export const RewardsGrid: React.FC = () => {
       onTabChange={setFilter}
       headerSlot={<RewardsStats />}
       actionButton={
-        <button className="btn-action primary" id="addRewardBtn" onClick={handleAddReward}>
+        <Button variant="primary" id="addRewardBtn" onClick={handleAddReward}>
           {strings.rewards.newRewardBtn}
-        </button>
+        </Button>
       }
       hasItems={filteredRewards.length > 0}
       emptyMessage={strings.rewards.emptyReady}

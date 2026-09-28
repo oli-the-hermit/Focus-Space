@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { formatDuration } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
 import { IconCheck } from '../ui/icons';
+import { Card, PanelHeader } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
 
 export const CompletionLogs: React.FC = () => {
   const { state } = useApp();
@@ -10,16 +12,14 @@ export const CompletionLogs: React.FC = () => {
   const sortedLogs = [...state.taskCompletionLogs].sort((a, b) => b.timestamp - a.timestamp).slice(0, 30);
 
   return (
-    <div className="card stats-logs-card">
-      <div className="panel-card-header">
-        <span className="panel-card-title">{strings.stats.completionLogsTitle}</span>
-      </div>
+    <Card className="stats-logs-card">
+      <PanelHeader title={strings.stats.completionLogsTitle} />
 
       <div className="task-completion-logs" id="taskCompletionLogs">
         {sortedLogs.length === 0 ? (
-          <div className="empty-state small">
+          <EmptyState size="sm">
             {strings.stats.emptyLogs}
-          </div>
+          </EmptyState>
         ) : (
           sortedLogs.map(log => {
             const dStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -41,6 +41,6 @@ export const CompletionLogs: React.FC = () => {
           })
         )}
       </div>
-    </div>
+    </Card>
   );
 };

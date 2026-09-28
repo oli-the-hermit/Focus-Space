@@ -6,6 +6,8 @@ import { strings } from '../../constants/strings';
 import { IconCalendar, IconCopy, IconEdit, IconList, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { isDragLeavingElement } from '../../lib/dnd';
+import { IconButton } from '../ui/IconButton';
+import { Card } from '../ui/Card';
 
 const FIRST_HOUR = 7;
 const LAST_HOUR = 22;
@@ -134,7 +136,7 @@ export const CalendarGrid: React.FC = () => {
     const rowCount = gridCells.length / 7;
 
     return (
-      <div className="card calendar-container is-month">
+      <Card className="calendar-container is-month">
         <div className="cal-month-header-row" id="calendarGridHeader">
           {dayNames.map(d => (
             <div key={d} className="cal-month-header-cell">{d}</div>
@@ -201,7 +203,7 @@ export const CalendarGrid: React.FC = () => {
             );
           })}
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -219,7 +221,7 @@ export const CalendarGrid: React.FC = () => {
   const showNowLine = nowPct >= 0 && nowPct <= 100;
 
   return (
-    <div className="card calendar-container">
+    <Card className="calendar-container">
       <div className={`calendar-grid-header ${view === 'day' ? 'day-view' : ''}`} id="calendarGridHeader">
         <div className="cal-header-cell cal-header-cell--time" />
         {activeDays.map(dStr => {
@@ -305,26 +307,27 @@ export const CalendarGrid: React.FC = () => {
                       {session ? ` · ${session.name}` : ''}
                     </div>
                     <div className="cal-event-actions">
-                      <button
-                        className="icon-btn xs"
+                      <IconButton
+                        label={strings.common.duplicate}
+                        size="xs"
                         onClick={e => {
                           e.stopPropagation();
                           duplicateCalendarEvent(ev.id);
                         }}
-                        title={strings.common.duplicate}
                       >
                         <IconCopy size={11} />
-                      </button>
-                      <button
-                        className="icon-btn xs danger"
+                      </IconButton>
+                      <IconButton
+                        label={strings.common.delete}
+                        size="xs"
+                        tone="danger"
                         onClick={e => {
                           e.stopPropagation();
                           handleDeleteEvent(ev);
                         }}
-                        title={strings.common.delete}
                       >
                         <IconTrash size={11} />
-                      </button>
+                      </IconButton>
                     </div>
                   </div>
                 );
@@ -333,6 +336,6 @@ export const CalendarGrid: React.FC = () => {
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 };

@@ -36,11 +36,8 @@
 .goal-type-badge.badge-weekly { background: var(--break-container); color: var(--on-break-container); }
 .goal-type-badge.badge-monthly { background: var(--warning-container); color: var(--warning); }
 
-.goal-card-progress { display: flex; flex-direction: column; gap: var(--space-8); }
+.goal-card-progress { display: flex; flex-direction: column; gap: var(--space-8); --progress-track: var(--surface-2); }
 .goal-progress-row { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-2); font-variant-numeric: tabular-nums; }
-.goal-progress-track { height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
-.goal-progress-fill { height: 100%; border-radius: var(--radius-pill); background: var(--accent); transition: width var(--dur-4) var(--ease-emphasized); }
-.goal-progress-fill.complete { background: var(--success); }
 
 .goal-landmarks { display: flex; flex-direction: column; gap: var(--space-4); }
 .landmarks-title {

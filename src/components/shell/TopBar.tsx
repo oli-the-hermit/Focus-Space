@@ -8,6 +8,7 @@ import { TabType } from '../../types';
 import { IconBell, IconHelp, IconMiniPlayer, IconPause, IconPlay, IconSoundOff, IconSoundOn } from '../ui/icons';
 import { IconSwap } from '../ui/IconSwap';
 import { WindowControls } from './WindowControls';
+import { IconButton } from '../ui/IconButton';
 
 const PAGE_TITLES: Record<TabType, string> = {
   timer: strings.tabs.timer,
@@ -82,54 +83,44 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
 
       <div className="top-bar-tools">
         {mini.supported && (
-          <button
-            type="button"
-            className={`icon-btn ${mini.isOpen ? 'is-active' : ''}`}
+          <IconButton
+            label={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
+            active={mini.isOpen}
             onClick={mini.toggle}
-            title={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
-            aria-label={mini.isOpen ? strings.timer.miniPlayerClose : strings.timer.miniPlayerOpen}
             aria-pressed={mini.isOpen}
             data-tour="mini-player-btn"
           >
             <IconMiniPlayer size={19} />
-          </button>
+          </IconButton>
         )}
         {onOpenNotifications && (
-          <button
-            type="button"
-            className={`icon-btn ${alertRinging ? 'is-ringing' : ''}`}
+          <IconButton
+            label={strings.header.notifTooltip}
+            className={alertRinging ? 'is-ringing' : ''}
             id="notifSettingsBtn"
-            title={strings.header.notifTooltip}
-            aria-label={strings.header.notifTooltip}
             onClick={onOpenNotifications}
             data-tour="alerts-btn"
           >
             <IconBell size={19} className="bell-icon" />
-          </button>
+          </IconButton>
         )}
-        <button
-          type="button"
-          className="icon-btn"
+        <IconButton
+          label={strings.header.soundToggleTooltip}
           id="soundToggleBtn"
-          title={strings.header.soundToggleTooltip}
-          aria-label={strings.header.soundToggleTooltip}
           aria-pressed={state.sound}
           onClick={toggleSound}
         >
           <IconSwap on={state.sound} onIcon={<IconSoundOn size={19} />} offIcon={<IconSoundOff size={19} />} />
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
+        </IconButton>
+        <IconButton
+          label={strings.header.helpTooltip}
           id="helpBtn"
-          title={strings.header.helpTooltip}
-          aria-label={strings.header.helpTooltip}
           aria-haspopup="dialog"
           onClick={() => setHelpOpen(true)}
           data-tour="help-btn"
         >
           <IconHelp size={19} />
-        </button>
+        </IconButton>
       </div>
 
       {desktop && <WindowControls />}

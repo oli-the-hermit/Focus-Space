@@ -7,6 +7,8 @@ import { Menu, MenuItem } from '../ui/Menu';
 import { useContextMenu } from '../ui/ContextMenu';
 import { strings } from '../../constants/strings';
 import { IconChevronDown, IconCopy, IconEdit, IconPlus, IconTrash, IconUnlink } from '../ui/icons';
+import { IconButton } from '../ui/IconButton';
+import { Chip } from '../ui/Chip';
 
 export interface TaskListPanelProps {
   list: TaskList;
@@ -80,16 +82,15 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
   return (
     <section className={`list-panel ${collapsed ? 'is-collapsed' : ''}`}>
       <header className="list-panel-header" onContextMenu={e => contextMenu(e, menuItems)}>
-        <button
-          type="button"
-          className="icon-btn sm list-panel-collapse"
+        <IconButton
+          label={collapsed ? strings.timer.expandList : strings.timer.collapseList}
+          size="sm"
+          className="list-panel-collapse"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
-          aria-label={collapsed ? strings.timer.expandList : strings.timer.collapseList}
-          title={collapsed ? strings.timer.expandList : strings.timer.collapseList}
         >
           <IconChevronDown size={18} />
-        </button>
+        </IconButton>
 
         <Select
           variant="header"
@@ -114,9 +115,9 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
           }}
         />
 
-        <span className="chip chip--accent list-panel-count">
+        <Chip tone="accent" className="list-panel-count">
           {strings.tasks.tasksLeft.replace('{count}', String(remaining))}
-        </span>
+        </Chip>
 
         <Menu ariaLabel={strings.timer.moreListActions} items={menuItems} />
       </header>

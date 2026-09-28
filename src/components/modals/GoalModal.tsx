@@ -6,6 +6,7 @@ import { Goal, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
+import { Field, TextInput } from '../ui/Field';
 
 export interface GoalModalProps {
   goal?: Goal | null;
@@ -70,21 +71,17 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label" htmlFor="goalName">{strings.modals.goalNameLabel}</label>
-        <input
+      <Field label={strings.modals.goalNameLabel} htmlFor="goalName">
+        <TextInput
           id="goalName"
-          type="text"
-          className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.goalNamePlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
-      <div className="form-group">
-        <span className="form-label">{strings.modals.frequencyLabel}</span>
+      <Field label={strings.modals.frequencyLabel} group>
         <Select
           value={type}
           onChange={val => setType(val as GoalFrequency)}
@@ -94,7 +91,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
             label: t.charAt(0).toUpperCase() + t.slice(1)
           }))}
         />
-      </div>
+      </Field>
 
       <DateRangeFields
         idPrefix="goal"
@@ -104,8 +101,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         onDueChange={setDueDate}
       />
 
-      <div className="form-group">
-        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         <Select
           value={rewardId}
           onChange={val => setRewardId(val)}
@@ -120,7 +116,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
             }))
           ]}
         />
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}

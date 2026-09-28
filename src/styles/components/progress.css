@@ -1,13 +1,16 @@
 /* ── Progress ───────────────────────────────────────────── */
+/* The track sits one tonal step above its container; set --progress-track to change it. */
 .progress-track {
-  height: 6px;
+  height: var(--progress-height);
   border-radius: var(--radius-pill);
-  background: var(--surface-3);
+  background: var(--progress-track, var(--surface-3));
   overflow: hidden;
 }
+.progress-track.lg { height: var(--progress-height-lg); }
 .progress-fill {
   height: 100%;
   border-radius: var(--radius-pill);
   background: var(--accent);
   transition: width var(--dur-4) var(--ease-emphasized);   /* eases rather than snaps */
 }
+.progress-fill.is-complete { background: var(--success); }

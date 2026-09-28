@@ -4,6 +4,8 @@ import { IconCalendar, IconChevronLeft, IconChevronRight, IconClose } from './ic
 import { formatDateStr, getDaysInMonth, getTodayStr, parseDateStr } from '../../lib/dateUtils';
 import { formatDateLabel } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
+import { IconButton } from './IconButton';
+import { TextButton } from './TextButton';
 
 export interface DatePickerProps {
   /** 'YYYY-MM-DD', or '' when empty. */
@@ -161,22 +163,20 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <div className="date-popover-head">
           <span className="date-popover-month">{monthLabel}</span>
           <div className="date-popover-nav">
-            <button
-              type="button"
-              className="icon-btn sm"
+            <IconButton
+              label={strings.ui.prevMonth}
+              size="sm"
               onClick={() => setFocusDate(addMonths(focusDate, -1))}
-              aria-label={strings.ui.prevMonth}
             >
               <IconChevronLeft size={16} />
-            </button>
-            <button
-              type="button"
-              className="icon-btn sm"
+            </IconButton>
+            <IconButton
+              label={strings.ui.nextMonth}
+              size="sm"
               onClick={() => setFocusDate(addMonths(focusDate, 1))}
-              aria-label={strings.ui.nextMonth}
             >
               <IconChevronRight size={16} />
-            </button>
+            </IconButton>
           </div>
         </div>
 
@@ -211,20 +211,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
         <div className="date-popover-foot">
           {optional && (
-            <button
-              type="button"
-              className="btn-text"
+            <TextButton
               onClick={() => {
                 onChange('');
                 close();
               }}
             >
               Clear
-            </button>
+            </TextButton>
           )}
-          <button type="button" className="btn-text accent" onClick={() => pick(todayStr)}>
+          <TextButton accent onClick={() => pick(todayStr)}>
             Today
-          </button>
+          </TextButton>
         </div>
       </Popover>
     </div>

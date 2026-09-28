@@ -2,6 +2,8 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { api } from '../../lib/api';
 import { strings } from '../../constants/strings';
+import { Button } from '../ui/Button';
+import { Field, TextInput } from '../ui/Field';
 
 export const LoginScreen: React.FC = () => {
   const { login, setup } = useApp();
@@ -109,25 +111,19 @@ export const LoginScreen: React.FC = () => {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === 'setup' && (
-            <div className="form-group">
-              <label className="form-label">{strings.auth.displayNameLabel}</label>
-              <input
-                className="form-input"
-                type="text"
+            <Field label={strings.auth.displayNameLabel}>
+              <TextInput
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 placeholder="e.g. Enzo"
                 maxLength={40}
                 autoFocus
               />
-            </div>
+            </Field>
           )}
 
-          <div className="form-group">
-            <label className="form-label">{strings.auth.usernameLabel}</label>
-            <input
-              className="form-input"
-              type="text"
+          <Field label={strings.auth.usernameLabel}>
+            <TextInput
               value={username}
               onChange={e => setUsername(e.target.value)}
               placeholder="username"
@@ -135,32 +131,28 @@ export const LoginScreen: React.FC = () => {
               autoFocus={mode === 'login'}
               maxLength={24}
             />
-          </div>
+          </Field>
 
-          <div className="form-group">
-            <label className="form-label">{strings.auth.passwordLabel}</label>
-            <input
-              className="form-input"
+          <Field label={strings.auth.passwordLabel}>
+            <TextInput
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete={mode === 'setup' ? 'new-password' : 'current-password'}
             />
-          </div>
+          </Field>
 
           {mode === 'setup' && (
-            <div className="form-group">
-              <label className="form-label">{strings.auth.confirmPasswordLabel}</label>
-              <input
-                className="form-input"
+            <Field label={strings.auth.confirmPasswordLabel}>
+              <TextInput
                 type="password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="new-password"
               />
-            </div>
+            </Field>
           )}
 
           {error && (
@@ -169,7 +161,7 @@ export const LoginScreen: React.FC = () => {
             </div>
           )}
 
-          <button type="submit" className="btn-action primary auth-submit" disabled={busy || !serverUp}>
+          <Button variant="primary" className="auth-submit" type="submit" disabled={busy || !serverUp}>
             {busy
               ? mode === 'setup'
                 ? strings.auth.creating
@@ -177,7 +169,7 @@ export const LoginScreen: React.FC = () => {
               : mode === 'setup'
                 ? strings.auth.createAccountBtn
                 : strings.auth.signInBtn}
-          </button>
+          </Button>
         </form>
 
         {serverUp && (

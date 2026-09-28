@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { GoalCard } from './GoalCard';
 import { FilterGridLayout, FilterTabOption } from '../ui/FilterGridLayout';
 import { strings } from '../../constants/strings';
+import { Button } from '../ui/Button';
 
 const FREQUENCY_TABS: FilterTabOption[] = [
   { key: 'all', label: 'All' },
@@ -31,9 +32,9 @@ export const GoalsGrid: React.FC = () => {
       activeTab={filter}
       onTabChange={setFilter}
       actionButton={
-        <button className="btn-action primary" id="addGoalBtn" onClick={handleAddGoal}>
+        <Button variant="primary" id="addGoalBtn" onClick={handleAddGoal}>
           {strings.goals.newGoalBtn}
-        </button>
+        </Button>
       }
       hasItems={filteredGoals.length > 0}
       emptyMessage={strings.goals.emptyGoals}

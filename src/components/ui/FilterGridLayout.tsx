@@ -1,4 +1,5 @@
 import React from 'react';
+import { EmptyState } from './EmptyState';
 
 export interface FilterTabOption {
   key: string;
@@ -49,7 +50,7 @@ export const FilterGridLayout: React.FC<FilterGridLayoutProps> = ({
 
       <div className="filter-grid-body">
         {!hasItems ? (
-          <div className="empty-state">{emptyMessage}</div>
+          <EmptyState>{emptyMessage}</EmptyState>
         ) : (
           <div className="cards-grid">{children}</div>
         )}

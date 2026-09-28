@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { api } from '../../lib/api';
 import { strings } from '../../constants/strings';
 import { Profile, ThemeMode } from '../../types';
+import { Button } from '../ui/Button';
+import { Field, TextInput } from '../ui/Field';
 
 export const MAX_PROFILES = 6;
 
@@ -189,8 +191,7 @@ export const SettingsView: React.FC = () => {
                 <div className="profile-row-actions">
                   {renamingId === p.id ? (
                     <div className="rename-inline">
-                      <input
-                        className="form-input"
+                      <TextInput
                         value={renameVal}
                         onChange={e => setRenameVal(e.target.value)}
                         onKeyDown={e => {
@@ -200,15 +201,13 @@ export const SettingsView: React.FC = () => {
                         maxLength={40}
                         autoFocus
                       />
-                      <button type="button" className="btn-action primary" onClick={() => renameProfile(p.id)} disabled={busy}>
+                      <Button variant="primary" onClick={() => renameProfile(p.id)} disabled={busy}>
                         {strings.settings.renameBtn}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <>
-                      <button
-                        type="button"
-                        className="btn-action"
+                      <Button
                         onClick={() => {
                           setRenamingId(p.id);
                           setRenameVal(p.displayName);
@@ -217,17 +216,15 @@ export const SettingsView: React.FC = () => {
                         title={p.id === profile?.id ? 'Main account' : strings.settings.renameBtn}
                       >
                         {strings.settings.renameBtn}
-                      </button>
+                      </Button>
                       {p.id !== profile?.id && (
-                        <button
-                          type="button"
-                          className="btn-action danger icon-only-del"
+                        <Button
+                          variant="danger"
                           onClick={() => setDeleting(p)}
                           disabled={busy}
-                          title={strings.settings.deleteBtn}
                         >
                           {strings.settings.deleteBtn}
-                        </button>
+                        </Button>
                       )}
                     </>
                   )}
@@ -238,43 +235,37 @@ export const SettingsView: React.FC = () => {
 
           {showAddForm ? (
             <div className="add-profile-form">
-              <div className="form-group">
-                <label className="form-label">{strings.auth.displayNameLabel}</label>
-                <input className="form-input" value={addName} onChange={e => setAddName(e.target.value)} maxLength={40} autoFocus />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{strings.auth.usernameLabel}</label>
-                <input className="form-input" value={addUsername} onChange={e => setAddUsername(e.target.value)} maxLength={24} />
-              </div>
+              <Field label={strings.auth.displayNameLabel}>
+                <TextInput value={addName} onChange={e => setAddName(e.target.value)} maxLength={40} autoFocus />
+              </Field>
+              <Field label={strings.auth.usernameLabel}>
+                <TextInput value={addUsername} onChange={e => setAddUsername(e.target.value)} maxLength={24} />
+              </Field>
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{strings.auth.passwordLabel}</label>
-                  <input className="form-input" type="password" value={addPw} onChange={e => setAddPw(e.target.value)} autoComplete="new-password" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{strings.auth.confirmPasswordLabel}</label>
-                  <input className="form-input" type="password" value={addConfirm} onChange={e => setAddConfirm(e.target.value)} autoComplete="new-password" />
-                </div>
+                <Field label={strings.auth.passwordLabel}>
+                  <TextInput type="password" value={addPw} onChange={e => setAddPw(e.target.value)} autoComplete="new-password" />
+                </Field>
+                <Field label={strings.auth.confirmPasswordLabel}>
+                  <TextInput type="password" value={addConfirm} onChange={e => setAddConfirm(e.target.value)} autoComplete="new-password" />
+                </Field>
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-action" onClick={() => setShowAddForm(false)}>
+                <Button onClick={() => setShowAddForm(false)}>
                   {strings.profile.cancelBtn}
-                </button>
-                <button type="button" className="btn-action primary" onClick={addProfile} disabled={busy || profileCount >= MAX_PROFILES}>
+                </Button>
+                <Button variant="primary" onClick={addProfile} disabled={busy || profileCount >= MAX_PROFILES}>
                   {strings.settings.addProfileTitle}
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
-            <button
-              type="button"
-              className="btn-action"
+            <Button
               onClick={() => setShowAddForm(true)}
               disabled={profileCount >= MAX_PROFILES}
               title={profileCount >= MAX_PROFILES ? `Max ${MAX_PROFILES} profiles` : undefined}
             >
               {strings.settings.addProfileBtn}
-            </button>
+            </Button>
           )}
 
           {/* Danger zone */}
@@ -283,9 +274,9 @@ export const SettingsView: React.FC = () => {
           <p className="settings-subtitle">{strings.settings.resetProfilesDesc}</p>
 
           {resetStep === 'none' && (
-            <button type="button" className="btn-action danger" onClick={() => setResetStep('confirm')}>
+            <Button variant="danger" onClick={() => setResetStep('confirm')}>
               {strings.settings.resetProfilesBtn}
-            </button>
+            </Button>
           )}
 
           {resetStep === 'confirm' && (
@@ -293,16 +284,15 @@ export const SettingsView: React.FC = () => {
               <p className="danger-panel-title">{strings.settings.resetConfirmTitle}</p>
               <p className="danger-panel-msg">{strings.settings.resetConfirmMsg}</p>
               <div className="modal-actions">
-                <button type="button" className="btn-action" onClick={() => setResetStep('none')}>
+                <Button onClick={() => setResetStep('none')}>
                   {strings.settings.cancelBtn}
-                </button>
-                <button
-                  type="button"
-                  className="btn-action danger"
+                </Button>
+                <Button
+                  variant="danger"
                   onClick={() => setResetStep('password')}
                 >
                   {strings.profile.deleteBtn}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -311,10 +301,8 @@ export const SettingsView: React.FC = () => {
             <div className="danger-panel">
               <p className="danger-panel-title">{strings.settings.resetPasswordTitle}</p>
               <p className="danger-panel-msg">{strings.settings.resetPasswordMsg}</p>
-              <div className="form-group">
-                <label className="form-label">{strings.auth.passwordLabel}</label>
-                <input
-                  className="form-input"
+              <Field label={strings.auth.passwordLabel}>
+                <TextInput
                   type="password"
                   value={resetPw}
                   onChange={e => setResetPw(e.target.value)}
@@ -324,21 +312,19 @@ export const SettingsView: React.FC = () => {
                   autoComplete="current-password"
                   autoFocus
                 />
-              </div>
+              </Field>
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-action"
+                <Button
                   onClick={() => {
                     setResetStep('none');
                     setResetPw('');
                   }}
                 >
                   {strings.settings.cancelBtn}
-                </button>
-                <button type="button" className="btn-action danger" onClick={execReset} disabled={busy}>
+                </Button>
+                <Button variant="danger" onClick={execReset} disabled={busy}>
                   {strings.profile.deleteBtn}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -350,12 +336,12 @@ export const SettingsView: React.FC = () => {
               </p>
               <p className="danger-panel-msg">{strings.settings.deleteProfileConfirmMsg}</p>
               <div className="modal-actions">
-                <button type="button" className="btn-action" onClick={() => setDeleting(null)}>
+                <Button onClick={() => setDeleting(null)}>
                   {strings.settings.cancelBtn}
-                </button>
-                <button type="button" className="btn-action danger" onClick={() => deleteProfile(deleting)} disabled={busy}>
+                </Button>
+                <Button variant="danger" onClick={() => deleteProfile(deleting)} disabled={busy}>
                   {strings.profile.deleteBtn}
-                </button>
+                </Button>
               </div>
             </div>
           )}

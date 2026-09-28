@@ -1,6 +1,7 @@
 import React from 'react';
 import { DatePicker } from '../ui/DatePicker';
 import { strings } from '../../constants/strings';
+import { Field } from '../ui/Field';
 
 export interface DateRangeFieldsProps {
   idPrefix: string;
@@ -27,10 +28,7 @@ export const DateRangeFields: React.FC<DateRangeFieldsProps> = ({
   return (
     <>
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor={`${idPrefix}Start`}>
-            {strings.modals.startDateLabel} <span className="form-label-hint">{strings.modals.optionalHint}</span>
-          </label>
+        <Field label={strings.modals.startDateLabel} labelHint={strings.modals.optionalHint} htmlFor={`${idPrefix}Start`}>
           <DatePicker
             id={`${idPrefix}Start`}
             value={startDate}
@@ -39,11 +37,8 @@ export const DateRangeFields: React.FC<DateRangeFieldsProps> = ({
             placeholder={strings.modals.noDatePlaceholder}
             ariaLabel={strings.modals.startDateLabel}
           />
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor={`${idPrefix}Due`}>
-            {strings.modals.dueDateLabel} <span className="form-label-hint">{strings.modals.optionalHint}</span>
-          </label>
+        </Field>
+        <Field label={strings.modals.dueDateLabel} labelHint={strings.modals.optionalHint} htmlFor={`${idPrefix}Due`}>
           <DatePicker
             id={`${idPrefix}Due`}
             value={dueDate}
@@ -53,7 +48,7 @@ export const DateRangeFields: React.FC<DateRangeFieldsProps> = ({
             ariaLabel={strings.modals.dueDateLabel}
             min={startDate || undefined}
           />
-        </div>
+        </Field>
       </div>
       {invalid && (
         <p className="form-error" role="alert">

@@ -3,6 +3,7 @@ import { Session } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconTrash, IconGrip, IconGift, IconList, IconEqualizer } from '../ui/icons';
+import { IconButton } from '../ui/IconButton';
 
 export interface SessionItemProps {
   session: Session;
@@ -98,25 +99,24 @@ export const SessionItem: React.FC<SessionItemProps> = ({
         </div>
 
         <div className="session-actions">
-          <button className="icon-btn xs" onClick={stop(() => onEdit(session))} title={strings.common.edit} aria-label={strings.common.edit}>
+          <IconButton label={strings.common.edit} size="xs" onClick={stop(() => onEdit(session))}>
             <IconEdit size={14} />
-          </button>
-          <button
-            className="icon-btn xs"
+          </IconButton>
+          <IconButton
+            label={strings.common.duplicate}
+            size="xs"
             onClick={stop(() => onDuplicate(session.id))}
-            title={strings.common.duplicate}
-            aria-label={strings.common.duplicate}
           >
             <IconCopy size={14} />
-          </button>
-          <button
-            className="icon-btn xs danger"
+          </IconButton>
+          <IconButton
+            label={strings.common.delete}
+            size="xs"
+            tone="danger"
             onClick={stop(() => onDelete(session))}
-            title={strings.common.delete}
-            aria-label={strings.common.delete}
           >
             <IconTrash size={14} />
-          </button>
+          </IconButton>
         </div>
       </div>
     </div>

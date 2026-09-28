@@ -7,6 +7,8 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Stepper } from '../ui/Stepper';
 import { IconClose, IconList } from '../ui/icons';
+import { TextButton } from '../ui/TextButton';
+import { Field, TextArea, TextInput } from '../ui/Field';
 
 export interface SessionModalProps {
   session?: Session | null;
@@ -99,22 +101,18 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
 
   return (
     <form onSubmit={handleSubmit} className="modal-form">
-      <div className="form-group">
-        <label className="form-label" htmlFor="sessionName">{strings.modals.sessionNameLabel}</label>
-        <input
+      <Field label={strings.modals.sessionNameLabel} htmlFor="sessionName">
+        <TextInput
           id="sessionName"
-          type="text"
-          className="form-input"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.sessionNamePlaceholder}
           autoFocus
         />
-      </div>
+      </Field>
 
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor="sessionFocus">{strings.modals.focusLabel}</label>
+        <Field label={strings.modals.focusLabel} htmlFor="sessionFocus">
           <Stepper
             id="sessionFocus"
             value={focusMinutes}
@@ -124,9 +122,8 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
             step={5}
             suffix={strings.modals.minutesSuffix}
           />
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="sessionBreak">{strings.modals.breakLabel}</label>
+        </Field>
+        <Field label={strings.modals.breakLabel} htmlFor="sessionBreak">
           <Stepper
             id="sessionBreak"
             value={breakMinutes}
@@ -136,11 +133,10 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
             step={5}
             suffix={strings.modals.minutesSuffix}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="form-group">
-        <span className="form-label">{strings.modals.taskListsLabel}</span>
+      <Field label={strings.modals.taskListsLabel} group>
         {attachedLists.length > 0 ? (
           <div className="chip-set">
             {attachedLists.map(list => (
@@ -181,38 +177,33 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
             }
           }}
         />
-      </div>
+      </Field>
 
-      <div className="form-group">
-        <span className="form-label">{strings.rewards.rewardOnCompletion}</span>
+      <Field label={strings.rewards.rewardOnCompletion} group>
         {rewardDraft ? (
           <div className="inline-subform">
             <div className="inline-subform-head">
               <span className="inline-subform-title">{strings.modals.newRewardTitle}</span>
-              <button type="button" className="btn-text" onClick={() => setRewardDraft(null)}>
+              <TextButton onClick={() => setRewardDraft(null)}>
                 {strings.modals.pickExistingReward}
-              </button>
+              </TextButton>
             </div>
             <div className="form-row form-row--emoji">
-              <input
-                type="text"
-                className="form-input emoji-input"
+              <TextInput
+                className="emoji-input"
                 value={rewardDraft.emoji}
                 onChange={e => setRewardDraft({ ...rewardDraft, emoji: e.target.value })}
                 maxLength={4}
                 aria-label={strings.modals.emojiLabel}
               />
-              <input
-                type="text"
-                className="form-input"
+              <TextInput
                 value={rewardDraft.name}
                 onChange={e => setRewardDraft({ ...rewardDraft, name: e.target.value })}
                 placeholder={strings.modals.rewardNamePlaceholder}
                 aria-label={strings.modals.rewardNameLabel}
               />
             </div>
-            <textarea
-              className="form-input form-textarea"
+            <TextArea
               value={rewardDraft.description}
               onChange={e => setRewardDraft({ ...rewardDraft, description: e.target.value })}
               placeholder={strings.modals.descriptionPlaceholder}
@@ -242,7 +233,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
             }}
           />
         )}
-      </div>
+      </Field>
 
       <FormActions
         dirty={dirty}

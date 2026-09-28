@@ -3,6 +3,7 @@ import { Task } from '../../types';
 import { formatDuration } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconTrash, IconGrip } from '../ui/icons';
+import { IconButton } from '../ui/IconButton';
 
 export interface TaskItemProps {
   task: Task;
@@ -66,27 +67,28 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       ) : null}
 
       <div className="task-row-actions">
-        <button
-          className="icon-btn xs"
+        <IconButton
+          label={strings.common.rename}
+          size="xs"
           onClick={() => onRename(listId, task)}
-          title={strings.common.rename}
         >
           <IconEdit size={12} />
-        </button>
-        <button
-          className="icon-btn xs"
+        </IconButton>
+        <IconButton
+          label={strings.common.duplicate}
+          size="xs"
           onClick={() => onDuplicate(listId, task.id)}
-          title={strings.common.duplicate}
         >
           <IconCopy size={12} />
-        </button>
-        <button
-          className="icon-btn xs danger"
+        </IconButton>
+        <IconButton
+          label={strings.common.delete}
+          size="xs"
+          tone="danger"
           onClick={() => onDelete(listId, task)}
-          title={strings.common.delete}
         >
           <IconTrash size={12} />
-        </button>
+        </IconButton>
       </div>
     </div>
   );

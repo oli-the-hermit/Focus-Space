@@ -1,23 +1,28 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
+import { cx } from '../../lib/cx';
+
+export type ButtonVariant = 'secondary' | 'primary' | 'tonal' | 'danger';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'icon';
-  size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
+  /** `secondary` (default) is the neutral tonal button. */
+  variant?: ButtonVariant;
+  size?: 'md' | 'sm';
+  /** Leading icon. */
+  icon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'secondary',
-  size = 'md',
-  children,
-  className = '',
-  ...props
-}) => {
-  const isIcon = variant === 'icon';
-  const baseClass = isIcon ? `icon-btn ${size}` : `btn-action ${variant}`;
-  return (
-    <button className={`${baseClass} ${className}`} {...props}>
+/** Pill-shaped action button (styles: components/button.css). Defaults to type="button". */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'secondary', size = 'md', icon, className, type = 'button', children, ...rest }, ref) => (
+    <button
+      ref={ref}
+      type={type}
+      className={cx('btn-action', variant !== 'secondary' && variant, size === 'sm' && 'sm', className)}
+      {...rest}
+    >
+      {icon}
       {children}
     </button>
-  );
-};
+  )
+);
+Button.displayName = 'Button';

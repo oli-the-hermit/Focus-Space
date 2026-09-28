@@ -4,6 +4,8 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconCheck, IconChevronLeft, IconChevronRight, IconClose } from '../ui/icons';
 import { TOUR_CHAPTERS, TOUR_STEPS, TourStep } from './tourSteps';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 interface Box {
   top: number;
@@ -276,9 +278,9 @@ export const OnboardingTour: React.FC = () => {
         className={`tour-card ${isSpot ? `is-spot side-${cardPos?.side ?? 'center'}` : 'is-center'} ${step.kind === 'welcome' ? 'is-welcome' : ''}`}
         style={cardStyle}
       >
-        <button type="button" className="icon-btn sm tour-close" onClick={finish} aria-label={strings.onboarding.closeBtn} title={strings.onboarding.closeBtn}>
+        <IconButton label={strings.onboarding.closeBtn} size="sm" className="tour-close" onClick={finish}>
           <IconClose size={16} />
-        </button>
+        </IconButton>
 
         {!isSpot && (
           <span className={`tour-badge ${step.kind === 'done' ? 'is-done' : ''}`} aria-hidden="true">
@@ -317,19 +319,18 @@ export const OnboardingTour: React.FC = () => {
           )}
           <div className="tour-actions">
             {step.kind === 'welcome' ? (
-              <button type="button" className="btn-action" onClick={finish}>
+              <Button onClick={finish}>
                 {strings.onboarding.laterBtn}
-              </button>
+              </Button>
             ) : (
-              <button type="button" className="btn-action" onClick={() => go(-1)}>
+              <Button onClick={() => go(-1)}>
                 <IconChevronLeft size={16} />
                 {strings.onboarding.backBtn}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              variant="primary"
               ref={nextBtnRef}
-              type="button"
-              className="btn-action primary"
               onClick={() => (isLast ? finish() : go(1))}
             >
               {step.kind === 'welcome'
@@ -338,7 +339,7 @@ export const OnboardingTour: React.FC = () => {
                   ? strings.onboarding.doneBtn
                   : strings.onboarding.nextBtn}
               {!isLast && step.kind !== 'welcome' && <IconChevronRight size={16} />}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
