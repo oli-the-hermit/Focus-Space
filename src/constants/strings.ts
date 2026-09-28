@@ -128,6 +128,7 @@ export const strings = {
     duplicateTooltip: 'Duplicate list',
     deleteTooltip: 'Delete list',
     deleteListTitle: 'Delete list?',
+    untitledList: 'Task list',
     emptyLists: 'No lists yet. Create one to get started.',
     tasksRemaining: { one: '{count} task remaining', other: '{count} tasks remaining' },
     completedOf: '{done} of {total} completed',

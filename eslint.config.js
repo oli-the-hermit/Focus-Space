@@ -51,7 +51,8 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // Phase 8: intentional exceptions carry an eslint-disable comment saying why.
+      'react-hooks/exhaustive-deps': 'error',
       // Phase 7 complete: every intentionally ignored error says why in a comment.
       'no-empty': 'error',
       // Off: "initialize, then assign in every branch" is intentional and readable here.

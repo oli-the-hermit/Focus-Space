@@ -23,6 +23,7 @@ import { Scrubber } from './Scrubber';
 import { cx } from '../../lib/cx';
 import { format } from '../../lib/i18n';
 import { shortcutHint } from '../../constants/shortcuts';
+import { phaseMinutes } from '../../lib/sessionTime';
 
 /**
  * The timer, laid out like a music player: artwork tile with the countdown,
@@ -45,7 +46,7 @@ export const PlayerCard: React.FC = () => {
   const reward = session?.rewardId ? state.rewards.find(r => r.id === session.rewardId) : null;
 
   const nextPhaseLabel = isBreak ? strings.timer.focusPhase : strings.timer.breakPhase;
-  const nextPhaseMins = isBreak ? (session?.focusMinutes || 25) : (session?.breakMinutes || 5);
+  const nextPhaseMins = phaseMinutes(session, isBreak ? 'focus' : 'break');
 
   const cm = strings.actions;
   const menuItems = (): (MenuItem | false)[] => [

@@ -35,6 +35,7 @@ import { OnboardingTour } from './components/onboarding/OnboardingTour';
 import { AlertCard } from './components/alerts/AlertCard';
 import { useShortcuts } from './hooks/useShortcuts';
 import { TIMING } from './constants/timing';
+import { DEFAULT_FOCUS_MINUTES } from './constants/defaults';
 
 
 export const AppContent: React.FC = () => {
@@ -97,7 +98,7 @@ const AppShell: React.FC = () => {
   const uniqueDaysCount = Math.max(1, datesSet.size);
 
   const avgSessions = (state.sessionLogs.length / uniqueDaysCount).toFixed(1);
-  const totalWorkedMins = state.sessionLogs.reduce((sum, s) => sum + (s.durationMins || 25), 0);
+  const totalWorkedMins = state.sessionLogs.reduce((sum, s) => sum + (s.durationMins || DEFAULT_FOCUS_MINUTES), 0);
   const avgWorkedSecs = Math.round((totalWorkedMins * 60) / uniqueDaysCount);
   const avgTasks = (state.taskCompletionLogs.length / uniqueDaysCount).toFixed(1);
   const totalTaskDuration = state.taskCompletionLogs.reduce((sum, t) => sum + (t.durationSeconds || 0), 0);

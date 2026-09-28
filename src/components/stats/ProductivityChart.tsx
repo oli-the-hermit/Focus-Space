@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Card, PanelHeader } from '../ui/Card';
 import { weekdayNames } from '../../lib/i18n';
+import { DEFAULT_FOCUS_MINUTES } from '../../constants/defaults';
 
 /** Sunday first, to index by Date.getDay(). */
 const DAY_NAMES = weekdayNames('short', 'sunday');
@@ -14,7 +15,7 @@ export const ProductivityChart: React.FC = () => {
 
   state.sessionLogs.forEach(s => {
     const dayIdx = s.dayOfWeek !== undefined ? s.dayOfWeek : new Date(s.date).getDay();
-    minsPerDay[dayIdx] += (s.durationMins || 25);
+    minsPerDay[dayIdx] += (s.durationMins || DEFAULT_FOCUS_MINUTES);
   });
 
   state.taskCompletionLogs.forEach(t => {

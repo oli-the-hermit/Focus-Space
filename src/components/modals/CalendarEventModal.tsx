@@ -10,6 +10,7 @@ import { TimePicker } from '../ui/TimePicker';
 import { Stepper } from '../ui/Stepper';
 import { Button } from '../ui/Button';
 import { Field, TextArea, TextInput } from '../ui/Field';
+import { DEFAULT_FOCUS_MINUTES } from '../../constants/defaults';
 
 export interface CalendarEventModalProps {
   event?: CalendarEvent | null;
@@ -128,7 +129,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               label: strings.modals.newSessionOption,
               placeholder: strings.modals.newSessionPlaceholder,
               onCreate: sessionName => {
-                const newId = createSession({ name: sessionName, focusMinutes: durationMins || 25, breakMinutes: 5, rewardId: null });
+                const newId = createSession({ name: sessionName, focusMinutes: durationMins || DEFAULT_FOCUS_MINUTES, breakMinutes: 5, rewardId: null });
                 setSessionId(newId);
               }
             }}

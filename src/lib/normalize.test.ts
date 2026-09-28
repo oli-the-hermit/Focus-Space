@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeGoal, normalizeLandmark, normalizeReward, normalizeTask } from './normalize';
+import { normalizeGoal, normalizeLandmark, normalizeReward, normalizeState, normalizeTask } from './normalize';
 import { strings } from '../constants/strings';
 import { DEFAULT_REWARD_EMOJI } from '../constants/defaults';
 
@@ -57,5 +57,46 @@ describe('normalizeTask', () => {
     const t = normalizeTask({ id: 't', text: 'x', completed: false, created: 42 });
     expect(t.createdAt).toBe(42);
     expect(t).not.toHaveProperty('created');
+  });
+});
+
+describe('normalizeState', () => {
+  it('fills a complete state from nothing', () => {
+    const s = normalizeState(null);
+    expect(s.sessions.length).toBeGreaterThan(0);
+    expect(s.timer).toMatchObject({ phase: 'focus', status: 'idle' });
+    expect(s.theme).toBe('system');
+    expect(s.tourSeen).toBe(false);
+  });
+
+  it('gives the legacy global timer list to the active session only', () => {
+    const s = normalizeState({
+      sessions: [{ id: 'a', name: 'A', focusMinutes: 30, breakMinutes: 5 }, { id: 'b', name: 'B', focusMinutes: 20, breakMinutes: 5 }],
+      activeSessionId: 'a',
+      taskLists: [{ id: 'l1', name: 'L', tasks: [] }],
+      selectedListIdForTimer: 'l1'
+    });
+    expect(s.sessions.find(x => x.id === 'a')?.taskListIds).toEqual(['l1']);
+    expect(s.sessions.find(x => x.id === 'b')?.taskListIds).toEqual([]);
+    expect(s.timer.remaining).toBe(30 * 60);
+  });
+
+  it('drops task-list links to lists that no longer exist', () => {
+    const s = normalizeState({
+      sessions: [{ id: 'a', name: 'A', focusMinutes: 25, breakMinutes: 5, taskListIds: ['gone', 'l1'] }],
+      taskLists: [{ id: 'l1', name: 'L', tasks: [] }]
+    });
+    expect(s.sessions[0].taskListIds).toEqual(['l1']);
+  });
+
+  it('migrates nested aliases while loading', () => {
+    const s = normalizeState({
+      taskLists: [{ id: 'l1', name: 'L', tasks: [{ id: 't', text: 'x', completed: false, created: 7 }] }],
+      goals: [{ id: 'g', title: 'Old goal', type: 'weekly', landmarks: [] }],
+      rewards: [{ id: 'r', name: 'R', icon: '☕', trigger: 'manual', status: 'ready' }]
+    });
+    expect(s.taskLists[0].tasks[0].createdAt).toBe(7);
+    expect(s.goals[0]).toMatchObject({ name: 'Old goal', frequency: 'weekly' });
+    expect(s.rewards[0].emoji).toBe('☕');
   });
 });

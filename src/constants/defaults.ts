@@ -4,6 +4,10 @@ import { getTodayStr } from '../lib/dateUtils';
 /** Shown for a reward that has no emoji of its own. */
 export const DEFAULT_REWARD_EMOJI = '🎁';
 
+/** Phase lengths (minutes) for a session that doesn't set its own. */
+export const DEFAULT_FOCUS_MINUTES = 25;
+export const DEFAULT_BREAK_MINUTES = 5;
+
 export const DEFAULT_SESSIONS: Session[] = [
   { id: 's1', name: 'Pomodoro Classic', focusMinutes: 25, breakMinutes: 5, rewardId: 'r1' },
   { id: 's2', name: 'Deep Work', focusMinutes: 50, breakMinutes: 10, rewardId: 'r2' },

@@ -4,9 +4,12 @@
  * Task.created). These read the old names once and return the canonical shape;
  * the next save writes only canonical fields, so the migration is automatic.
  */
-import { GOAL_FREQUENCIES, type Goal, type GoalFrequency, type Landmark, type Reward, type Task } from '../types';
+import { GOAL_FREQUENCIES, type AppState, type CalendarEvent, type Goal, type GoalFrequency, type Landmark, type NotificationSettings, type Reward, type Session, type Task, type TaskList } from '../types';
 import { strings } from '../constants/strings';
-import { DEFAULT_REWARD_EMOJI } from '../constants/defaults';
+import { DEFAULT_CALENDAR_EVENTS, DEFAULT_GOALS, DEFAULT_REWARDS, DEFAULT_REWARD_EMOJI, DEFAULT_SESSIONS, DEFAULT_TASK_LISTS } from '../constants/defaults';
+import { getTodayStr } from './dateUtils';
+import { DEFAULT_AUTO_DISMISS_SEC } from './notify';
+import { phaseMinutes } from './sessionTime';
 
 type Raw = Record<string, unknown>;
 
@@ -51,5 +54,75 @@ export function normalizeReward(raw: Raw): Reward {
     description: firstText(rest.description, desc) ?? '',
     emoji: firstText(rest.emoji, icon) ?? DEFAULT_REWARD_EMOJI,
     frequency: firstFrequency(rest.frequency, type) ?? 'daily'
+  };
+}
+
+// Normalizes a raw (possibly partial/legacy) state object into a valid AppState.
+export function normalizeState(raw: unknown): AppState {
+  const r = (raw && typeof raw === 'object') ? (raw as Record<string, unknown>) : null;
+  const sessions: Session[] = Array.isArray(r?.sessions) && r!.sessions.length
+    ? (r!.sessions as Session[])
+    : DEFAULT_SESSIONS;
+  const activeSessionId = typeof r?.activeSessionId === 'string' ? r.activeSessionId : (sessions[0]?.id || 's1');
+  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
+  const focusMins = phaseMinutes(activeSession, 'focus');
+
+  const taskLists: TaskList[] = Array.isArray(r?.taskLists) && r!.taskLists.length
+    ? (r!.taskLists as TaskList[]).map(l => ({ ...l, tasks: (l.tasks || []).map(t => normalizeTask(t as unknown as Record<string, unknown>)) }))
+    : DEFAULT_TASK_LISTS;
+  const selectedListIdForTimer = (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id;
+
+  // Sessions own their task lists. Legacy data had a single global timer list:
+  // the active session inherits it, the others start empty.
+  const listIds = new Set(taskLists.map(l => l.id));
+  const migratedSessions = sessions.map(s => {
+    if (Array.isArray(s.taskListIds)) {
+      return { ...s, taskListIds: s.taskListIds.filter(id => listIds.has(id)) };
+    }
+    const inherit = s.id === activeSessionId && selectedListIdForTimer && listIds.has(selectedListIdForTimer)
+      ? [selectedListIdForTimer]
+      : [];
+    return { ...s, taskListIds: inherit };
+  });
+
+  return {
+    sessions: migratedSessions,
+    activeSessionId,
+    taskLists,
+    activeListId: (typeof r?.activeListId === 'string' ? r.activeListId : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
+    selectedListIdForTimer,
+    activeActivityStartTime: null,
+    taskCompletionLogs: Array.isArray(r?.taskCompletionLogs) ? (r!.taskCompletionLogs as AppState['taskCompletionLogs']) : [],
+    sessionLogs: Array.isArray(r?.sessionLogs) ? (r!.sessionLogs as AppState['sessionLogs']) : [],
+    calendarEvents: Array.isArray(r?.calendarEvents) ? (r!.calendarEvents as CalendarEvent[]) : DEFAULT_CALENDAR_EVENTS,
+    calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
+    calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
+    notifications: normalizeNotifications(r?.notifications),
+    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Record<string, unknown>[]).map(normalizeGoal) : DEFAULT_GOALS,
+    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Record<string, unknown>[]).map(normalizeReward) : DEFAULT_REWARDS,
+    timer: {
+      phase: 'focus',
+      status: 'idle',
+      remaining: focusMins * 60,
+      total: focusMins * 60,
+      sessionsCompletedToday: typeof (r?.timer as Record<string, unknown> | undefined)?.sessionsCompletedToday === 'number'
+        ? ((r!.timer as Record<string, unknown>).sessionsCompletedToday as number)
+        : 0
+    },
+    sound: typeof r?.sound === 'boolean' ? r.sound : true,
+    theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system',
+    // Missing on data saved before the tour existed, so every profile sees it once.
+    tourSeen: r?.tourSeen === true
+  };
+}
+
+export function normalizeNotifications(raw: unknown): NotificationSettings {
+  const n = (raw && typeof raw === 'object') ? (raw as Partial<NotificationSettings>) : {};
+  return {
+    enabled: typeof n.enabled === 'boolean' ? n.enabled : true,
+    leadMinutes: typeof n.leadMinutes === 'number' && n.leadMinutes > 0 ? n.leadMinutes : 10,
+    sound: typeof n.sound === 'boolean' ? n.sound : true,
+    phaseAlerts: typeof n.phaseAlerts === 'boolean' ? n.phaseAlerts : true,
+    autoDismissSec: typeof n.autoDismissSec === 'number' && n.autoDismissSec > 0 ? n.autoDismissSec : DEFAULT_AUTO_DISMISS_SEC
   };
 }

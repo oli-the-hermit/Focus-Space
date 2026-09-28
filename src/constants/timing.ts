@@ -15,6 +15,8 @@ export const TIMING = {
   tourStartDelayMs: 600,
   /** Retry interval while the local API isn't reachable yet. */
   serverRetryMs: 3000,
+  /** How often a running timer checks its end time (it ticks from a worker, so hidden tabs stay on time). */
+  timerTickMs: 500,
   /** Mini player clock refresh. */
   miniClockTickMs: 250
 } as const;

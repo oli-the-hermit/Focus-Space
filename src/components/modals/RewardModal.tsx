@@ -7,7 +7,7 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
+import { DEFAULT_BREAK_MINUTES, DEFAULT_FOCUS_MINUTES, DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface RewardModalProps {
   reward?: Reward | null;
@@ -148,7 +148,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
             label: strings.modals.newSessionOption,
             placeholder: strings.modals.newSessionPlaceholder,
             onCreate: sessionName => {
-              const newId = createSession({ name: sessionName, focusMinutes: 25, breakMinutes: 5, rewardId: null });
+              const newId = createSession({ name: sessionName, focusMinutes: DEFAULT_FOCUS_MINUTES, breakMinutes: DEFAULT_BREAK_MINUTES, rewardId: null });
               setLinkedSessionId(newId);
             }
           }}

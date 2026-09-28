@@ -9,7 +9,7 @@ import { Stepper } from '../ui/Stepper';
 import { IconClose, IconList } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 import { Field, TextArea, TextInput } from '../ui/Field';
-import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
+import { DEFAULT_BREAK_MINUTES, DEFAULT_FOCUS_MINUTES, DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 
 export interface SessionModalProps {
   session?: Session | null;
@@ -28,8 +28,8 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
   const { state, createSession, updateSession, createList, addReward } = useApp();
 
   const [name, setName] = useState(session ? session.name : '');
-  const [focusMinutes, setFocusMinutes] = useState(session ? session.focusMinutes : 25);
-  const [breakMinutes, setBreakMinutes] = useState(session ? session.breakMinutes : 5);
+  const [focusMinutes, setFocusMinutes] = useState(session ? session.focusMinutes : DEFAULT_FOCUS_MINUTES);
+  const [breakMinutes, setBreakMinutes] = useState(session ? session.breakMinutes : DEFAULT_BREAK_MINUTES);
   const [taskListIds, setTaskListIds] = useState<string[]>(
     session ? (session.taskListIds || []) : (initialTaskListIds || [])
   );
@@ -56,8 +56,8 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalName = name.trim() || strings.modals.untitledSession;
-    const focus = Math.max(1, Number(focusMinutes) || 25);
-    const brk = Math.max(1, Number(breakMinutes) || 5);
+    const focus = Math.max(1, Number(focusMinutes) || DEFAULT_FOCUS_MINUTES);
+    const brk = Math.max(1, Number(breakMinutes) || DEFAULT_BREAK_MINUTES);
     const draft = rewardDraft && rewardDraft.name.trim() ? rewardDraft : null;
     const finalReward = draft ? null : (rewardId || null);
 

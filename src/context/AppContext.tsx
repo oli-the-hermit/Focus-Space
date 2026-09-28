@@ -4,8 +4,6 @@ import {
   AppState,
   TabType,
   Session,
-  TaskList,
-  Task,
   Goal,
   Landmark,
   Reward,
@@ -20,18 +18,16 @@ import {
   ThemeMode,
   NewReward
 } from '../types';
-import { DEFAULT_CALENDAR_EVENTS, DEFAULT_GOALS, DEFAULT_REWARDS, DEFAULT_REWARD_EMOJI, DEFAULT_SESSIONS, DEFAULT_TASK_LISTS } from '../constants/defaults';
 import { api } from '../lib/api';
-import { deriveDataKey, encryptBlob, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../lib/crypto';
+import { deriveDataKey, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../lib/crypto';
+import { sealState } from '../lib/persistence';
 import { strings } from '../constants/strings';
 import { getTodayStr } from '../lib/dateUtils';
-import { formatDuration } from '../lib/formatUtils';
 import { startTicker } from '../lib/ticker';
 import {
   AlertActionId,
   AlertActionMessage,
   AlertPayload,
-  DEFAULT_AUTO_DISMISS_SEC,
   SW_ALERT_MESSAGE,
   buildEventAlert,
   buildPhaseAlert,
@@ -48,12 +44,18 @@ import {
   scheduleDesktopAlert,
   showDesktopAlert
 } from '../lib/desktop';
-import { format } from '../lib/i18n';
 import { clearTimerRun, loadTimerRun, saveTimerRun, storage } from '../lib/storage';
 import { applyTheme, cacheTheme, cachedTheme, cssDurationMs } from '../lib/theme';
 import { playChime as playPhaseChime } from '../lib/audio';
 import { TIMING } from '../constants/timing';
-import { normalizeGoal, normalizeReward, normalizeTask } from '../lib/normalize';
+import { normalizeState } from '../lib/normalize';
+import { createSessionActions } from './actions/sessions';
+import { createListActions } from './actions/lists';
+import { createCalendarActions } from './actions/calendar';
+import { createGoalActions } from './actions/goals';
+import { createRewardActions } from './actions/rewards';
+import { uid } from '../lib/id';
+import { phaseMinutes } from '../lib/sessionTime';
 
 interface ToastItem {
   id: string;
@@ -191,80 +193,6 @@ interface AuthResponse {
   token: string;
   profile: Profile;
   data: AuthDataResponse;
-}
-
-function uid(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
-// Normalizes a raw (possibly partial/legacy) state object into a valid AppState.
-function normalizeState(raw: unknown): AppState {
-  const r = (raw && typeof raw === 'object') ? (raw as Record<string, unknown>) : null;
-  const sessions: Session[] = Array.isArray(r?.sessions) && r!.sessions.length
-    ? (r!.sessions as Session[])
-    : DEFAULT_SESSIONS;
-  const activeSessionId = typeof r?.activeSessionId === 'string' ? r.activeSessionId : (sessions[0]?.id || 's1');
-  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
-  const focusMins = activeSession?.focusMinutes || 25;
-
-  const taskLists: TaskList[] = Array.isArray(r?.taskLists) && r!.taskLists.length
-    ? (r!.taskLists as TaskList[]).map(l => ({ ...l, tasks: (l.tasks || []).map(t => normalizeTask(t as unknown as Record<string, unknown>)) }))
-    : DEFAULT_TASK_LISTS;
-  const selectedListIdForTimer = (typeof r?.selectedListIdForTimer === 'string' ? r.selectedListIdForTimer : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id;
-
-  // Sessions own their task lists. Legacy data had a single global timer list:
-  // the active session inherits it, the others start empty.
-  const listIds = new Set(taskLists.map(l => l.id));
-  const migratedSessions = sessions.map(s => {
-    if (Array.isArray(s.taskListIds)) {
-      return { ...s, taskListIds: s.taskListIds.filter(id => listIds.has(id)) };
-    }
-    const inherit = s.id === activeSessionId && selectedListIdForTimer && listIds.has(selectedListIdForTimer)
-      ? [selectedListIdForTimer]
-      : [];
-    return { ...s, taskListIds: inherit };
-  });
-
-  return {
-    sessions: migratedSessions,
-    activeSessionId,
-    taskLists,
-    activeListId: (typeof r?.activeListId === 'string' ? r.activeListId : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
-    selectedListIdForTimer,
-    activeActivityStartTime: null,
-    taskCompletionLogs: Array.isArray(r?.taskCompletionLogs) ? (r!.taskCompletionLogs as AppState['taskCompletionLogs']) : [],
-    sessionLogs: Array.isArray(r?.sessionLogs) ? (r!.sessionLogs as AppState['sessionLogs']) : [],
-    calendarEvents: Array.isArray(r?.calendarEvents) ? (r!.calendarEvents as CalendarEvent[]) : DEFAULT_CALENDAR_EVENTS,
-    calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
-    calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
-    notifications: normalizeNotifications(r?.notifications),
-    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Record<string, unknown>[]).map(normalizeGoal) : DEFAULT_GOALS,
-    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Record<string, unknown>[]).map(normalizeReward) : DEFAULT_REWARDS,
-    timer: {
-      phase: 'focus',
-      status: 'idle',
-      remaining: focusMins * 60,
-      total: focusMins * 60,
-      sessionsCompletedToday: typeof (r?.timer as Record<string, unknown> | undefined)?.sessionsCompletedToday === 'number'
-        ? ((r!.timer as Record<string, unknown>).sessionsCompletedToday as number)
-        : 0
-    },
-    sound: typeof r?.sound === 'boolean' ? r.sound : true,
-    theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system',
-    // Missing on data saved before the tour existed, so every profile sees it once.
-    tourSeen: r?.tourSeen === true
-  };
-}
-
-function normalizeNotifications(raw: unknown): NotificationSettings {
-  const n = (raw && typeof raw === 'object') ? (raw as Partial<NotificationSettings>) : {};
-  return {
-    enabled: typeof n.enabled === 'boolean' ? n.enabled : true,
-    leadMinutes: typeof n.leadMinutes === 'number' && n.leadMinutes > 0 ? n.leadMinutes : 10,
-    sound: typeof n.sound === 'boolean' ? n.sound : true,
-    phaseAlerts: typeof n.phaseAlerts === 'boolean' ? n.phaseAlerts : true,
-    autoDismissSec: typeof n.autoDismissSec === 'number' && n.autoDismissSec > 0 ? n.autoDismissSec : DEFAULT_AUTO_DISMISS_SEC
-  };
 }
 
 /** True when the user asked the OS for less motion. */
@@ -414,8 +342,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const key = dataKeyRef.current;
       if (!token || !key || authStatusRef.current !== 'authenticated') return;
       try {
-        const copy = { ...state, timer: { ...state.timer, status: 'idle' } };
-        const sealed = await encryptBlob(JSON.stringify(copy), key);
+        const sealed = await sealState(state, key);
         await api.put('/api/data', sealed, token);
       } catch (err) {
         console.warn('Failed to persist data:', err);
@@ -498,8 +425,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const key = dataKeyRef.current;
     if (token && key && authStatus === 'authenticated') {
       try {
-        const copy = { ...state, timer: { ...state.timer, status: 'idle' } };
-        const sealed = await encryptBlob(JSON.stringify(copy), key);
+        const sealed = await sealState(state, key);
         await api.put('/api/data', sealed, token);
       } catch {
         // Best effort: every change was already auto-saved; this only flushes the last one.
@@ -540,7 +466,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const key = dataKeyRef.current;
     const token = tokenRef.current;
     if (!key || !token || authStatus !== 'authenticated') {
-      throw new Error('Not authenticated');
+      throw new Error(strings.errors.api.SESSION_EXPIRED);
     }
     // Flush any pending save so stale ciphertext (old key) can't overwrite the re-encrypted blob
     if (saveTimerRef.current) {
@@ -550,8 +476,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Re-encrypt the whole blob under a fresh salt + new password-derived key
     const newSalt = randomSaltHex();
     const newKey = await deriveDataKey(newPassword, newSalt);
-    const copy = { ...state, timer: { ...state.timer, status: 'idle' } };
-    const sealed = await encryptBlob(JSON.stringify(copy), newKey);
+    const sealed = await sealState(state, newKey);
     const res = await api.put<AuthResponse>(
       '/api/profile/password',
       {
@@ -637,7 +562,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           id: uid(),
           sessionId: currentSession?.id || 'custom',
           sessionName: currentSession?.name || 'Focus Session',
-          durationMins: currentSession?.focusMinutes || 25,
+          durationMins: phaseMinutes(currentSession, 'focus'),
           date: getTodayStr(),
           timestamp: Date.now(),
           dayOfWeek: new Date().getDay()
@@ -650,7 +575,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       // Switch to break
-      const breakMins = currentSession?.breakMinutes || 5;
+      const breakMins = phaseMinutes(currentSession, 'break');
       const breakSecs = breakMins * 60;
       setState(prev => ({
         ...prev,
@@ -670,7 +595,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         announcePhaseEnd('break');
       }
 
-      const focusMins = currentSession?.focusMinutes || 25;
+      const focusMins = phaseMinutes(currentSession, 'focus');
       const focusSecs = focusMins * 60;
       setState(prev => ({
         ...prev,
@@ -737,12 +662,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
           });
         }
-      }, 500);
+      }, TIMING.timerTickMs);
     } else {
       stopTicker();
     }
 
     return stopTicker;
+    // Restarts only when the run itself changes. remaining/total are read once to set
+    // the end time; re-running on every tick would reset the ticker each second.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.timer.status, state.timer.phase, state.activeSessionId]);
 
   function stopTicker() {
@@ -760,6 +688,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       cancelDesktopAlert().catch(() => {});
     }
+    // buildPhaseAlert reads only phaseAlerts and autoDismissSec, listed below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     state.timer.status,
     state.timer.phase,
@@ -795,7 +725,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sync timer immediately on tab visibility / focus change
   useEffect(() => {
-    const handleSync = () => syncTimer();
+    const handleSync = () => syncTimerRef.current();
 
     document.addEventListener('visibilitychange', handleSync);
     window.addEventListener('focus', handleSync);
@@ -806,7 +736,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('focus', handleSync);
       window.removeEventListener('pageshow', handleSync);
     };
-  }, [state.timer.status]);
+  }, []);
 
   // Timer Controls
   const toggleTimer = () => {
@@ -825,7 +755,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       const activeSession = prev.sessions.find(s => s.id === prev.activeSessionId) || prev.sessions[0];
-      const mins = prev.timer.phase === 'focus' ? (activeSession?.focusMinutes || 25) : (activeSession?.breakMinutes || 5);
+      const mins = phaseMinutes(activeSession, prev.timer.phase);
       const expectedTotal = mins * 60;
 
       let remaining = prev.timer.remaining;
@@ -867,7 +797,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     clearTimerRun();
     setState(prev => {
       const activeSession = prev.sessions.find(s => s.id === prev.activeSessionId) || prev.sessions[0];
-      const mins = activeSession?.focusMinutes || 25;
+      const mins = phaseMinutes(activeSession, 'focus');
       const total = mins * 60;
       return {
         ...prev,
@@ -982,7 +912,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const [h, m] = ev.startTime.split(':').map(Number);
         const start = new Date();
         start.setHours(h || 0, m || 0, 0, 0);
-        if (n.sound) playChime('focus');
+        if (n.sound && stateRef.current.sound) playPhaseChime('focus');
         ringBell();
         deliverAlert(buildEventAlert(ev, Math.round((start.getTime() - now) / 60_000), n));
       });
@@ -1003,828 +933,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => (prev.tourSeen ? prev : { ...prev, tourSeen: true }));
   };
 
-  // ══════════════════════════════════════════════════════════════════════
-  // DRAG & DROP REORDERING
-  // ══════════════════════════════════════════════════════════════════════
-  const reorderSessions = (sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
-    setState(prev => {
-      const fromIdx = prev.sessions.findIndex(s => s.id === sourceId);
-      const toIdx = prev.sessions.findIndex(s => s.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const updated = [...prev.sessions];
-      const [moved] = updated.splice(fromIdx, 1);
-      updated.splice(toIdx, 0, moved);
-      return { ...prev, sessions: updated };
-    });
-  };
-
-  const reorderTaskLists = (sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
-    setState(prev => {
-      const fromIdx = prev.taskLists.findIndex(l => l.id === sourceId);
-      const toIdx = prev.taskLists.findIndex(l => l.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const updated = [...prev.taskLists];
-      const [moved] = updated.splice(fromIdx, 1);
-      updated.splice(toIdx, 0, moved);
-      return { ...prev, taskLists: updated };
-    });
-  };
-
-  const reorderTasks = (listId: string, sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
-    setState(prev => {
-      const targetList = prev.taskLists.find(l => l.id === listId);
-      if (!targetList) return prev;
-      const fromIdx = targetList.tasks.findIndex(t => t.id === sourceId);
-      const toIdx = targetList.tasks.findIndex(t => t.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const newTasks = [...targetList.tasks];
-      const [moved] = newTasks.splice(fromIdx, 1);
-      newTasks.splice(toIdx, 0, moved);
-
-      return {
-        ...prev,
-        taskLists: prev.taskLists.map(l => (l.id === listId ? { ...l, tasks: newTasks } : l))
-      };
-    });
-  };
-
-  const moveCalendarEvent = (eventId: string, targetDate: string, targetTime: string) => {
-    setState(prev => {
-      const ev = prev.calendarEvents.find(e => e.id === eventId);
-      if (!ev) return prev;
-      showToast(format(strings.toasts.eventMoved, { date: targetDate, time: targetTime }));
-      return {
-        ...prev,
-        calendarEvents: prev.calendarEvents.map(e =>
-          e.id === eventId ? { ...e, date: targetDate, startTime: targetTime } : e
-        )
-      };
-    });
-  };
-
-  // ══════════════════════════════════════════════════════════════════════
-  // SESSIONS
-  // ══════════════════════════════════════════════════════════════════════
-  const setActiveSession = (id: string) => {
-    if (isTauri()) cancelDesktopAlert().catch(() => {});
-    targetEndTimeRef.current = null;
-    clearTimerRun();
-    setState(prev => {
-      const s = prev.sessions.find(x => x.id === id) || prev.sessions[0];
-      const dur = (s?.focusMinutes || 25) * 60;
-      return {
-        ...prev,
-        activeSessionId: id,
-        selectedListIdForTimer: s?.taskListIds?.[0] ?? prev.selectedListIdForTimer,
-        activeActivityStartTime: null,
-        timer: { ...prev.timer, phase: 'focus', status: 'idle', remaining: dur, total: dur }
-      };
-    });
-  };
-
-  const createSession = (session: Omit<Session, 'id'>): string => {
-    const newSession: Session = { ...session, taskListIds: session.taskListIds ? [...session.taskListIds] : [], id: uid() };
-    setState(prev => {
-      const updatedRewards = newSession.rewardId
-        ? prev.rewards.map(r =>
-            r.id === newSession.rewardId
-              ? { ...r, linkedSessionId: newSession.id, linkedId: newSession.id, trigger: 'session' as const }
-              : r
-          )
-        : prev.rewards;
-
-      return {
-        ...prev,
-        sessions: [...prev.sessions, newSession],
-        rewards: updatedRewards,
-        activeSessionId: prev.activeSessionId || newSession.id
-      };
-    });
-    showToast(format(strings.toasts.sessionCreated, { name: newSession.name }));
-    return newSession.id;
-  };
-
-  const updateSession = (id: string, session: Partial<Session>) => {
-    setState(prev => {
-      const updated = prev.sessions.map(s => (s.id === id ? { ...s, ...session } : s));
-      const activeS = updated.find(s => s.id === prev.activeSessionId) || updated[0];
-      let timerUpdate = prev.timer;
-      if (prev.activeSessionId === id && prev.timer.status === 'idle') {
-        const mins = prev.timer.phase === 'focus' ? (activeS?.focusMinutes || 25) : (activeS?.breakMinutes || 5);
-        timerUpdate = { ...prev.timer, remaining: mins * 60, total: mins * 60 };
-      }
-
-      let updatedRewards = prev.rewards;
-      if (session.rewardId !== undefined) {
-        updatedRewards = prev.rewards.map(r => {
-          // Unlink previously linked reward if it changed
-          if ((r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) && r.id !== session.rewardId) {
-            return {
-              ...r,
-              linkedSessionId: null,
-              linkedId: r.linkedGoalId || null,
-              trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
-            };
-          }
-          // Link new reward
-          if (session.rewardId && r.id === session.rewardId) {
-            return {
-              ...r,
-              linkedSessionId: id,
-              linkedId: id,
-              trigger: 'session' as const
-            };
-          }
-          return r;
-        });
-      }
-
-      return { ...prev, sessions: updated, rewards: updatedRewards, timer: timerUpdate };
-    });
-    showToast(strings.toasts.sessionUpdated);
-  };
-
-  const duplicateSession = (id: string) => {
-    setState(prev => {
-      const target = prev.sessions.find(s => s.id === id);
-      if (!target) return prev;
-      const dup: Session = {
-        ...target,
-        id: uid(),
-        name: format(strings.common.copyOf, { name: target.name }),
-        taskListIds: [...(target.taskListIds || [])]
-      };
-      return { ...prev, sessions: [...prev.sessions, dup] };
-    });
-    showToast(strings.toasts.sessionDuplicated);
-  };
-
-  const deleteSession = (id: string) => {
-    setState(prev => {
-      const filtered = prev.sessions.filter(s => s.id !== id);
-      const nextActiveId = prev.activeSessionId === id ? (filtered[0]?.id || null) : prev.activeSessionId;
-      const nextActive = filtered.find(s => s.id === nextActiveId) || filtered[0];
-      const mins = nextActive ? nextActive.focusMinutes : 25;
-
-      const updatedRewards = prev.rewards.map(r => {
-        if (r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) {
-          return {
-            ...r,
-            linkedSessionId: null,
-            linkedId: r.linkedGoalId || null,
-            trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
-          };
-        }
-        return r;
-      });
-
-      return {
-        ...prev,
-        sessions: filtered,
-        rewards: updatedRewards,
-        activeSessionId: nextActiveId,
-        timer: {
-          ...prev.timer,
-          status: 'idle',
-          phase: 'focus',
-          remaining: mins * 60,
-          total: mins * 60
-        }
-      };
-    });
-    showToast(strings.toasts.sessionDeleted);
-  };
-
-  // Silent on purpose: called from inline pickers, where a toast per change is noise.
-  const setSessionTaskLists = (sessionId: string, listIds: string[]) => {
-    const unique = Array.from(new Set(listIds));
-    setState(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(s => (s.id === sessionId ? { ...s, taskListIds: unique } : s)),
-      selectedListIdForTimer: prev.activeSessionId === sessionId ? (unique[0] || null) : prev.selectedListIdForTimer
-    }));
-  };
-
-  // ══════════════════════════════════════════════════════════════════════
-  // LISTS
-  // ══════════════════════════════════════════════════════════════════════
-  const setActiveList = (id: string) => setState(prev => ({ ...prev, activeListId: id }));
-
-  const createList = (name: string, options: { activate?: boolean } = {}): string => {
-    const { activate = true } = options;
-    const newList: TaskList = { id: uid(), name, tasks: [] };
-    setState(prev => ({
-      ...prev,
-      taskLists: [...prev.taskLists, newList],
-      activeListId: activate ? newList.id : prev.activeListId,
-      selectedListIdForTimer: prev.selectedListIdForTimer || newList.id
-    }));
-    showToast(format(strings.toasts.listCreated, { name }));
-    return newList.id;
-  };
-
-  const renameList = (id: string, name: string) => {
-    setState(prev => ({
-      ...prev,
-      taskLists: prev.taskLists.map(l => (l.id === id ? { ...l, name } : l))
-    }));
-    showToast(strings.toasts.listRenamed);
-  };
-
-  const duplicateList = (id: string) => {
-    setState(prev => {
-      const target = prev.taskLists.find(l => l.id === id);
-      if (!target) return prev;
-      const dup: TaskList = {
-        id: uid(),
-        name: format(strings.common.copyOf, { name: target.name }),
-        tasks: target.tasks.map(t => ({ ...t, id: uid(), completed: false, durationSeconds: null }))
-      };
-      return { ...prev, taskLists: [...prev.taskLists, dup], activeListId: dup.id };
-    });
-    showToast(strings.toasts.listDuplicated);
-  };
-
-  const deleteList = (id: string) => {
-    setState(prev => {
-      const filtered = prev.taskLists.filter(l => l.id !== id);
-      return {
-        ...prev,
-        taskLists: filtered,
-        sessions: prev.sessions.map(s =>
-          s.taskListIds?.includes(id) ? { ...s, taskListIds: s.taskListIds.filter(x => x !== id) } : s
-        ),
-        activeListId: filtered[0]?.id || null,
-        selectedListIdForTimer:
-          prev.selectedListIdForTimer === id ? (filtered[0]?.id || null) : prev.selectedListIdForTimer
-      };
-    });
-    showToast(strings.toasts.listDeleted);
-  };
-
-  const setSelectedListForTimer = (id: string | null) => setState(prev => ({ ...prev, selectedListIdForTimer: id }));
-
-  // ══════════════════════════════════════════════════════════════════════
-  // TASKS
-  // ══════════════════════════════════════════════════════════════════════
-  const addTask = (listId: string, text: string) => {
-    const newTask: Task = { id: uid(), text, completed: false, createdAt: Date.now() };
-    setState(prev => ({
-      ...prev,
-      taskLists: prev.taskLists.map(l => (l.id === listId ? { ...l, tasks: [...l.tasks, newTask] } : l))
-    }));
-  };
-
-  const toggleTask = (listId: string, taskId: string, checked: boolean) => {
-    const now = Date.now();
-    let durationSeconds: number | null = null;
-    let completedTaskText = '';
-
-    setState(prev => {
-      const updatedLists = prev.taskLists.map(l => {
-        if (l.id !== listId) return l;
-        return {
-          ...l,
-          tasks: l.tasks.map(t => {
-            if (t.id !== taskId) return t;
-            if (checked) {
-              const startTime = prev.activeActivityStartTime || now - 60000;
-              durationSeconds = Math.max(1, Math.round((now - startTime) / 1000));
-              completedTaskText = t.text;
-              return { ...t, completed: true, completedAt: now, durationSeconds };
-            }
-            return { ...t, completed: false, completedAt: null, durationSeconds: null };
-          })
-        };
-      });
-
-      const updatedLogs = [...prev.taskCompletionLogs];
-      if (checked && durationSeconds) {
-        const listName = prev.taskLists.find(l => l.id === listId)?.name || 'Task List';
-        updatedLogs.push({
-          id: uid(),
-          taskId,
-          taskText: completedTaskText,
-          durationSeconds,
-          listId,
-          listName,
-          timestamp: now,
-          date: getTodayStr()
-        });
-        showToast(format(strings.toasts.taskDone, { duration: formatDuration(durationSeconds) }));
-      }
-
-      return {
-        ...prev,
-        taskLists: updatedLists,
-        taskCompletionLogs: updatedLogs,
-        activeActivityStartTime: checked ? now : prev.activeActivityStartTime
-      };
-    });
-  };
-
-  const renameTask = (listId: string, taskId: string, newText: string) => {
-    setState(prev => ({
-      ...prev,
-      taskLists: prev.taskLists.map(l =>
-        l.id === listId
-          ? {
-              ...l,
-              tasks: l.tasks.map(t => (t.id === taskId ? { ...t, text: newText } : t))
-            }
-          : l
-      )
-    }));
-    showToast(strings.toasts.taskUpdated);
-  };
-
-  const duplicateTask = (listId: string, taskId: string) => {
-    setState(prev => ({
-      ...prev,
-      taskLists: prev.taskLists.map(l => {
-        if (l.id !== listId) return l;
-        const target = l.tasks.find(t => t.id === taskId);
-        if (!target) return l;
-        const copy: Task = { ...target, id: uid(), completed: false, durationSeconds: null };
-        const idx = l.tasks.indexOf(target);
-        const newTasks = [...l.tasks];
-        newTasks.splice(idx + 1, 0, copy);
-        return { ...l, tasks: newTasks };
-      })
-    }));
-  };
-
-  const deleteTask = (listId: string, taskId: string) => {
-    setState(prev => ({
-      ...prev,
-      taskLists: prev.taskLists.map(l =>
-        l.id === listId
-          ? {
-              ...l,
-              tasks: l.tasks.filter(t => t.id !== taskId)
-            }
-          : l
-      )
-    }));
-  };
-
-  // ══════════════════════════════════════════════════════════════════════
-  // CALENDAR
-  // ══════════════════════════════════════════════════════════════════════
-  const addCalendarEvent = (event: Omit<CalendarEvent, 'id'>) => {
-    const newEvent: CalendarEvent = { ...event, id: uid() };
-    setState(prev => ({ ...prev, calendarEvents: [...prev.calendarEvents, newEvent] }));
-    showToast(format(strings.toasts.eventScheduled, { title: newEvent.title }));
-  };
-
-  const updateCalendarEvent = (id: string, event: Partial<CalendarEvent>) => {
-    setState(prev => ({
-      ...prev,
-      calendarEvents: prev.calendarEvents.map(e => (e.id === id ? { ...e, ...event } : e))
-    }));
-    showToast(strings.toasts.eventUpdated);
-  };
-
-  const duplicateCalendarEvent = (id: string) => {
-    setState(prev => {
-      const target = prev.calendarEvents.find(e => e.id === id);
-      if (!target) return prev;
-      const dup: CalendarEvent = { ...target, id: uid(), title: format(strings.common.copyOf, { name: target.title }) };
-      return { ...prev, calendarEvents: [...prev.calendarEvents, dup] };
-    });
-    showToast(strings.toasts.eventDuplicated);
-  };
-
-  const deleteCalendarEvent = (id: string) => {
-    setState(prev => ({ ...prev, calendarEvents: prev.calendarEvents.filter(e => e.id !== id) }));
-    showToast(strings.toasts.eventRemoved);
-  };
-
-  const setCalendarView = (view: CalendarView) => setState(prev => ({ ...prev, calendarView: view }));
-
-  const setCalendarDate = (date: string) => setState(prev => ({ ...prev, calendarDate: date }));
-
-  // ══════════════════════════════════════════════════════════════════════
-  // GOALS & LANDMARKS
-  // ══════════════════════════════════════════════════════════════════════
-  const addGoal = (goal: Omit<Goal, 'id' | 'completed'>) => {
-    const newGoal: Goal = {
-      ...goal,
-      id: uid(),
-      name: goal.name || strings.goals.untitledGoal,
-      frequency: goal.frequency || 'daily',
-      target: goal.target || 4,
-      current: 0,
-      completed: false,
-      landmarks: goal.landmarks || []
-    };
-    setState(prev => {
-      const updatedRewards = newGoal.rewardId
-        ? prev.rewards.map(r =>
-            r.id === newGoal.rewardId
-              ? { ...r, linkedGoalId: newGoal.id, linkedId: newGoal.id, trigger: 'goal' as const }
-              : r
-          )
-        : prev.rewards;
-
-      return {
-        ...prev,
-        goals: [...prev.goals, newGoal],
-        rewards: updatedRewards
-      };
-    });
-    showToast(format(strings.toasts.goalCreated, { name: newGoal.name }));
-  };
-
-  const updateGoal = (id: string, goal: Partial<Goal>) => {
-    setState(prev => {
-      const updated = prev.goals.map(g =>
-        g.id === id
-          ? {
-              ...g,
-              ...goal,
-              name: goal.name || g.name,
-              frequency: goal.frequency || g.frequency
-            }
-          : g
-      );
-
-      let updatedRewards = prev.rewards;
-      if (goal.rewardId !== undefined) {
-        updatedRewards = prev.rewards.map(r => {
-          if ((r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) && r.id !== goal.rewardId) {
-            return {
-              ...r,
-              linkedGoalId: null,
-              linkedId: r.linkedSessionId || null,
-              trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
-            };
-          }
-          if (goal.rewardId && r.id === goal.rewardId) {
-            return {
-              ...r,
-              linkedGoalId: id,
-              linkedId: id,
-              trigger: 'goal' as const
-            };
-          }
-          return r;
-        });
-      }
-
-      return { ...prev, goals: updated, rewards: updatedRewards };
-    });
-    showToast(strings.toasts.goalUpdated);
-  };
-
-  const duplicateGoal = (id: string) => {
-    setState(prev => {
-      const target = prev.goals.find(g => g.id === id);
-      if (!target) return prev;
-      const dup: Goal = {
-        ...target,
-        id: uid(),
-        name: format(strings.common.copyOf, { name: target.name }),
-        landmarks: (target.landmarks || []).map(l => ({ ...l, id: uid(), completed: false }))
-      };
-      return { ...prev, goals: [...prev.goals, dup] };
-    });
-    showToast(strings.toasts.goalDuplicated);
-  };
-
-  const deleteGoal = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.filter(g => g.id !== id),
-      rewards: prev.rewards.map(r => {
-        if (r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) {
-          return {
-            ...r,
-            linkedGoalId: null,
-            linkedId: r.linkedSessionId || null,
-            trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
-          };
-        }
-        return r;
-      })
-    }));
-    showToast(strings.toasts.goalDeleted);
-  };
-
-  const toggleGoal = (id: string) => {
-    setState(prev => {
-      const updated = prev.goals.map(g => {
-        if (g.id !== id) return g;
-        const nextCompleted = !g.completed;
-        return {
-          ...g,
-          completed: nextCompleted,
-          current: nextCompleted ? (g.target || 1) : 0
-        };
-      });
-
-      // Check for goal completion rewards
-      const targetGoal = updated.find(g => g.id === id);
-      let updatedRewards = prev.rewards;
-      if (targetGoal && targetGoal.completed) {
-        updatedRewards = prev.rewards.map(r => {
-          const isLinked =
-            (r.linkedGoalId && r.linkedGoalId === id) ||
-            (r.trigger === 'goal' && r.linkedId === id) ||
-            (targetGoal.rewardId && r.id === targetGoal.rewardId);
-          return isLinked && r.status === 'locked' ? { ...r, status: 'ready' } : r;
-        });
-      }
-
-      return {
-        ...prev,
-        goals: updated,
-        rewards: updatedRewards
-      };
-    });
-  };
-
-  const addLandmark = (goalId: string, landmark: Omit<Landmark, 'id'>) => {
-    const newLm: Landmark = {
-      ...landmark,
-      id: uid(),
-      name: landmark.name || strings.goals.untitledLandmark,
-      completed: false
-    };
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.map(g =>
-        g.id === goalId ? { ...g, landmarks: [...(g.landmarks || []), newLm] } : g
-      )
-    }));
-  };
-
-  const updateLandmark = (goalId: string, landmarkId: string, landmark: Partial<Landmark>) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.map(g => {
-        if (g.id !== goalId || !g.landmarks) return g;
-        return {
-          ...g,
-          landmarks: g.landmarks.map(l =>
-            l.id === landmarkId
-              ? {
-                  ...l,
-                  ...landmark,
-                  name: landmark.name || l.name
-                }
-              : l
-          )
-        };
-      })
-    }));
-  };
-
-  const duplicateLandmark = (goalId: string, landmarkId: string) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.map(g => {
-        if (g.id !== goalId || !g.landmarks) return g;
-        const target = g.landmarks.find(l => l.id === landmarkId);
-        if (!target) return g;
-        const copy: Landmark = { ...target, id: uid(), completed: false };
-        const idx = g.landmarks.indexOf(target);
-        const newLms = [...g.landmarks];
-        newLms.splice(idx + 1, 0, copy);
-        return { ...g, landmarks: newLms };
-      })
-    }));
-  };
-
-  const deleteLandmark = (goalId: string, landmarkId: string) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.map(g => {
-        if (g.id !== goalId || !g.landmarks) return g;
-        return { ...g, landmarks: g.landmarks.filter(l => l.id !== landmarkId) };
-      })
-    }));
-  };
-
-  const toggleLandmark = (goalId: string, landmarkId: string) => {
-    setState(prev => {
-      let landmarkCompleted = false;
-      let landmarkRewardId: string | null | undefined = null;
-
-      const updatedGoals = prev.goals.map(g => {
-        if (g.id !== goalId || !g.landmarks) return g;
-        const updatedLm = g.landmarks.map(lm => {
-          if (lm.id === landmarkId) {
-            const comp = !lm.completed;
-            landmarkCompleted = comp;
-            landmarkRewardId = lm.rewardId;
-            return { ...lm, completed: comp };
-          }
-          return lm;
-        });
-        const compCount = updatedLm.filter(lm => lm.completed).length;
-        const allCompleted = updatedLm.length > 0 && compCount === updatedLm.length;
-        return {
-          ...g,
-          landmarks: updatedLm,
-          current: compCount,
-          completed: allCompleted
-        };
-      });
-
-      // Unlock landmark and goal rewards if newly completed
-      let updatedRewards = prev.rewards;
-      if (landmarkCompleted) {
-        updatedRewards = prev.rewards.map(r => {
-          if (
-            (r.trigger === 'landmark' && r.linkedId === landmarkId && r.status === 'locked') ||
-            (landmarkRewardId && r.id === landmarkRewardId && r.status === 'locked')
-          ) {
-            return { ...r, status: 'ready' };
-          }
-          return r;
-        });
-
-        const targetGoal = updatedGoals.find(g => g.id === goalId);
-        if (targetGoal && targetGoal.completed) {
-          updatedRewards = updatedRewards.map(r => {
-            if (
-              (r.trigger === 'goal' && r.linkedId === goalId && r.status === 'locked') ||
-              (targetGoal.rewardId && r.id === targetGoal.rewardId && r.status === 'locked')
-            ) {
-              return { ...r, status: 'ready' };
-            }
-            return r;
-          });
-        }
-      }
-
-      return {
-        ...prev,
-        goals: updatedGoals,
-        rewards: updatedRewards
-      };
-    });
-  };
-
-  // ══════════════════════════════════════════════════════════════════════
-  // REWARDS
-  // ══════════════════════════════════════════════════════════════════════
-  const addReward = (reward: NewReward): string => {
-    const linkedSession = reward.linkedSessionId || (reward.trigger === 'session' ? reward.linkedId : null);
-    const linkedGoal = reward.linkedGoalId || (reward.trigger === 'goal' ? reward.linkedId : null);
-    const inferredTrigger: Reward['trigger'] = reward.trigger || (linkedSession ? 'session' : linkedGoal ? 'goal' : 'manual');
-
-    const newReward: Reward = {
-      ...reward,
-      id: uid(),
-      name: reward.name,
-      description: reward.description ?? '',
-      emoji: reward.emoji || DEFAULT_REWARD_EMOJI,
-      frequency: reward.frequency ?? 'daily',
-      trigger: inferredTrigger,
-      linkedSessionId: linkedSession,
-      linkedGoalId: linkedGoal,
-      linkedId: linkedSession || linkedGoal || reward.linkedId || null,
-      status: reward.status || (inferredTrigger === 'manual' && !linkedSession && !linkedGoal ? 'ready' : 'locked'),
-      claimedAt: null
-    };
-
-    setState(prev => {
-      const updatedSessions = newReward.linkedSessionId
-        ? prev.sessions.map(s => (s.id === newReward.linkedSessionId ? { ...s, rewardId: newReward.id } : s))
-        : prev.sessions;
-
-      const updatedGoals = newReward.linkedGoalId
-        ? prev.goals.map(g => (g.id === newReward.linkedGoalId ? { ...g, rewardId: newReward.id } : g))
-        : prev.goals;
-
-      return {
-        ...prev,
-        rewards: [...prev.rewards, newReward],
-        sessions: updatedSessions,
-        goals: updatedGoals
-      };
-    });
-    showToast(format(strings.toasts.rewardCreated, { name: newReward.name }));
-    return newReward.id;
-  };
-
-  const updateReward = (id: string, reward: Partial<Reward>) => {
-    setState(prev => {
-      const updatedRewards = prev.rewards.map(r => {
-        if (r.id !== id) return r;
-        const nextLinkedSession = reward.linkedSessionId !== undefined
-          ? reward.linkedSessionId
-          : (reward.linkedId && reward.trigger === 'session' ? reward.linkedId : r.linkedSessionId);
-        const nextLinkedGoal = reward.linkedGoalId !== undefined
-          ? reward.linkedGoalId
-          : (reward.linkedId && reward.trigger === 'goal' ? reward.linkedId : r.linkedGoalId);
-
-        let nextTrigger = reward.trigger || r.trigger;
-        if (reward.linkedSessionId !== undefined || reward.linkedGoalId !== undefined) {
-          if (nextLinkedSession) nextTrigger = 'session';
-          else if (nextLinkedGoal) nextTrigger = 'goal';
-          else if (!r.linkedId) nextTrigger = 'manual';
-        }
-
-        return {
-          ...r,
-          ...reward,
-          emoji: reward.emoji || r.emoji,
-          trigger: nextTrigger,
-          linkedSessionId: nextLinkedSession,
-          linkedGoalId: nextLinkedGoal,
-          linkedId: nextLinkedSession || nextLinkedGoal || (reward.linkedId !== undefined ? reward.linkedId : r.linkedId)
-        };
-      });
-
-      const target = updatedRewards.find(r => r.id === id);
-      const targetSessionId = target?.linkedSessionId || (target?.trigger === 'session' ? target?.linkedId : null);
-      const targetGoalId = target?.linkedGoalId || (target?.trigger === 'goal' ? target?.linkedId : null);
-
-      let updatedSessions = prev.sessions;
-      if (reward.linkedSessionId !== undefined || reward.linkedId !== undefined) {
-        updatedSessions = prev.sessions.map(s => {
-          if (s.rewardId === id && s.id !== targetSessionId) {
-            return { ...s, rewardId: null };
-          }
-          if (targetSessionId && s.id === targetSessionId) {
-            return { ...s, rewardId: id };
-          }
-          return s;
-        });
-      }
-
-      let updatedGoals = prev.goals;
-      if (reward.linkedGoalId !== undefined || reward.linkedId !== undefined) {
-        updatedGoals = prev.goals.map(g => {
-          if (g.rewardId === id && g.id !== targetGoalId) {
-            return { ...g, rewardId: null };
-          }
-          if (targetGoalId && g.id === targetGoalId) {
-            return { ...g, rewardId: id };
-          }
-          return g;
-        });
-      }
-
-      return {
-        ...prev,
-        rewards: updatedRewards,
-        sessions: updatedSessions,
-        goals: updatedGoals
-      };
-    });
-    showToast(strings.toasts.rewardUpdated);
-  };
-
-  const duplicateReward = (id: string) => {
-    setState(prev => {
-      const target = prev.rewards.find(r => r.id === id);
-      if (!target) return prev;
-      const dup: Reward = {
-        ...target,
-        id: uid(),
-        name: format(strings.common.copyOf, { name: target.name }),
-        status: target.trigger === 'manual' ? 'ready' : 'locked',
-        claimedAt: null
-      };
-      return { ...prev, rewards: [...prev.rewards, dup] };
-    });
-    showToast(strings.toasts.rewardDuplicated);
-  };
-
-  const deleteReward = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      rewards: prev.rewards.filter(r => r.id !== id),
-      sessions: prev.sessions.map(s => (s.rewardId === id ? { ...s, rewardId: null } : s)),
-      goals: prev.goals.map(g => ({
-        ...g,
-        rewardId: g.rewardId === id ? null : g.rewardId,
-        landmarks: (g.landmarks || []).map(l => (l.rewardId === id ? { ...l, rewardId: null } : l))
-      }))
-    }));
-    showToast(strings.toasts.rewardDeleted);
-  };
-
-  const claimReward = (id: string) => {
-    setState(prev => {
-      const target = prev.rewards.find(r => r.id === id);
-      if (target && target.status === 'ready') {
-        setActiveCelebrationReward(target);
-        return {
-          ...prev,
-          rewards: prev.rewards.map(r => (r.id === id ? { ...r, status: 'claimed', claimedAt: Date.now() } : r))
-        };
-      }
-      return prev;
-    });
-  };
+  // ── Entity actions (src/context/actions) ──────────────────────────
+  const { reorderSessions, setActiveSession, createSession, updateSession, duplicateSession, deleteSession, setSessionTaskLists } = createSessionActions({ setState, showToast, targetEndTimeRef });
+  const { reorderTaskLists, reorderTasks, setActiveList, createList, renameList, duplicateList, deleteList, setSelectedListForTimer, addTask, toggleTask, renameTask, duplicateTask, deleteTask } = createListActions({ setState, showToast, stateRef });
+  const { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, duplicateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate } = createCalendarActions({ setState, showToast, stateRef });
+  const { addGoal, updateGoal, duplicateGoal, deleteGoal, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark } = createGoalActions({ setState, showToast });
+  const { addReward, updateReward, duplicateReward, deleteReward, claimReward } = createRewardActions({ setState, showToast, stateRef, setActiveCelebrationReward });
 
   const setActiveSessionRef = useRef(setActiveSession);
   setActiveSessionRef.current = setActiveSession;

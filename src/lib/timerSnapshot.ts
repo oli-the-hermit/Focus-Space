@@ -1,4 +1,5 @@
 import { AppState, Session, TimerPhase, TimerStatus } from '../types';
+import { nextPhase, phaseMinutes } from './sessionTime';
 
 /** Everything the player / mini player needs to render, detached from app state. */
 export interface TimerSnapshot {
@@ -47,7 +48,7 @@ export function getUpNextTasks(state: AppState, session: Session | undefined, li
 
 /** Falls back to the session's configured length when the timer has no total yet. */
 export function getPhaseTimes(state: AppState, session: Session | undefined): { total: number; remaining: number } {
-  const defaultMins = state.timer.phase === 'focus' ? (session?.focusMinutes || 25) : (session?.breakMinutes || 5);
+  const defaultMins = phaseMinutes(session, state.timer.phase);
   const total = state.timer.total > 0 ? state.timer.total : defaultMins * 60;
   const remaining = state.timer.remaining >= 0 ? state.timer.remaining : total;
   return { total, remaining };
@@ -56,7 +57,7 @@ export function getPhaseTimes(state: AppState, session: Session | undefined): { 
 export function buildTimerSnapshot(state: AppState, targetEndTime: number | null, noSessionLabel: string): TimerSnapshot {
   const session = getActiveSession(state);
   const { total, remaining } = getPhaseTimes(state, session);
-  const nextMins = state.timer.phase === 'focus' ? (session?.breakMinutes || 5) : (session?.focusMinutes || 25);
+  const nextMins = phaseMinutes(session, nextPhase(state.timer.phase));
   const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
   return {
     phase: state.timer.phase,
