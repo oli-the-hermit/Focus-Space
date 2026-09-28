@@ -42,7 +42,7 @@ const centerBox = (): Box => ({
   left: window.innerWidth / 2,
   width: 0,
   height: 0,
-  radius: 'var(--radius-lg)'
+  radius: 'var(--radius-2xl)'
 });
 
 function boxFor(el: HTMLElement): Box {
@@ -59,7 +59,7 @@ function boxFor(el: HTMLElement): Box {
     left,
     width: right - left,
     height: bottom - top,
-    radius: small ? 'var(--radius-pill)' : 'var(--radius-lg)'
+    radius: small ? 'var(--radius-pill)' : 'var(--radius-2xl)'
   };
 }
 

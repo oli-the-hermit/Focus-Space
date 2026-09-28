@@ -1,25 +1,35 @@
 /* ═══════════════════════════════════════════════════════════
-   Focus Space — design tokens
+   Focus Space — design tokens (single source of truth)
+
+   Every color, type, spacing, radius, size and motion value in the
+   stylesheets comes from here; Stylelint rejects raw values elsewhere.
+
    Flat Material: surfaces are separated by tonal steps, not borders,
    gradients, transparency or decorative shadows. The only shadow is
    --elev-overlay, used on floating layers (menus, popovers, modals).
-   Dark is the default; light is a full parallel set.
+   Dark is the default; light is a full parallel set of the colors.
+
+   Two sections:
+     CORE     shared by every app in the family (the future design system)
+     PRODUCT  specific to Focus Space (timer phases, layout, loops)
  ═══════════════════════════════════════════════════════════ */
 
+/* ══ CORE ════════════════════════════════════════════════════ */
+
 :root {
-  /* Surfaces: bg < 1 < 2 < 3 < 4 */
+  /* ── Color: surfaces (bg < 1 < 2 < 3 < 4) ── */
   --bg:               #0E0F11;
   --surface-1:        #16181B;
   --surface-2:        #1E2024;
   --surface-3:        #272A2F;
   --surface-4:        #31343A;
 
-  /* Text */
+  /* ── Color: text ── */
   --text-1:           #F1F2EC;
   --text-2:           #A9ACA4;
   --text-3:           #6F736B;
 
-  /* Accent */
+  /* ── Color: accent ── */
   --accent:           #D1DD23;
   --accent-hover:     #DDE84A;
   --on-accent:        #1A1D00;
@@ -28,15 +38,7 @@
   --on-accent-container: #E8F07A;
   --accent-text:      #D1DD23;      /* accent used as text/icon colour */
 
-  /* Break phase */
-  --break:            #5EC8B8;
-  --break-hover:      #7AD6C8;
-  --on-break:         #00201C;
-  --on-break-2:       #0E4F46;
-  --break-container:  #103B36;
-  --on-break-container: #A6EEE2;
-
-  /* Status */
+  /* ── Color: status ── */
   --danger:           #FF8A7A;
   --danger-container: #4A1A14;
   --on-danger:        #3B0A05;
@@ -44,16 +46,16 @@
   --warning-container:#46330C;
   --success:          #8BD48B;
   --success-container:#173D1D;
-  --live:             #FF6B5B;
+  --live:             #FF6B5B;      /* "now" markers and counters */
+  --on-live:          #FFFFFF;
 
-  /* Inverse (toasts) */
+  /* ── Color: inverse (toasts) ── */
   --inverse-surface:  #E8E9E2;
   --inverse-on-surface:#1A1C17;
 
-  /* Structure */
+  /* ── Color: structure ── */
   --grid-line:        #1E2024;
   --scrim:            rgb(6 7 8 / 72%);
-  --elev-overlay:     0 12px 32px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 35%);
   --focus-ring:       #D1DD23;
 
   /* Field backgrounds shift one step inside tonal containers */
@@ -61,49 +63,119 @@
   --field-hover:      var(--surface-3);
   --row-hover:        var(--surface-2);
 
+  /* ── Type ──
+     rem is relative to --text-root (15px), so 1rem = 15px. */
+  --font:             'Geist Variable', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;   /* self-hosted via @fontsource-variable/geist, works offline */
+  --text-root:        15px;
+  --text-3xs:         0.72rem;   /* ~10.8px  overlines, tiny meta */
+  --text-2xs:         0.78rem;   /* ~11.7px  captions, chips */
+  --text-xs:          0.85rem;   /* ~12.8px  secondary text, small buttons */
+  --text-sm:          0.9rem;    /* ~13.5px  labels, dense rows */
+  --text-md:          0.95rem;   /* ~14.3px  body, buttons, inputs */
+  --text-base:        1rem;      /*  15px    emphasized body */
+  --text-lg:          1.1rem;    /* ~16.5px  item titles */
+  --text-xl:          1.3rem;    /* ~19.5px  section titles */
+  --text-2xl:         1.45rem;   /* ~21.8px  card and modal titles */
+  --text-3xl:         1.65rem;   /* ~24.8px  page and auth titles */
+  --text-4xl:         1.95rem;   /* ~29.3px  stat numbers */
+  --text-5xl:         2.6rem;    /*  39px    display */
+  --text-6xl:         4rem;      /*  60px    celebration emoji */
+
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      650;
+  --weight-heavy:     700;
+
+  --leading-none:     1;
+  --leading-tight:    1.2;
+  --leading-snug:     1.3;
+  --leading-normal:   1.5;
+
+  --tracking-tightest: -0.045em;  /* large digits */
+  --tracking-tighter: -0.03em;
+  --tracking-tight:   -0.015em;   /* headings */
+  --tracking-wide:    0.08em;
+  --tracking-caps:    0.12em;     /* uppercase overlines */
+  --tracking-caps-wide: 0.17em;
+
+  /* ── Space: px values on a 2px grid; the name is the size ── */
+  --space-1:          1px;       /* hairline gaps between grouped buttons */
+  --space-2:          2px;
+  --space-4:          4px;
+  --space-6:          6px;
+  --space-8:          8px;
+  --space-10:         10px;
+  --space-12:         12px;
+  --space-14:         14px;
+  --space-16:         16px;
+  --space-18:         18px;
+  --space-20:         20px;
+  --space-22:         22px;
+  --space-24:         24px;
+  --space-28:         28px;
+  --space-32:         32px;
+  --space-36:         36px;
+  --space-40:         40px;
+  --space-48:         48px;
+
+  /* ── Radius ── */
+  --radius-2xs:       4px;
   --radius-xs:        6px;
-  --radius-sm:        10px;
-  --radius-md:        14px;
-  --radius-lg:        20px;
-  --radius-xl:        28px;
+  --radius-sm:        8px;
+  --radius-md:        10px;
+  --radius-lg:        14px;
+  --radius-xl:        16px;
+  --radius-2xl:       20px;
+  --radius-3xl:       28px;
+  --radius-4xl:       32px;
   --radius-pill:      999px;
+  --radius-round:     50%;
 
-  --space-2xs:        2px;
-  --space-xs:         4px;
-  --space-sm:         8px;
-  --space-md:         12px;
-  --space-base:       16px;
-  --space-lg:         20px;
-  --space-xl:         24px;
-  --space-2xl:        32px;
-  --space-3xl:        48px;
+  /* ── Lines and rings (box-shadow geometry; colors come from the color tokens) ── */
+  --hairline:         1px;
+  --ring-width:       2px;       /* focus and control outlines */
+  --ring-width-lg:    3px;       /* drop indicators, avatar cutouts */
+  --ring-width-xl:    4px;       /* halos around scrubber knobs */
 
-  --rail-width:       88px;
-  --topbar-height:    68px;
+  /* ── Component sizes ── */
+  --field-height:     44px;      /* inputs, selects, pickers, steppers */
+  --button-height:    40px;
+  --button-height-sm: 34px;
+  --icon-button-size: 40px;
+  --icon-button-size-sm: 32px;
+  --icon-button-size-xs: 28px;
+  --chip-height:      26px;
+  --checkbox-size:    20px;
+  --grip-tracking:    -3px;      /* pulls the two ⋮ of the drag grip into one handle */
 
-  --modal-max-width:      520px;
-  --modal-max-width-wide: 620px;
+  /* ── Elevation (floating layers only) ── */
+  --elev-overlay:     0 12px 32px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 35%);
 
+  /* ── Motion ──
+     Short, purposeful and interruptible. Opacity is only ever animated
+     in transit, never left translucent. base.css turns motion off for
+     prefers-reduced-motion. */
+  --dur-1:            100ms;     /* exits, small fades */
+  --dur-2:            180ms;     /* hovers, icon swaps, popovers */
+  --dur-3:            260ms;     /* modals, pages, colour changes */
+  --dur-4:            400ms;     /* spotlight moves, large layout shifts */
+  --dur-progress:     500ms;     /* progress that follows a 1s tick */
+  --dur-pulse:        1.6s;      /* looping status pulse */
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel:       cubic-bezier(0.05, 0.7, 0.1, 1);    /* entering */
+  --ease-accel:       cubic-bezier(0.3, 0, 0.8, 0.15);    /* leaving */
+  --transition:       var(--dur-2) ease;
+  --transition-md:    var(--dur-3) var(--ease-emphasized);
+
+  /* ── Layers ── */
   --z-sticky:         20;
   --z-modal:          500;
   --z-celebration:    800;
   --z-popover:        1000;
   --z-toast:          1100;
   --z-tour:           1200;
-
-  /* Self-hosted via @fontsource-variable/geist (imported in main.tsx), so it works offline */
-  --font:             'Geist Variable', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
-  --transition:       0.16s ease;
-  --transition-md:    0.26s cubic-bezier(0.2, 0, 0, 1);
-  --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);
-  /* Motion scale. Opacity is only ever animated in transit, never left translucent. */
-  --dur-1:            100ms;   /* exits, small fades */
-  --dur-2:            180ms;   /* hovers, icon swaps, popovers */
-  --dur-3:            260ms;   /* modals, pages, colour changes */
-  --dur-4:            400ms;   /* spotlight moves, large layout shifts */
-  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
-  --ease-decel:       cubic-bezier(0.05, 0.7, 0.1, 1);    /* entering */
-  --ease-accel:       cubic-bezier(0.3, 0, 0.8, 0.15);    /* leaving */
 
   color-scheme: dark;
 }
@@ -127,13 +199,6 @@
   --on-accent-container: #3B4100;
   --accent-text:      #5B6300;
 
-  --break:            #5EC8B8;
-  --break-hover:      #4DB8A8;
-  --on-break:         #00201C;
-  --on-break-2:       #0E4F46;
-  --break-container:  #CBF1EA;
-  --on-break-container: #00443C;
-
   --danger:           #B3261E;
   --danger-container: #FBE3DF;
   --on-danger:        #FFFFFF;
@@ -142,6 +207,7 @@
   --success:          #2E7D32;
   --success-container:#DDF1DD;
   --live:             #D93A2B;
+  --on-live:          #FFFFFF;
 
   --inverse-surface:  #2E302B;
   --inverse-on-surface:#F1F2EC;
@@ -153,3 +219,49 @@
 
   color-scheme: light;
 }
+
+/* ══ PRODUCT: Focus Space ════════════════════════════════════ */
+
+:root {
+  /* ── Break phase ── */
+  --break:            #5EC8B8;
+  --break-hover:      #7AD6C8;
+  --on-break:         #00201C;
+  --on-break-2:       #0E4F46;
+  --break-container:  #103B36;
+  --on-break-container: #A6EEE2;
+
+  /* ── Layout ── */
+  --rail-width:       88px;
+  --topbar-height:    68px;
+  --modal-max-width:      520px;
+  --modal-max-width-wide: 620px;
+
+  /* ── Motion loops ── */
+  --dur-celebrate:    800ms;
+  --dur-equalizer:    900ms;
+  --dur-bell:         1s;
+  --dur-art-ring:     1.2s;
+}
+
+[data-theme="light"] {
+  --break:            #5EC8B8;
+  --break-hover:      #4DB8A8;
+  --on-break:         #00201C;
+  --on-break-2:       #0E4F46;
+  --break-container:  #CBF1EA;
+  --on-break-container: #00443C;
+}
+
+/* ── Phase colours ──
+   .player-card and .mini-player set --phase* to the accent or break
+   tokens. Registering them as colours lets them cross-fade when focus
+   becomes break (transitions in motion.css).
+   The one exception to "no raw values outside the token blocks":
+   @property initial-value cannot reference var(), so these repeat the
+   dark accent tokens above. Keep them in sync. */
+@property --phase       { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }  /* --accent */
+@property --phase-hover { syntax: '<color>'; inherits: true; initial-value: #DDE84A; }  /* --accent-hover */
+@property --on-phase    { syntax: '<color>'; inherits: true; initial-value: #1A1D00; }  /* --on-accent */
+@property --on-phase-2  { syntax: '<color>'; inherits: true; initial-value: #4A5200; }  /* --on-accent-2 */
+@property --phase-text  { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }  /* --accent-text */

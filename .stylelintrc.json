@@ -1,5 +1,5 @@
 {
-  "$comment": "Guardrails for the SSoT refactor (documentation/refactor-plan.md). Every design value comes from src/styles/tokens.css. Rules start as warnings and become errors as each phase lands.",
+  "$comment": "Guardrails for the SSoT refactor (documentation/refactor-plan.md). Every design value comes from src/styles/tokens.css. Phase 3 complete: violations are errors.",
   "plugins": [
     "stylelint-declaration-strict-value"
   ],
@@ -7,7 +7,7 @@
     "color-no-hex": [
       true,
       {
-        "severity": "warning"
+        "severity": "error"
       }
     ],
     "function-disallowed-list": [
@@ -18,7 +18,7 @@
         "hsla"
       ],
       {
-        "severity": "warning",
+        "severity": "error",
         "message": "Colors come from tokens.css."
       }
     ],
@@ -44,27 +44,68 @@
         "/^margin-/"
       ],
       {
-        "severity": "warning",
+        "severity": "error",
         "expandShorthand": true,
         "ignoreFunctions": false,
-        "ignoreValues": [
-          "0",
-          "auto",
-          "inherit",
-          "initial",
-          "unset",
-          "none",
-          "normal",
-          "transparent",
-          "currentColor",
-          "currentcolor",
-          "/^-?\\d*\\.?\\d+%$/",
-          "/^calc\\(/",
-          "/^min\\(/",
-          "/^max\\(/",
-          "/^clamp\\(/",
-          "/^color-mix\\(/"
-        ]
+        "ignoreValues": {
+          "": [
+            "0",
+            "auto",
+            "inherit",
+            "initial",
+            "unset",
+            "none",
+            "normal",
+            "transparent",
+            "currentColor",
+            "currentcolor",
+            "/^-?\\d*\\.?\\d+%$/",
+            "/^calc\\(/",
+            "/^min\\(/",
+            "/^max\\(/",
+            "/^clamp\\(/",
+            "/^color-mix\\(/"
+          ],
+          "z-index": [
+            "0",
+            "auto",
+            "inherit",
+            "initial",
+            "unset",
+            "none",
+            "normal",
+            "transparent",
+            "currentColor",
+            "currentcolor",
+            "/^-?\\d*\\.?\\d+%$/",
+            "/^calc\\(/",
+            "/^min\\(/",
+            "/^max\\(/",
+            "/^clamp\\(/",
+            "/^color-mix\\(/",
+            "/^[1-3]$/"
+          ],
+          "box-shadow": [
+            "0",
+            "auto",
+            "inherit",
+            "initial",
+            "unset",
+            "none",
+            "normal",
+            "transparent",
+            "currentColor",
+            "currentcolor",
+            "/^-?\\d*\\.?\\d+%$/",
+            "/^calc\\(/",
+            "/^min\\(/",
+            "/^max\\(/",
+            "/^clamp\\(/",
+            "/^color-mix\\(/",
+            "inset",
+            "/vmax$/"
+          ]
+        }
       }
     ],
     "declaration-property-value-disallowed-list": [
@@ -77,7 +118,7 @@
         ]
       },
       {
-        "severity": "warning",
+        "severity": "error",
         "message": "Use the --dur-* / --ease-* motion tokens."
       }
     ]

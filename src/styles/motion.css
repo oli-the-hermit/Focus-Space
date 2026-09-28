@@ -5,15 +5,9 @@
  ═══════════════════════════════════════════════════════════ */
 
 /* ── Phase colours cross-fade everywhere at once ─────────── */
-/* Registering the phase variables as colours lets them transition, so
-   the play button, scrubber, art tile and chips all shift together when
+/* The --phase* variables are registered as colours in tokens.css, so the
+   play button, scrubber, art tile and chips all shift together when
    focus becomes break (or the timer starts). */
-@property --phase { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }
-@property --phase-hover { syntax: '<color>'; inherits: true; initial-value: #DDE84D; }
-@property --on-phase { syntax: '<color>'; inherits: true; initial-value: #1A1D00; }
-@property --on-phase-2 { syntax: '<color>'; inherits: true; initial-value: #3A4000; }
-@property --phase-text { syntax: '<color>'; inherits: true; initial-value: #D1DD23; }
-
 .player-card,
 .mini-player {
   transition:
@@ -53,7 +47,7 @@
 
 /* ── The bell rings when a phase ends ────────────────────── */
 .bell-icon { transform-origin: 50% 8%; }
-.is-ringing .bell-icon { animation: bell-ring 1s var(--ease-standard) 3; }
+.is-ringing .bell-icon { animation: bell-ring var(--dur-bell) var(--ease-standard) 3; }
 .icon-btn.is-ringing { color: var(--accent-text); background: var(--accent-container); }
 @keyframes bell-ring {
   0%, 100% { transform: rotate(0); }
@@ -65,7 +59,7 @@
   60% { transform: rotate(-4deg); }
   70% { transform: rotate(0); }
 }
-.player-card.is-ringing .player-art { animation: art-ring 1.2s var(--ease-standard) 2; }
+.player-card.is-ringing .player-art { animation: art-ring var(--dur-art-ring) var(--ease-standard) 2; }
 @keyframes art-ring {
   0%, 100% { transform: scale(1); }
   15% { transform: scale(1.02); }

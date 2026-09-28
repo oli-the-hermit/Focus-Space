@@ -199,6 +199,17 @@ async function main() {
       await closeOverlays();
     }
 
+    // ── A completed task (checked checkbox). Runs last on the main page: it changes stats. ──
+    await page.locator('.nav-rail [data-tab="tasks"]').click();
+    await settle(page);
+    await page.locator('#tab-tasks input[type="checkbox"]').first().check();
+    for (const theme of THEMES) {
+      await page.emulateMedia({ colorScheme: theme });
+      await shot(theme, '16-task-checked');
+    }
+    await page.locator('.nav-rail [data-tab="timer"]').click();
+    await settle(page);
+
     // ── Mini player: opened by the main window through Document Picture-in-Picture ──
     for (const theme of THEMES) {
       await page.emulateMedia({ colorScheme: theme });
