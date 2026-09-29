@@ -21,7 +21,7 @@ import { MenuItem } from '../ui/Menu';
 import { Card } from '../ui/Card';
 import { Scrubber } from './Scrubber';
 import { cx } from '../../lib/cx';
-import { format } from '../../lib/i18n';
+import { format, plural } from '../../lib/i18n';
 import { shortcutHint } from '../../constants/shortcuts';
 import { phaseMinutes } from '../../lib/sessionTime';
 
@@ -102,7 +102,7 @@ export const PlayerCard: React.FC = () => {
           {formatClock(remaining)}
         </span>
         <span className="player-art-foot">
-          {format(strings.timer.completedToday, { count: state.timer.sessionsCompletedToday })}
+          {plural(state.timer.sessionsCompletedToday, strings.timer.completedToday)}
         </span>
       </div>
 

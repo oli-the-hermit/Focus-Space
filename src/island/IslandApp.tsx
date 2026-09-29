@@ -3,6 +3,7 @@ import { AlertCard } from '../components/alerts/AlertCard';
 import type { AlertActionId, AlertPayload } from '../lib/notify';
 import { closeCurrentWindow, listenForAlertShow, sendAlertAction, takePendingAlert } from '../lib/desktop';
 import { applyTheme, cachedTheme } from '../lib/theme';
+import { TIMING } from '../constants/timing';
 
 /**
  * The desktop alert window (index.html#island): frameless, always on top, opened
@@ -24,6 +25,13 @@ export const IslandApp: React.FC = () => {
       off.then(fn => fn()).catch(() => {});
     };
   }, []);
+
+  // Never leave an empty window on screen: close it if no alert arrives.
+  useEffect(() => {
+    if (payload) return;
+    const t = window.setTimeout(() => void closeCurrentWindow().catch(() => {}), TIMING.islandEmptyCloseMs);
+    return () => window.clearTimeout(t);
+  }, [payload]);
 
   const close = () => void closeCurrentWindow().catch(() => {});
 

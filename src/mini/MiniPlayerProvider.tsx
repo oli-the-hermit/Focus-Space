@@ -76,6 +76,10 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleCommand = useCallback((cmd: MiniCommand) => {
     const a = appRef.current;
+    if (typeof cmd === 'object') {
+      if (cmd.type === 'toggle-task') a.toggleTask(cmd.listId, cmd.taskId, cmd.checked);
+      return;
+    }
     switch (cmd) {
       case 'toggle':
         a.toggleTimer();

@@ -149,6 +149,9 @@
   --checkbox-size:    20px;
   --progress-height:  6px;
   --progress-height-lg: 8px;
+  --grip-width:       8px;       /* the drag grip (IconGrip) */
+  --grip-edge:        10px;      /* card edge → grip */
+  --grip-gap:         10px;      /* grip → the row's content */
 
   /* ── Elevation (floating layers only) ── */
   --elev-overlay:     0 12px 32px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 35%);

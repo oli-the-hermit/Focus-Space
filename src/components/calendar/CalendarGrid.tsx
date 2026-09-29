@@ -9,6 +9,7 @@ import { isDragLeavingElement } from '../../lib/dnd';
 import { IconButton } from '../ui/IconButton';
 import { Card } from '../ui/Card';
 import { format, weekdayNames } from '../../lib/i18n';
+import { layoutDayEvents } from '../../lib/calendarLayout';
 
 const DAY_NAMES = weekdayNames('short');
 
@@ -22,7 +23,6 @@ export const CalendarGrid: React.FC = () => {
     openModal,
     updateCalendarEvent,
     deleteCalendarEvent,
-    duplicateCalendarEvent,
     setCalendarDate,
     setCalendarView
   } = useApp();
@@ -91,7 +91,7 @@ export const CalendarGrid: React.FC = () => {
     e.stopPropagation();
     contextMenu(e, [
       { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: () => handleEditEvent(ev) },
-      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateCalendarEvent(ev.id) },
+      { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => openModal('DUPLICATE_EVENT', { event: ev }) },
       { key: 'd1', divider: true },
       { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteEvent(ev) }
     ]);
@@ -255,6 +255,8 @@ export const CalendarGrid: React.FC = () => {
 
         {activeDays.map(dStr => {
           const dayEvents = state.calendarEvents.filter(e => e.date === dStr);
+          // Overlapping events sit side by side instead of on top of each other.
+          const slots = layoutDayEvents(dayEvents);
           const isToday = dStr === todayStr;
 
           return (
@@ -295,7 +297,12 @@ export const CalendarGrid: React.FC = () => {
                     className={`cal-event-card draggable-item ${isDragging ? 'dragging' : ''} ${session ? 'is-session' : ''}`}
                     draggable={true}
                     data-eid={ev.id}
-                    style={{ top: `${topPct}%`, height: `${heightPct}%` }}
+                    style={{
+                      top: `${topPct}%`,
+                      height: `${heightPct}%`,
+                      '--event-column': slots.get(ev.id)?.column ?? 0,
+                      '--event-columns': slots.get(ev.id)?.columns ?? 1
+                    } as React.CSSProperties}
                     onDragStart={e => handleDragStart(e, ev.id)}
                     onContextMenu={e => openEventMenu(e, ev)}
                     onClick={e => {
@@ -319,7 +326,7 @@ export const CalendarGrid: React.FC = () => {
                         size="xs"
                         onClick={e => {
                           e.stopPropagation();
-                          duplicateCalendarEvent(ev.id);
+                          openModal('DUPLICATE_EVENT', { event: ev });
                         }}
                       >
                         <IconCopy size={11} />

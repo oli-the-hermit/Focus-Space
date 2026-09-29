@@ -100,6 +100,25 @@ fn valid_cipher(v: Option<&str>) -> bool {
     })
 }
 
+/// Empty (no photo) or a PNG, JPEG or WebP base64 data URL; the same rule as
+/// `validateAvatarFormat` in server/app.js.
+fn valid_avatar_format(v: &str) -> bool {
+    if v.is_empty() {
+        return true;
+    }
+    let Some(data) = ["data:image/png;base64,", "data:image/jpeg;base64,", "data:image/webp;base64,"]
+        .iter()
+        .find_map(|p| v.strip_prefix(p))
+    else {
+        return false;
+    };
+    let body = data.trim_end_matches('=');
+    let padding = data.len() - body.len();
+    !body.is_empty()
+        && padding <= 2
+        && body.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'+' || c == b'/')
+}
+
 fn valid_salt(v: Option<&str>) -> bool {
     v.is_some_and(|s| s.len() == 32 && hex::decode(s).is_ok_and(|b| b.len() == 16))
 }
@@ -501,6 +520,9 @@ fn update_profile(b: &Backend, ctx: &AuthCtx, body: &Value) -> Reply {
     if let Some(v) = body.get("avatar") {
         match v.as_str() {
             Some(avatar) if js_len(avatar) <= LIMITS.avatar.max_chars => {
+                if !valid_avatar_format(avatar) {
+                    return Err(fail(400, errors::INVALID_AVATAR));
+                }
                 sets.push("avatar = ?");
                 values.push(SqlValue::Text(avatar.to_string()));
             }

@@ -16,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, type Page } from 'playwright-core';
+import { PNG } from 'pngjs';
 import { createServer } from 'vite';
 import { strings } from '../../src/constants/strings.ts';
 
@@ -164,6 +165,8 @@ async function main() {
 
       // ── Hover state: the drag grip only shows on a hovered row ──
       await shot(theme, '17-grip-hover', async () => { await page.locator('.session-item').nth(1).hover(); });
+      // A hovered task row: its actions take room only now, pushing any time badge left.
+      await shot(theme, '18-task-row-hover', async () => { await page.locator('#tab-timer .task-row').first().hover(); });
       await page.mouse.move(0, 0);
 
       // ── Menus ──
@@ -234,6 +237,27 @@ async function main() {
     for (const theme of THEMES) {
       await page.emulateMedia({ colorScheme: theme });
       await shot(theme, '16-task-checked');
+    }
+    // ── Duplicate a scheduled session: a pre-filled form; the copy sits beside the original ──
+    await page.locator('.nav-rail [data-tab="calendar"]').click();
+    await settle(page);
+    await check('Duplicate opens a pre-filled form and the copy sits beside the original', async () => {
+      const original = page.locator('.cal-event-card').first();
+      const title = (await original.locator('.cal-event-title').textContent())?.trim() ?? '';
+      await original.click({ button: 'right' });
+      await page.getByRole('menuitem', { name: strings.common.duplicate, exact: true }).click();
+      await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
+      const prefilled = await page.locator('#eventTitle').inputValue();
+      await page.locator('.modal').getByRole('button', { name: strings.modals.scheduleEvent, exact: true }).click();
+      await settle(page, 300);
+      const copy = page.locator('.cal-event-card').filter({ has: page.locator('.cal-event-title', { hasText: prefilled }) });
+      const [a, b] = [await original.boundingBox(), await copy.first().boundingBox()];
+      return prefilled === strings.common.copyOf.replace('{name}', title)
+        && !!a && !!b && Math.abs(a.y - b.y) < 1 && Math.abs(a.x - b.x) > 10;
+    });
+    for (const theme of THEMES) {
+      await page.emulateMedia({ colorScheme: theme });
+      await shot(theme, '19-calendar-duplicate');
     }
     await page.locator('.nav-rail [data-tab="timer"]').click();
     await settle(page);
@@ -348,6 +372,44 @@ async function main() {
         await pip.close();
         await settle(live, 300);
         return true;
+      });
+      await check('Ticking a task in the mini player ticks it in the app', async () => {
+        const checkedInApp = () => live.locator('#tab-timer .task-row input[type="checkbox"]:checked').count();
+        const before = await checkedInApp();
+        const [pip] = await Promise.all([
+          liveContext.waitForEvent('page', { timeout: 5000 }),
+          live.locator('[data-tour="mini-player-btn"]').click()
+        ]);
+        await pip.setViewportSize(VIEWPORT); // the large layout shows the session tasks
+        await pip.locator('.mini-task input:not(:checked)').first().check();
+        await settle(live, 300);
+        const after = await checkedInApp();
+        await pip.close();
+        await settle(live, 300);
+        return after === before + 1;
+      });
+      await check('A large photo can be picked, is resized to a PNG and saved', async () => {
+        // About 5 MB of noise: over the old 1 MB cap, and it doesn't compress away.
+        const png = new PNG({ width: 1300, height: 1300 });
+        for (let i = 0; i < png.data.length; i++) png.data[i] = (i % 4 === 3) ? 255 : Math.floor(Math.random() * 256);
+        const file = path.join(os.tmpdir(), `focusspace-photo-${process.pid}.png`);
+        fs.writeFileSync(file, PNG.sync.write(png));
+        try {
+          await live.locator('.user-badge-btn').first().click();
+          await live.getByRole('menuitem', { name: strings.userMenu.profile }).click();
+          await live.locator('.modal input[type="file"]').setInputFiles(file);
+          const preview = live.locator('.profile-photo-img img');
+          await preview.waitFor({ timeout: 5000 });
+          const isPng = ((await preview.getAttribute('src')) ?? '').startsWith('data:image/png;base64,');
+          await live.locator('.modal').getByRole('button', { name: strings.common.saveChanges, exact: true }).click();
+          await live.locator('.user-badge-btn .user-avatar-img').first().waitFor({ timeout: 5000 });
+          // Form modals close only through their close button, not Escape.
+          await live.locator('.modal-backdrop').getByRole('button', { name: strings.common.close }).first().click();
+          await live.locator('.modal-backdrop').waitFor({ state: 'detached', timeout: 3000 });
+          return isPng && fs.statSync(file).size > 1_000_000;
+        } finally {
+          fs.rmSync(file, { force: true });
+        }
       });
       await check('Signing out clears the session and signing back in starts on the timer', async () => {
         await live.locator('.nav-rail [data-tab="tasks"]').click();

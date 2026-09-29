@@ -188,3 +188,6 @@
 .pw-rules li svg { transform: scale(0.8); color: var(--text-3); transition: transform var(--dur-2) var(--ease-decel), color var(--dur-2) var(--ease-standard); }
 .pw-rules li.is-met { color: var(--text-1); }
 .pw-rules li.is-met svg { transform: scale(1); color: var(--accent-text); }
+
+/* A photo that couldn't be used: said right under the photo, not at the bottom of the form. */
+.profile-photo-error { margin-top: var(--space-12); }

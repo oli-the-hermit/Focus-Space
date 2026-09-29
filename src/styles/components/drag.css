@@ -2,6 +2,7 @@
 .drag-handle {
   flex: none;
   display: inline-flex;
+  width: var(--grip-width);
   color: var(--text-3);
   cursor: grab;
   user-select: none;

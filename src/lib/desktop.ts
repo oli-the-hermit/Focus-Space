@@ -32,7 +32,9 @@ export type MiniCommand =
   | 'sync'
   | 'focus-main'
   | 'request-state'
-  | 'closed';
+  | 'closed'
+  /** A task's checkbox in the mini player. */
+  | { type: 'toggle-task'; listId: string; taskId: string; checked: boolean };
 
 export interface MiniPrefs {
   alwaysOnTop: boolean;

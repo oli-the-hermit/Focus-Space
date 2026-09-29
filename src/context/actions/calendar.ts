@@ -33,16 +33,6 @@ export function createCalendarActions({ setState, showToast, stateRef }: Pick<Ac
     showToast(strings.toasts.eventUpdated);
   };
 
-  const duplicateCalendarEvent = (id: string) => {
-    setState(prev => {
-      const target = prev.calendarEvents.find(e => e.id === id);
-      if (!target) return prev;
-      const dup: CalendarEvent = { ...target, id: uid(), title: format(strings.common.copyOf, { name: target.title }) };
-      return { ...prev, calendarEvents: [...prev.calendarEvents, dup] };
-    });
-    showToast(strings.toasts.eventDuplicated);
-  };
-
   const deleteCalendarEvent = (id: string) => {
     setState(prev => ({ ...prev, calendarEvents: prev.calendarEvents.filter(e => e.id !== id) }));
     showToast(strings.toasts.eventRemoved);
@@ -52,5 +42,5 @@ export function createCalendarActions({ setState, showToast, stateRef }: Pick<Ac
 
   const setCalendarDate = (date: string) => setState(prev => ({ ...prev, calendarDate: date }));
 
-  return { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, duplicateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate };
+  return { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate };
 }

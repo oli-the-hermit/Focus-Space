@@ -14,8 +14,8 @@ export interface TimerSnapshot {
   /** Length of the phase that follows the current one, in seconds. */
   nextPhaseSeconds: number;
   completedToday: number;
-  /** A few unfinished tasks after the current one (large mini-player layout). */
-  upNextTasks: string[];
+  /** Every task of the session's lists, in list order (large mini-player layout). */
+  tasks: SnapshotTask[];
   sound: boolean;
   theme: 'light' | 'dark';
 }
@@ -35,15 +35,23 @@ export function getCurrentTask(state: AppState, session: Session | undefined): s
   return null;
 }
 
-/** Unfinished tasks across the session's lists, skipping the current one. */
-export function getUpNextTasks(state: AppState, session: Session | undefined, limit = 3): string[] {
+/** A task as the mini player shows it; the ids let it tick the task off. */
+export interface SnapshotTask {
+  listId: string;
+  taskId: string;
+  text: string;
+  done: boolean;
+}
+
+/** Every task across the session's lists, done or not, in the same order as the app. */
+export function getSessionTasks(state: AppState, session: Session | undefined): SnapshotTask[] {
   if (!session) return [];
-  const open: string[] = [];
+  const tasks: SnapshotTask[] = [];
   for (const listId of session.taskListIds || []) {
     const list = state.taskLists.find(l => l.id === listId);
-    for (const t of list?.tasks || []) if (!t.completed) open.push(t.text);
+    for (const t of list?.tasks || []) tasks.push({ listId, taskId: t.id, text: t.text, done: t.completed });
   }
-  return open.slice(1, 1 + limit);
+  return tasks;
 }
 
 /** Falls back to the session's configured length when the timer has no total yet. */
@@ -69,7 +77,7 @@ export function buildTimerSnapshot(state: AppState, noSessionLabel: string): Tim
     currentTask: getCurrentTask(state, session),
     nextPhaseSeconds: nextMins * 60,
     completedToday: state.timer.sessionsCompletedToday,
-    upNextTasks: getUpNextTasks(state, session),
+    tasks: getSessionTasks(state, session),
     sound: state.sound,
     theme
   };

@@ -92,6 +92,12 @@ export const ModalManager: React.FC = () => {
       content = <CalendarEventModal event={activeModal.payload?.event} onClose={closeModal} />;
       break;
 
+    case 'DUPLICATE_EVENT':
+      title = strings.modals.duplicateEvent;
+      wide = true;
+      content = <CalendarEventModal copyFrom={activeModal.payload.event} onClose={closeModal} />;
+      break;
+
     case 'NEW_GOAL':
       title = strings.modals.newGoal;
       content = <GoalModal onClose={closeModal} />;

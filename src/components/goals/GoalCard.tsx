@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconCheck, IconCopy, IconEdit, IconFlag, IconPlus, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
+import { Menu, tidyMenuItems } from '../ui/Menu';
 import { ScheduleBadge } from './ScheduleBadge';
 import { IconButton } from '../ui/IconButton';
 import { ProgressBar } from '../ui/ProgressBar';
@@ -69,8 +70,8 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
   const cm = strings.actions;
 
-  const openGoalMenu = (e: React.MouseEvent) =>
-    contextMenu(e, [
+  // One list for the ⋮ button and the right-click menu.
+  const goalMenuItems = tidyMenuItems([
       { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: handleEditGoal },
       { key: 'landmark', label: cm.addLandmark, icon: <IconFlag size={15} />, onSelect: handleAddLandmark },
       !hasLandmarks && {
@@ -83,6 +84,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
       { key: 'd1', divider: true },
       { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: handleDeleteGoal }
     ]);
+  const openGoalMenu = (e: React.MouseEvent) => contextMenu(e, goalMenuItems);
 
   const openLandmarkMenu = (e: React.MouseEvent, lm: Landmark) => {
     // The goal card's own handler would otherwise replace this menu.
@@ -117,15 +119,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
           <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
         </div>
         <div className="goal-card-actions">
-          <IconButton label={strings.common.edit} size="xs" onClick={handleEditGoal}>
-            <IconEdit size={13} />
-          </IconButton>
-          <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateGoal(goal.id)}>
-            <IconCopy size={13} />
-          </IconButton>
-          <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={handleDeleteGoal}>
-            <IconTrash size={13} />
-          </IconButton>
+          <Menu items={goalMenuItems} triggerClassName="icon-btn sm" />
         </div>
       </div>
 

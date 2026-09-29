@@ -47,6 +47,8 @@ const ProfileView: React.FC = () => {
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [error, setError] = useState('');
+  /** Shown right under the photo, where the user is looking after picking one. */
+  const [photoError, setPhotoError] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleteStep, setDeleteStep] = useState<'none' | 'confirm' | 'password'>('none');
   const [deletePw, setDeletePw] = useState('');
@@ -93,29 +95,35 @@ const ProfileView: React.FC = () => {
     closePassword();
   };
 
+  /** Any common photo: cover-cropped to a square, resized, saved as a lossless PNG. */
   const pickAvatar = (file: File | undefined | null) => {
-    setError('');
+    setPhotoError('');
     if (!file) return;
     if (file.size > LIMITS.avatar.sourceMaxBytes) {
-      setError(format(strings.profile.photoTooLarge, { mb: LIMITS.avatar.sourceMaxBytes / 1_000_000 }));
+      setPhotoError(format(strings.profile.photoTooLarge, { mb: LIMITS.avatar.sourceMaxBytes / 1_000_000 }));
       return;
     }
+    const unreadable = () => setPhotoError(strings.profile.photoUnreadable);
     const reader = new FileReader();
+    reader.onerror = unreadable;
     reader.onload = () => {
       const img = new Image();
+      // e.g. HEIC photos, which the app's browser engine can't decode.
+      img.onerror = unreadable;
       img.onload = () => {
         const size = LIMITS.avatar.sizePx;
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) return unreadable();
         // Cover-crop to a square so the round frame is always filled.
         const scale = Math.max(size / img.width, size / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-        setAvatar(canvas.toDataURL('image/jpeg', LIMITS.avatar.jpegQuality));
+        setAvatar(canvas.toDataURL('image/png'));
       };
       img.src = reader.result as string;
     };
@@ -187,7 +195,10 @@ const ProfileView: React.FC = () => {
             <button
               type="button"
               className="profile-photo-remove"
-              onClick={() => setAvatar('')}
+              onClick={() => {
+                setAvatar('');
+                setPhotoError('');
+              }}
               aria-label={strings.profile.removePhotoBtn}
               title={strings.profile.removePhotoBtn}
             >
@@ -226,6 +237,11 @@ const ProfileView: React.FC = () => {
           </Field>
         </div>
       </div>
+      {photoError && (
+        <div className="auth-error profile-photo-error" role="alert">
+          {photoError}
+        </div>
+      )}
 
       {/* Password: collapsed until the user asks to change it */}
       <div className={`password-block ${pwOpen ? 'is-open' : ''}`}>

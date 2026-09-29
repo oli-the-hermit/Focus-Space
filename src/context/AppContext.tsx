@@ -98,7 +98,6 @@ interface AppContextType {
   // Calendar CRUD
   addCalendarEvent: (event: Omit<CalendarEvent, 'id'>) => void;
   updateCalendarEvent: (id: string, event: Partial<CalendarEvent>) => void;
-  duplicateCalendarEvent: (id: string) => void;
   deleteCalendarEvent: (id: string) => void;
   setCalendarView: (view: CalendarView) => void;
   setCalendarDate: (date: string) => void;
@@ -253,7 +252,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ── Entity actions (src/context/actions) ──────────────────────────
   const { reorderSessions, setActiveSession, createSession, updateSession, duplicateSession, deleteSession, setSessionTaskLists } = createSessionActions({ setState, showToast, stopTicker });
   const { reorderTaskLists, reorderTasks, setActiveList, createList, renameList, duplicateList, deleteList, setSelectedListForTimer, addTask, toggleTask, renameTask, duplicateTask, deleteTask } = createListActions({ setState, showToast, stateRef });
-  const { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, duplicateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate } = createCalendarActions({ setState, showToast, stateRef });
+  const { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate } = createCalendarActions({ setState, showToast, stateRef });
   const { addGoal, updateGoal, duplicateGoal, deleteGoal, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark } = createGoalActions({ setState, showToast });
   const { addReward, updateReward, duplicateReward, deleteReward, claimReward } = createRewardActions({ setState, showToast, stateRef, setActiveCelebrationReward });
 
@@ -319,7 +318,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteTask,
         addCalendarEvent,
         updateCalendarEvent,
-        duplicateCalendarEvent,
         deleteCalendarEvent,
         setCalendarView,
         setCalendarDate,

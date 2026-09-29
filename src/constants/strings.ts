@@ -89,7 +89,8 @@ export const strings = {
     pauseTooltip: 'Pause',
     nowPlaying: 'Now playing',
     upNext: 'Up next',
-    completedToday: '{count} completed today',
+    /** Focus sessions finished today (not tasks). */
+    completedToday: { one: '{count} focus session done today', other: '{count} focus sessions done today' },
     noOpenTasks: 'No open tasks',
     soundOnTooltip: 'Sound on',
     soundOffTooltip: 'Sound off',
@@ -115,8 +116,7 @@ export const strings = {
     progress: 'Progress',
     upNext: 'Up next',
     doneToday: 'Done today',
-    nextTasks: 'Next tasks',
-    noNextTasks: 'Nothing queued'
+    noSessionTasks: 'No tasks for this session yet.'
   },
   tasks: {
     sidebarTitle: 'Lists',
@@ -247,6 +247,7 @@ export const strings = {
 
     scheduleEvent: 'Schedule session',
     editEvent: 'Edit scheduled session',
+    duplicateEvent: 'Duplicate scheduled session',
     titleActivityLabel: 'Title / activity',
     titleActivityPlaceholder: 'e.g. Morning focus session',
     dateLabel: 'Date',
@@ -372,7 +373,8 @@ export const strings = {
     title: 'Profile',
     changePhotoBtn: 'Change photo',
     removePhotoBtn: 'Remove photo',
-    photoTooLarge: 'That image is over {mb} MB. Try a smaller or cropped photo.',
+    photoTooLarge: 'That file is over {mb} MB. Try a smaller photo.',
+    photoUnreadable: 'We couldn’t read that image. Try a JPG, PNG or WebP photo.',
     nameLabel: 'Name',
     usernameLabel: 'Username',
     savedMsg: 'Profile saved.',
@@ -560,7 +562,6 @@ export const strings = {
     eventScheduled: '"{title}" is on your calendar.',
     eventMoved: 'Moved to {date} at {time}.',
     eventUpdated: 'Event updated.',
-    eventDuplicated: 'Event duplicated.',
     eventRemoved: 'Event removed.',
     goalCreated: 'Goal "{name}" is set.',
     goalUpdated: 'Goal updated.',
@@ -599,6 +600,7 @@ export const strings = {
       PROFILE_LIMIT: 'You’ve reached the limit of {max} profiles. Remove one to add someone new.',
       PROFILE_NOT_FOUND: 'We couldn’t find that profile. It may have been removed already.',
       AVATAR_TOO_LARGE: 'That image is too large. Try a smaller or cropped photo.',
+      INVALID_AVATAR: 'That photo couldn’t be saved. Try picking it again.',
       NO_CHANGES: 'No changes to save yet.',
       SAVE_FAILED: 'We couldn’t save that change. Your data is safe, so please try again.',
       PAYLOAD_TOO_LARGE: 'That’s more than we can save at once. Try a smaller image or fewer changes.',

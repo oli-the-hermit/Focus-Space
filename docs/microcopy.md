@@ -68,7 +68,9 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Display name length | Error Recovery | Inline helper | Name length | Display names can be 1–40 characters. | Edit name |
 | Password length (server check) | Error Recovery | Inline helper | Password length | Passwords can be 8–128 characters. | Edit password |
 | Username already used | Error Recovery | Inline helper | Username in use | That username is already in use. Try a different one. | Edit username |
-| Photo over 1 MB (picked file) | Error Recovery | Inline helper | Photo too large | That image is over 1 MB. Try a smaller or cropped photo. | Change photo |
+| Photo over 25 MB (picked file; smaller photos are resized to 512×512 PNG) | Error Recovery | Inline, under the photo | Photo too large | That file is over 25 MB. Try a smaller photo. | Change photo |
+| Photo the app can't read (e.g. HEIC) | Error Recovery | Inline, under the photo | Photo unreadable | We couldn't read that image. Try a JPG, PNG or WebP photo. | Change photo |
+| Photo rejected by the app service (not an image) | Error Recovery | Inline helper | Photo not saved | That photo couldn't be saved. Try picking it again. | Change photo |
 | Photo too large (server check) | Error Recovery | Inline helper | Photo too large | That image is too large. Try a smaller or cropped photo. | Change photo |
 | Save pressed with no changes | Helpful Alert | Inline helper | No changes | No changes to save yet. | — |
 | Profile saved | Success | Toast | Profile saved | Profile saved. | — |
@@ -126,6 +128,8 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Settings: manual check, nothing new | Success | Inline status | Up to date | You're up to date. This is version {version}. | — |
 | Settings: manual check didn't go through | Error Recovery | Inline status | Couldn't check | We couldn't check for updates right now. Check your connection and try again. | Check for updates |
 | Mini player waiting for the main window | Status | Mini window | Connecting | Connecting to Focus Space… | — |
+| Mini player: session tasks (large layout) | Status | Tile with checkboxes | Session tasks | Every task of the session, ticked off from the mini player too. Empty: No tasks for this session yet. | Tick a task |
+| Focus sessions finished today (under the timer) | Status | Label | Sessions today | {count} focus session done today · {count} focus sessions done today | — |
 | Auto-save didn't go through *(needs wiring)* | Helpful Alert | Toast | Changes not saved yet | We couldn't save your latest changes. We'll try again with your next edit. | Keep the app open |
 | All changes saved *(needs wiring)* | Status | Status bar | Saved | All changes saved | — |
 
@@ -149,7 +153,8 @@ The single reference for every user-facing message in Focus Space: what the app 
 |---|---|---|---|---|---|
 | Event scheduled | Success | Toast | Scheduled | "{title}" is on your calendar. | — |
 | Event moved by dragging | Success | Toast | Moved | Moved to {date} at {time}. | — |
-| Event updated / duplicated / removed | Success | Toast | Event saved | Event updated. · Event duplicated. · Event removed. | — |
+| Event updated / removed | Success | Toast | Event saved | Event updated. · Event removed. | — |
+| Duplicate a scheduled session | Status | Modal (pre-filled) | Duplicate scheduled session | Every field starts from the original, titled "{name} (Copy)"; saving adds it. | Schedule session |
 | Session started from the agenda *(inactive)* | Status | Toast | Session started | Starting "{title}". Settle in. | — |
 | Nothing scheduled today *(inactive)* | Empty State | Card | Nothing scheduled | Nothing scheduled for today yet. Plan a focus block to give your day some shape. | + Schedule for today |
 | All of today's sessions done *(inactive)* | Empty State | Hero card | All done | That's everything for today. Want another round? Use "+ Schedule for today". | + Schedule for today |

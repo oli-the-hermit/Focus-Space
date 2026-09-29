@@ -18,5 +18,7 @@ export const TIMING = {
   /** How often a running timer checks its end time (it ticks from a worker, so hidden tabs stay on time). */
   timerTickMs: 500,
   /** Mini player clock refresh. */
-  miniClockTickMs: 250
+  miniClockTickMs: 250,
+  /** The desktop alert window closes itself if no alert reaches it by then. */
+  islandEmptyCloseMs: 4000
 } as const;

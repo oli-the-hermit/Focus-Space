@@ -123,8 +123,13 @@ pub fn cancel_phase_alert(alerts: State<'_, Alerts>) {
 }
 
 /// Shows an alert right away (calendar reminders), island only if main isn't in front.
+///
+/// Must stay `async`: it can open the island window, and on Windows building a
+/// window inside a synchronous command deadlocks the main thread (see the Tauri
+/// docs on `WebviewWindowBuilder::build`). That froze the whole app: a blank
+/// island, no IPC, no repaints, and the window couldn't be closed.
 #[tauri::command]
-pub fn show_alert(app: AppHandle, payload: Value) {
+pub async fn show_alert(app: AppHandle, payload: Value) {
     fire(&app, payload);
 }
 

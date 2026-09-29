@@ -4,11 +4,10 @@
   "displayName": { "min": 1, "max": 40 },
   "password": { "min": 8, "max": 128 },
   "avatar": {
-    "$comment": "The app crops photos to a square JPEG before upload; the server checks the resulting data URL.",
-    "sourceMaxBytes": 1000000,
-    "sizePx": 256,
-    "jpegQuality": 0.85,
-    "maxChars": 200000
+    "$comment": "The app accepts a photo up to sourceMaxBytes, crops it to a square, resizes it to sizePx and saves it as a lossless PNG data URL. Both backends accept only an image data URL up to maxChars (a 512px PNG is at most ~1.06 MB, ~1.42 million characters as base64, even for a photo that barely compresses).",
+    "sourceMaxBytes": 25000000,
+    "sizePx": 512,
+    "maxChars": 1500000
   },
   "maxProfiles": 6,
   "login": { "maxFailures": 5, "lockoutSeconds": 30, "failDelayMs": 250 },

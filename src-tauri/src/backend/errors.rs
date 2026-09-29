@@ -25,6 +25,7 @@ pub const OWNER_UNDELETABLE: &str = "OWNER_UNDELETABLE";
 pub const PROFILE_LIMIT: &str = "PROFILE_LIMIT";
 pub const PROFILE_NOT_FOUND: &str = "PROFILE_NOT_FOUND";
 pub const AVATAR_TOO_LARGE: &str = "AVATAR_TOO_LARGE";
+pub const INVALID_AVATAR: &str = "INVALID_AVATAR";
 pub const NO_CHANGES: &str = "NO_CHANGES";
 pub const SAVE_FAILED: &str = "SAVE_FAILED";
 pub const NOT_FOUND: &str = "NOT_FOUND";

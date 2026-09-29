@@ -11,9 +11,12 @@ import { Stepper } from '../ui/Stepper';
 import { Button } from '../ui/Button';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { DEFAULT_FOCUS_MINUTES } from '../../constants/defaults';
+import { format } from '../../lib/i18n';
 
 export interface CalendarEventModalProps {
   event?: CalendarEvent | null;
+  /** Duplicate: every field starts from this event, and saving creates a new one. */
+  copyFrom?: CalendarEvent | null;
   defaultDate?: string;
   defaultTime?: string;
   onClose: () => void;
@@ -21,18 +24,23 @@ export interface CalendarEventModalProps {
 
 export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   event,
+  copyFrom,
   defaultDate,
   defaultTime = '09:00',
   onClose
 }) => {
   const { state, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, createSession } = useApp();
 
-  const [title, setTitle] = useState(event ? event.title : '');
-  const [date, setDate] = useState(event ? event.date : (defaultDate || state.calendarDate));
-  const [startTime, setStartTime] = useState(event ? event.startTime : defaultTime);
-  const [durationMins, setDurationMins] = useState(event ? event.durationMins : 45);
-  const [sessionId, setSessionId] = useState<string>(event?.sessionId || '');
-  const [details, setDetails] = useState(event?.details || '');
+  // Editing starts from the event; duplicating starts from a copy of it.
+  const source = event ?? copyFrom ?? null;
+  const [title, setTitle] = useState(
+    event ? event.title : copyFrom ? format(strings.common.copyOf, { name: copyFrom.title }) : ''
+  );
+  const [date, setDate] = useState(source ? source.date : (defaultDate || state.calendarDate));
+  const [startTime, setStartTime] = useState(source ? source.startTime : defaultTime);
+  const [durationMins, setDurationMins] = useState(source ? source.durationMins : 45);
+  const [sessionId, setSessionId] = useState<string>(source?.sessionId || '');
+  const [details, setDetails] = useState(source?.details || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

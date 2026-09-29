@@ -172,6 +172,7 @@ export type ModalType =
   | 'RENAME_TASK'
   | 'SCHEDULE_EVENT'
   | 'EDIT_EVENT'
+  | 'DUPLICATE_EVENT'
   | 'NEW_GOAL'
   | 'EDIT_GOAL'
   | 'NEW_LANDMARK'
@@ -197,6 +198,7 @@ export interface ModalPayloadMap {
   RENAME_TASK: { listId: string; task?: Task | null };
   SCHEDULE_EVENT: { date?: string; time?: string };
   EDIT_EVENT: { event?: CalendarEvent | null };
+  DUPLICATE_EVENT: { event: CalendarEvent };
   NEW_GOAL: undefined;
   EDIT_GOAL: { goal?: Goal | null };
   NEW_LANDMARK: { goalId: string };

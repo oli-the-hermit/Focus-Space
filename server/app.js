@@ -44,6 +44,10 @@ function validateCipher(v) {
   const buf = decodeBase64(v);
   return buf !== null && buf.length <= MAX_BLOB_BYTES;
 }
+/** An avatar is empty (no photo) or a PNG, JPEG or WebP image as a base64 data URL. */
+function validateAvatarFormat(v) {
+  return v === '' || /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(v);
+}
 function validateSalt(v) {
   if (typeof v !== 'string' || v.length !== 32) return false;
   return Buffer.from(v, 'hex').length === 16;
@@ -296,6 +300,7 @@ function createApp() {
         if (typeof avatar !== 'string' || avatar.length > LIMITS.avatar.maxChars) {
           return fail(res, 400, E.AVATAR_TOO_LARGE);
         }
+        if (!validateAvatarFormat(avatar)) return fail(res, 400, E.INVALID_AVATAR);
         patch.avatar = avatar;
       }
 

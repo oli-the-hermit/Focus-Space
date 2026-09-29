@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconGift, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
-import { IconButton } from '../ui/IconButton';
+import { Menu, tidyMenuItems } from '../ui/Menu';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
 import { isManualReward, rewardLinks } from '../../lib/rewardLinks';
@@ -37,8 +37,8 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
     });
   };
 
-  const openRewardMenu = (e: React.MouseEvent) =>
-    contextMenu(e, [
+  // One list for the ⋮ button and the right-click menu.
+  const rewardMenuItems = tidyMenuItems([
       ready && !claimed && {
         key: 'claim',
         label: strings.actions.claimReward,
@@ -50,6 +50,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
       { key: 'd1', divider: true },
       { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: handleDelete }
     ]);
+  const openRewardMenu = (e: React.MouseEvent) => contextMenu(e, rewardMenuItems);
 
   return (
     <div
@@ -59,36 +60,26 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
     >
       <div className="reward-card-header">
         <div className="reward-card-emoji">{reward.emoji}</div>
-        <div className="reward-card-info">
-          <div className="reward-card-name">{reward.name}</div>
-          <div className="reward-card-meta">
-            <span className={`goal-type-badge badge-${rewardFrequency}`}>
-              {frequencyLabel(rewardFrequency)}
-            </span>
-            {links.sessionId && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
-            {links.goalId && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
-            {links.landmarkIds.length > 0 && <span className="reward-trigger-badge">{strings.rewards.badgeLandmark}</span>}
-            {isManualReward(links) && <span className="reward-trigger-badge">{strings.rewards.badgeManual}</span>}
-            {claimed && (
-              <span className="reward-trigger-badge claimed">
-                {strings.rewards.claimed}
-              </span>
-            )}
-          </div>
-        </div>
+        <div className="reward-card-name">{reward.name}</div>
         <div className="reward-card-actions">
-          {!claimed && (
-            <IconButton label={strings.common.edit} size="xs" onClick={handleEdit}>
-              <IconEdit size={13} />
-            </IconButton>
-          )}
-          <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateReward(reward.id)}>
-            <IconCopy size={13} />
-          </IconButton>
-          <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={handleDelete}>
-            <IconTrash size={13} />
-          </IconButton>
+          <Menu items={rewardMenuItems} triggerClassName="icon-btn sm" />
         </div>
+      </div>
+
+      {/* Full width under the header, starting at the card's edge like the emoji. */}
+      <div className="reward-card-meta">
+        <span className={`goal-type-badge badge-${rewardFrequency}`}>
+          {frequencyLabel(rewardFrequency)}
+        </span>
+        {links.sessionId && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
+        {links.goalId && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
+        {links.landmarkIds.length > 0 && <span className="reward-trigger-badge">{strings.rewards.badgeLandmark}</span>}
+        {isManualReward(links) && <span className="reward-trigger-badge">{strings.rewards.badgeManual}</span>}
+        {claimed && (
+          <span className="reward-trigger-badge claimed">
+            {strings.rewards.claimed}
+          </span>
+        )}
       </div>
 
       {reward.description && (

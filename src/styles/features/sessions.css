@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-12) var(--space-12) var(--space-8) var(--space-18);
+  padding: var(--space-12) var(--space-12) var(--space-8) calc(var(--grip-edge) + var(--grip-width) + var(--grip-gap));
   border-radius: var(--radius-lg);
   background: var(--surface-2);
   color: var(--text-1);
@@ -17,7 +17,7 @@
 .session-item:hover { background: var(--surface-3); }
 .session-item:focus-visible { outline-offset: 1px; }
 
-.session-grip { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); }
+.session-grip { position: absolute; left: var(--grip-edge); top: 50%; transform: translateY(-50%); }
 
 .session-name-row { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
 .session-name {
