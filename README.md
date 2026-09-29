@@ -2,9 +2,11 @@
 
 A calm, minimal focus timer with sessions, task lists, goals, landmarks and rewards. It runs as a Windows desktop app or in your browser, and everything stays on your device.
 
+Made by San Milano ([@oli-the-hermit](https://github.com/oli-the-hermit)).
+
 ## Get started
 
-**Desktop (Windows 10/11):** download `Focus Space_<version>_x64-setup.exe` from the releases page and run it. It installs for your user only; no admin rights needed. The first launch asks you to create the **main account**, which looks after every profile on this device.
+**Desktop (Windows 10/11):** download `Focus Space_<version>_x64-setup.exe` from the [releases page](https://github.com/oli-the-hermit/Focus-Space/releases/latest) and run it. It installs for your user only; no admin rights needed. The first launch asks you to create the **main account**, which looks after every profile on this device.
 
 **Web:** see [Build from source](#build-from-source).
 

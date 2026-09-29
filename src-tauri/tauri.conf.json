@@ -21,8 +21,8 @@
     "targets": [
       "nsis"
     ],
-    "publisher": "sanmilano",
-    "copyright": "© 2026 sanmilano",
+    "publisher": "San Milano",
+    "copyright": "© 2026 San Milano",
     "licenseFile": "../LICENSE",
     "category": "Productivity",
     "shortDescription": "Focus timer with sessions, tasks, goals and rewards",

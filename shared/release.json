@@ -1,5 +1,5 @@
 {
   "$comment": "Where releases live. Read by the app (Help links, Settings > Updates), the desktop updater (src-tauri/src/updates.rs) and docs/releasing.md. While either value is empty, the GitHub links stay hidden and the desktop app doesn't check for updates. githubRepo is 'owner/name' of a PUBLIC repo; updaterPubkey is the one-line contents of the .pub file from `npx tauri signer generate` (never the private key).",
-  "githubRepo": "",
+  "githubRepo": "oli-the-hermit/Focus-Space",
   "updaterPubkey": ""
 }

@@ -446,7 +446,7 @@ export const strings = {
     versionLabel: 'Version {version}',
     privacyTitle: 'Your data stays here',
     privacyBody: 'Everything is stored on this device and encrypted with your password, and it never leaves it. The desktop app only goes online to see whether an update is out.',
-    credits: 'Made by sanmilano.',
+    credits: 'Made by San Milano.',
     licenseNote: 'Free to use and change, including for your work. Selling it, or a version built from it, isn’t allowed.',
     githubLabel: 'GitHub',
     reportBody: 'Version: {version}\nPlatform: {platform}\n\nWhat happened?\n\nWhat did you expect?\n'

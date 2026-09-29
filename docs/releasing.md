@@ -6,7 +6,7 @@ Before a new version opens the data for the first time, the app saves a copy to 
 
 ## One-time setup
 
-1. **A public GitHub repository.** The app downloads updates without signing in, so the repository must be public. Put its `owner/name` in [`shared/release.json`](../shared/release.json) as `githubRepo`. This also turns on the GitHub links in Help.
+1. **A public GitHub repository.** The app downloads updates without signing in, so the repository must be public. Its `owner/name` goes in [`shared/release.json`](../shared/release.json) as `githubRepo` (set: `oli-the-hermit/Focus-Space`). This also turns on the GitHub links in Help.
 2. **An update key.** Updates are signed, and the app refuses anything not signed with your key. Run this yourself; it asks you to choose a password:
    ```bash
    npx tauri signer generate -w "%USERPROFILE%\.tauri\focus-space.key"

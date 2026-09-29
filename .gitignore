@@ -76,9 +76,9 @@ lerna-debug.log*
 # Local Tooling & Binaries
 npm/
 
-# Local-only overrides (Vite *.local env files, per-user AI assistant settings)
+# Local-only overrides (Vite *.local env files, per-user editor and assistant tooling)
 *.local
-.claude/settings.local.json
+.claude/
 
 # Editor & IDE Files
 .vscode/*

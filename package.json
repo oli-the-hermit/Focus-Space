@@ -3,6 +3,13 @@
   "private": true,
   "version": "1.1.0",
   "license": "SEE LICENSE IN LICENSE",
+  "author": "San Milano",
+  "homepage": "https://github.com/oli-the-hermit/Focus-Space#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oli-the-hermit/Focus-Space.git"
+  },
+  "bugs": "https://github.com/oli-the-hermit/Focus-Space/issues",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"node server/index.js\" \"vite\"",
