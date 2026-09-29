@@ -41,10 +41,16 @@ A short tour opens on first use. You can replay it any time from **Help** (the `
 
 Shortcuts pause while a menu or dialog is open.
 
+## Updates
+
+The desktop app keeps itself up to date. When a new version is out, a card offers it the next time you open Focus Space: choose **Update and restart**, and it reopens where you left off a moment later. Your data stays as it is, and the app saves a copy of it first, just in case.
+
+Prefer to decide yourself? In **Settings → Updates**, turn off **Tell me when an update is ready**, and use **Check for updates** whenever you like.
+
 ## Your data
 
-- Everything is stored **on this device** and encrypted with your password. Nothing is sent anywhere.
-- Desktop data lives in `%APPDATA%\com.focusspace.desktop\focusspace.db`. To back it up, copy that file while the app is closed.
+- Everything is stored **on this device** and encrypted with your password. Your data never leaves it; the desktop app only contacts GitHub to check for updates (you can turn that off in Settings).
+- Desktop data lives in `%APPDATA%\com.focusspace.desktop\focusspace.db`. Updating or reinstalling never touches it. For your own backup, copy that file while the app is closed; the app also keeps a copy from before each update in the `backups` folder next to it.
 - **Keep your password safe.** Your data is encrypted with it, so a forgotten password can't be recovered. The main account can remove other profiles, but it can't read them.
 - Up to 6 profiles can share one device, each with its own password and data.
 
@@ -67,7 +73,7 @@ npm install
 | `npm run dev` | Web version with live reload: API on port 4000, app on http://localhost:3000 |
 | `npm start` | Production web build, served with the API from one port (4000) |
 | `npm run desktop` | Desktop app in development |
-| `npm run desktop:build` | Windows installer in `src-tauri/target/release/bundle/nsis/` |
+| `npm run desktop:build` | Windows installer in `src-tauri/target/release/bundle/nsis/` (releases are built by GitHub Actions; see [docs/releasing.md](docs/releasing.md)) |
 | `npm run check` | Types, lint, unit tests, audits and the web API parity test |
 | `npm run test:parity` | The same API scenarios against the web server and the desktop backend |
 | `npm run check:csp` | Loads the production build under both security policies |

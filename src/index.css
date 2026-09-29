@@ -68,6 +68,7 @@
 @import url('./styles/features/celebration.css') layer(app);
 @import url('./styles/features/auth.css') layer(app);
 @import url('./styles/features/crash.css') layer(app);
+@import url('./styles/features/updates.css') layer(app);
 @import url('./styles/features/profile.css') layer(app);
 @import url('./styles/features/help.css') layer(app);
 @import url('./styles/features/tour.css') layer(app);

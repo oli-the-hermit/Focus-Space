@@ -9,6 +9,7 @@ import { IconPlus } from '../ui/icons';
 import { format } from '../../lib/i18n';
 import { formatFullDate, initials } from '../../lib/formatUtils';
 import { LIMITS } from '../../constants/limits';
+import { UpdateSettings } from '../updates/UpdateSettings';
 
 const MAX_PROFILES = LIMITS.maxProfiles;
 
@@ -156,6 +157,9 @@ export const SettingsView: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* Updates — desktop app only */}
+      <UpdateSettings />
 
       {/* Profiles manager — owner only */}
       {isOwner && (

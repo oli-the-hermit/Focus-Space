@@ -112,3 +112,6 @@ temp/
 *.tmp
 *.bak
 *.orig
+
+# Release build config, generated from shared/release.json (scripts/release/config.ts)
+src-tauri/tauri.release.conf.json

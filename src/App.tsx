@@ -33,6 +33,7 @@ import { useGlobalMenuItems } from './components/shell/globalMenu';
 import { HelpModal } from './components/help/HelpModal';
 import { OnboardingTour } from './components/onboarding/OnboardingTour';
 import { AlertCard } from './components/alerts/AlertCard';
+import { UpdateNotice } from './components/updates/UpdateNotice';
 import { useShortcuts } from './hooks/useShortcuts';
 import { TIMING } from './constants/timing';
 import { DEFAULT_FOCUS_MINUTES } from './constants/defaults';
@@ -167,12 +168,16 @@ const AppShell: React.FC = () => {
         {/* Celebration & Toast Overlays */}
         <CelebrationOverlay />
 
-        <div className="toast-container" id="toastContainer" role="status" aria-live="polite">
-          {toasts.map(t => (
-            <div key={t.id} className={`toast ${t.leaving ? 'is-leaving' : ''}`}>
-              {t.message}
-            </div>
-          ))}
+        {/* Bottom-right corner: toasts, then the update card (desktop) */}
+        <div className="corner-stack">
+          <div className="toast-container" id="toastContainer" role="status" aria-live="polite">
+            {toasts.map(t => (
+              <div key={t.id} className={`toast ${t.leaving ? 'is-leaving' : ''}`}>
+                {t.message}
+              </div>
+            ))}
+          </div>
+          <UpdateNotice />
         </div>
 
         {/* In-app alert island (phase end, upcoming session) */}

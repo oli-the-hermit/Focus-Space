@@ -13,7 +13,9 @@ export const STORAGE_KEYS = {
   authToken: 'focusspace_auth_token',
   authKey: 'focusspace_auth_key',
   timerRun: 'focusspace_timer_run',
-  miniPrefs: 'focusspace_mini_prefs'
+  miniPrefs: 'focusspace_mini_prefs',
+  /** 'off' when the user turned off update notices (Settings > Updates). Per device. */
+  updateNotify: 'focusspace_update_notify'
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;

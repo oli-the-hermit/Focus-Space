@@ -118,6 +118,13 @@ The single reference for every user-facing message in Focus Space: what the app 
 | No sessions | Empty State | Inline | No sessions | No sessions yet. Create one above to get started. | + New session |
 | No task list attached to the session | Empty State | Inline | No task list | No task list for this session yet. Pick a list or create a new one. Lists are saved, so any session can reuse them. | Choose a task list… |
 | Mini player didn't open | Error Recovery | Toast | Mini player | The mini player didn't open this time. Try again, or keep going here. | Open mini player |
+| Update found on launch (desktop) | Helpful Alert | Card (bottom right) | Version {version} is ready | Update now and Focus Space reopens where you left off. Your data stays as it is. | Update and restart / Maybe later |
+| Update downloading | Status | Card and Settings | Downloading | Downloading the update… {percent}% | — |
+| Update installing | Status | Card and Settings | Installing | Installing. Focus Space will reopen in a moment. | — |
+| Update didn't finish | Error Recovery | Card and Settings | Didn't finish | The update didn't finish. Your data is safe, so please try again. | Try again |
+| Settings: update notices | Status | Switch | Tell me when an update is ready | Focus Space checks each time it opens. | Toggle |
+| Settings: manual check, nothing new | Success | Inline status | Up to date | You're up to date. This is version {version}. | — |
+| Settings: manual check didn't go through | Error Recovery | Inline status | Couldn't check | We couldn't check for updates right now. Check your connection and try again. | Check for updates |
 | Mini player waiting for the main window | Status | Mini window | Connecting | Connecting to Focus Space… | — |
 | Auto-save didn't go through *(needs wiring)* | Helpful Alert | Toast | Changes not saved yet | We couldn't save your latest changes. We'll try again with your next edit. | Keep the app open |
 | All changes saved *(needs wiring)* | Status | Status bar | Saved | All changes saved | — |
@@ -161,7 +168,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Tour step (spotlight) | Status | Tour card | Chapter · {current} of {total} | One or two sentences per highlighted area (`strings.onboarding.steps`). | Back · Next · Close tour |
 | Tour finished | Success | Tour, final slide | You're all set | Replay this tour anytime from Help, the ? at the top right. | Start focusing |
 | Help hub | Status | Modal | Help | Take the tour · Keyboard shortcuts · What's new · About · Report a problem · Star on GitHub | — |
-| About: privacy | Status | Panel | Your data stays here | Everything is stored on this device and encrypted with your password. Nothing is sent anywhere. | — |
+| About: privacy | Status | Panel | Your data stays here | Everything is stored on this device and encrypted with your password, and it never leaves it. The desktop app only goes online to see whether an update is out. | — |
 | Shortcuts paused | Status | Helper text | Shortcuts paused | Shortcuts pause while you're typing or a dialog is open. | — |
 
 ## Menus & window

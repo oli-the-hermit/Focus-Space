@@ -1,0 +1,62 @@
+# Builds, signs and publishes a desktop release when a version tag is pushed
+# (git tag v1.2.0 && git push origin v1.2.0). The release is a DRAFT: check it
+# on GitHub, then press "Publish release"; installed apps see it from then on.
+# One-time setup and the full steps: docs/releasing.md.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: The tag matches the app version
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match package.json version $version."
+            exit 1
+          fi
+
+      # Update files on, plus the public key from shared/release.json (fails if it's empty).
+      - name: Release build config
+        run: node scripts/release/config.ts
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm run test:rust
+
+      - name: Build, sign and draft the release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Focus Space ${{ github.ref_name }}
+          releaseBody: Download the setup file below to install Focus Space. Once installed, it updates itself.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: --config src-tauri/tauri.release.conf.json

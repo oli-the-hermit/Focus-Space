@@ -1,9 +1,17 @@
 /* ── Toast ──────────────────────────────────────────────── */
-.toast-container {
+/* Bottom-right corner: toasts stack above anything else parked there (the update card). */
+.corner-stack {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-8);
+  pointer-events: none;
+}
+.toast-container {
   display: flex;
   flex-direction: column;
   align-items: flex-end;

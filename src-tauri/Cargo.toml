@@ -35,6 +35,7 @@ hex = "0.4"
 base64 = "0.22"
 rand = "0.8"
 subtle = "2.6"
+tauri-plugin-updater = "2"
 
 # PBKDF2 runs 310k iterations per login; optimize even dev/test builds so logging
 # in (and `cargo test`) doesn't take seconds per hash. pbkdf2_hmac::<Sha256> is

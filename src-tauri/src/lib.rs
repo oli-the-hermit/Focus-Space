@@ -1,5 +1,6 @@
 mod alerts;
 mod backend;
+mod updates;
 
 use std::sync::Arc;
 
@@ -21,7 +22,10 @@ pub fn run() {
             }
         }))
         .plugin(tauri_plugin_opener::init())
+        // Endpoint and key are set per check from shared/release.json (updates.rs).
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(alerts::Alerts::default())
+        .manage(updates::Updates::default())
         .setup(|app| {
             // Release builds log too, so a user can attach the file to a bug report:
             // %LOCALAPPDATA%\com.focusspace.desktop\logs\Focus Space.log (one file, capped).
@@ -37,7 +41,15 @@ pub fn run() {
             // %APPDATA%\com.focusspace.desktop\focusspace.db
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
-            let backend = backend::Backend::open(&data_dir.join("focusspace.db")).inspect_err(|err| {
+            let db_file = data_dir.join("focusspace.db");
+            // A copy before a new version first touches the data; never blocks startup.
+            let version = app.package_info().version.to_string();
+            match updates::backup_on_version_change(&data_dir, &db_file, &version) {
+                Ok(Some(copy)) => log::info!("saved a copy of the data before {version}: {}", copy.display()),
+                Ok(None) => {}
+                Err(err) => log::warn!("could not back up the data before {version}: {err}"),
+            }
+            let backend = backend::Backend::open(&db_file).inspect_err(|err| {
                 // Setup errors end the app; keep the reason in the log.
                 log::error!("could not open the database in {}: {err}", data_dir.display());
             })?;
@@ -64,7 +76,9 @@ pub fn run() {
             alerts::schedule_phase_alert,
             alerts::cancel_phase_alert,
             alerts::show_alert,
-            alerts::take_pending_alert
+            alerts::take_pending_alert,
+            updates::check_for_update,
+            updates::install_update
         ])
         .on_window_event(|window, event| {
             // The mini player and alert island only mirror the main window, so closing main quits.

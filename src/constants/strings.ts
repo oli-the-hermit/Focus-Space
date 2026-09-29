@@ -309,6 +309,25 @@ export const strings = {
     noDatePlaceholder: 'No date',
     dateOrderError: 'The completion date needs to be on or after the start date.'
   },
+  /** Desktop app updates: the launch card (shell/UpdateNotice) and Settings > Updates. */
+  updates: {
+    sectionTitle: 'Updates',
+    notifyLabel: 'Tell me when an update is ready',
+    notifyHint: 'Focus Space checks each time it opens.',
+    checkBtn: 'Check for updates',
+    checking: 'Checking for updates…',
+    upToDate: 'You’re up to date. This is version {version}.',
+    readyTitle: 'Version {version} is ready',
+    readyBody: 'Update now and Focus Space reopens where you left off. Your data stays as it is.',
+    installBtn: 'Update and restart',
+    laterBtn: 'Maybe later',
+    downloading: 'Downloading the update… {percent}%',
+    downloadingNoSize: 'Downloading the update…',
+    restarting: 'Installing. Focus Space will reopen in a moment.',
+    checkFailed: 'We couldn’t check for updates right now. Check your connection and try again.',
+    installFailed: 'The update didn’t finish. Your data is safe, so please try again.',
+    tryAgainBtn: 'Try again'
+  },
   /** The screen shown when a window stops drawing (components/shell/CrashScreen). */
   crash: {
     title: 'Something unexpected happened',
@@ -426,7 +445,7 @@ export const strings = {
     ],
     versionLabel: 'Version {version}',
     privacyTitle: 'Your data stays here',
-    privacyBody: 'Everything is stored on this device and encrypted with your password. Nothing is sent anywhere.',
+    privacyBody: 'Everything is stored on this device and encrypted with your password, and it never leaves it. The desktop app only goes online to see whether an update is out.',
     credits: 'Made by sanmilano.',
     licenseNote: 'Free to use and change, including for your work. Selling it, or a version built from it, isn’t allowed.',
     githubLabel: 'GitHub',
