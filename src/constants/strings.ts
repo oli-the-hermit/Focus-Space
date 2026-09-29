@@ -449,7 +449,11 @@ export const strings = {
     credits: 'Made by San Milano.',
     licenseNote: 'Free to use and change, including for your work. Selling it, or a version built from it, isn’t allowed.',
     githubLabel: 'GitHub',
-    reportBody: 'Version: {version}\nPlatform: {platform}\n\nWhat happened?\n\nWhat did you expect?\n'
+    reportBody: 'Version: {version}\nPlatform: {platform}\n\nWhat happened?\n\nWhat did you expect?\n',
+    /** The Platform line of bug reports (lib/platform). */
+    platformDesktop: 'Desktop ({os})',
+    platformWeb: 'Web ({details})',
+    platformUnknownOs: 'unknown system'
   },
   onboarding: {
     dialogLabel: 'Tour',

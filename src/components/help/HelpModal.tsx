@@ -3,16 +3,16 @@ import { useApp } from '../../context/AppContext';
 import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
 import { GITHUB_URL, docsUrl, githubIssueUrl } from '../../constants/links';
-import { isTauri, openExternal } from '../../lib/desktop';
+import { openExternal } from '../../lib/desktop';
 import { IconBook, IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 import { format } from '../../lib/i18n';
+import { platformLabel } from '../../lib/platform';
 import { SHORTCUTS } from '../../constants/shortcuts';
 
 type HelpView = 'home' | 'shortcuts' | 'whatsNew' | 'about';
 
 const version = __APP_VERSION__;
-const platformLabel = () => (isTauri() ? 'Desktop (Windows)' : `Web (${navigator.userAgent})`);
 
 interface RowProps {
   icon: React.ReactNode;

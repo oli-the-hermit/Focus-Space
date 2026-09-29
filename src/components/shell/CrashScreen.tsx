@@ -1,6 +1,8 @@
 import React from 'react';
 import { strings } from '../../constants/strings';
 import { format } from '../../lib/i18n';
+import { isTauri } from '../../lib/desktop';
+import { platformLabel } from '../../lib/platform';
 import { Button } from '../ui/Button';
 import { IconLogo } from '../ui/icons';
 
@@ -17,7 +19,9 @@ interface CrashBoundaryState {
 function crashDetails(error: Error, componentStack?: string | null): string {
   return [
     format(strings.help.versionLabel, { version: __APP_VERSION__ }),
-    navigator.userAgent,
+    platformLabel(),
+    // The web label already carries the user agent; on desktop it tells the web view version.
+    ...(isTauri() ? [navigator.userAgent] : []),
     '',
     `${error.name}: ${error.message}`,
     error.stack ?? '',

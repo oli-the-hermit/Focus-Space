@@ -8,7 +8,14 @@ Made by San Milano ([@oli-the-hermit](https://github.com/oli-the-hermit)).
 
 **Desktop (Windows 10/11):** download `Focus Space_<version>_x64-setup.exe` from the [releases page](https://github.com/oli-the-hermit/Focus-Space/releases/latest) and run it. It installs for your user only; no admin rights needed. The first launch asks you to create the **main account**, which looks after every profile on this device.
 
-**Web:** see [Build from source](#build-from-source).
+**Linux and macOS:** ready-made versions are coming very soon. Until then, you can run Focus Space in your browser, which works on any system:
+
+1. Install [Node.js](https://nodejs.org/) (version 24 or later).
+2. Download the code: on this page, choose **Code → Download ZIP** and unzip it (or clone the repository).
+3. Open a terminal in that folder and run `npm install`, then `npm start`.
+4. Open http://localhost:4000 in your browser. Keep the terminal open while you use the app; your data stays in the `server/data` folder.
+
+Prefer a desktop app on Linux or macOS already? You can build it yourself; see [Desktop app on Linux and macOS](#desktop-app-on-linux-and-macos).
 
 A short tour opens on first use. You can replay it any time from **Help** (the `?` button, top right).
 
@@ -64,7 +71,7 @@ Prefer to decide yourself? In **Settings → Updates**, turn off **Tell me when 
 
 ## Build from source
 
-Requirements: Node.js 24 (22.18 or later also works). For the desktop app, also Rust (stable, MSVC) and WebView2 (preinstalled on Windows 11).
+Requirements: Node.js 24 (22.18 or later also works). For the desktop app on Windows, also Rust (stable, MSVC) and WebView2 (preinstalled on Windows 11); for Linux and macOS, see [below](#desktop-app-on-linux-and-macos).
 
 ```bash
 npm install
@@ -83,12 +90,74 @@ npm install
 
 The web version stores its data in `server/data/`. Set `FOCUSSPACE_DATA_DIR` to use another folder.
 
+### Desktop app on Linux and macOS
+
+Official Linux and macOS versions are on the way. Building one yourself works the same way, but these builds haven't been tested yet, so expect some rough edges (for example, the window buttons follow the Windows style). Self-built copies don't update themselves: download the latest code and build again.
+
+**Linux (Debian or Ubuntu):** install the system libraries and [Rust](https://rustup.rs/), then build an AppImage:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+```
+```bash
+npm install
+```
+```bash
+npm run tauri build -- --bundles appimage
+```
+
+The app is in `src-tauri/target/release/bundle/appimage/`. Your data lives in `~/.local/share/com.focusspace.desktop/`.
+
+**macOS:** install Apple's command line tools and [Rust](https://rustup.rs/), then build the app:
+
+```bash
+xcode-select --install
+```
+```bash
+npm install
+```
+```bash
+npm run tauri build -- --bundles app
+```
+
+The app is in `src-tauri/target/release/bundle/macos/`. The first time, open it with right-click → **Open**, because it isn't signed yet. Your data lives in `~/Library/Application Support/com.focusspace.desktop/`.
+
 ### Project layout
 
 - `src/`: the React app (shared by web and desktop). Text lives in `src/constants/strings.ts`; the voice guide is `docs/microcopy.md`.
 - `server/`: the web API (Express + SQLite).
 - `src-tauri/`: the desktop shell and a Rust port of the same API. `shared/api-scenarios.json` keeps the two backends in step.
 - `shared/`: limits and test scenarios used by both backends and the app.
+
+## About this project
+
+I built Focus Space for two reasons. The first was personal: I wanted to stay focused and get more done, with a simple, clean app that does its job without adding distractions of its own.
+
+The second was to learn. This is my first app built to a professional standard, or at least that's the goal. Focus timers aren't a new idea, and the app is small on purpose, which made it a good project for learning to build software the right way. I aim to keep my code clean, easy to grow and easy to maintain: every rule, text and design value lives in one place, parts are reused instead of copied, and everything stays as simple as it can be. The result should be a codebase almost anyone can read, extend or improve.
+
+### Made for people, by people
+
+AI did a large share of the work, but I reviewed every step, always with the person using the app in mind. The first version was built with Gemini 3.8 Flash; Claude Opus 5.5 later expanded and finished it.
+
+### Your experience comes first
+
+People matter more than features or looks. This is a first release: it has been tested and reviewed carefully, but some rough edges may remain. Your feedback shapes what comes next. For example:
+
+- **First impressions:** was it clear what to do when you first opened the app? Did the tour help?
+- **What you use:** which features do you use every day, and which ones do you never touch?
+- **What got in the way:** was anything confusing, slow or harder than it should be?
+- **Comfort:** is the text easy to read in light and dark mode? Does it work well with just the keyboard?
+- **Your routine:** does the timer fit the way you work? What would you add, change or remove?
+
+Share your thoughts by [opening an issue](https://github.com/oli-the-hermit/Focus-Space/issues/new).
+
+### Something not working?
+
+If you run into a bug, an error or trouble installing, please [open an issue](https://github.com/oli-the-hermit/Focus-Space/issues/new). The quickest way is **Help → Report a problem** in the app: it opens a new issue with the app version and your platform already filled in. Tell me what you did, what you expected and what happened instead; a screenshot helps too.
+
+### Free, and staying free
+
+Focus Space is free and will stay free. Use it for personal or professional work, change it and build on it as you like. The one thing that isn't allowed is selling it, or anything made from it. See [License](#license) for the details.
 
 ## License
 
