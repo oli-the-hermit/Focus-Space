@@ -34,18 +34,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
     session ? (session.taskListIds || []) : (initialTaskListIds || [])
   );
 
-  const initialRewardId = () => {
-    if (session?.rewardId) return session.rewardId;
-    if (session?.id) {
-      const linked = state.rewards.find(
-        r => r.linkedSessionId === session.id || (r.trigger === 'session' && r.linkedId === session.id)
-      );
-      if (linked) return linked.id;
-    }
-    return '';
-  };
-
-  const [rewardId, setRewardId] = useState<string>(initialRewardId);
+  const [rewardId, setRewardId] = useState<string>(session?.rewardId ?? '');
   // A reward typed here is only created on submit, so cancelling leaves nothing behind.
   const [rewardDraft, setRewardDraft] = useState<RewardDraft | null>(null);
 
@@ -84,13 +73,9 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
         description: draft.description.trim(),
         emoji,
         frequency: 'daily',
-        trigger: 'session',
-        linkedSessionId: sessionId,
-        linkedId: sessionId,
-        linkedGoalId: null,
         status: 'locked',
         claimedAt: null
-      });
+      }, { sessionId });
     }
     onClose();
   };

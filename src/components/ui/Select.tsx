@@ -202,9 +202,6 @@ export const Select = <T extends string | number>({
       <span className={`select-value ${selectedOption ? '' : 'is-placeholder'}`}>
         {selectedOption ? selectedOption.label : placeholder ?? labels.selectPlaceholder}
       </span>
-      {variant === 'header' && selectedOption?.meta && (
-        <span className="select-value-meta">{selectedOption.meta}</span>
-      )}
     </>
   );
 

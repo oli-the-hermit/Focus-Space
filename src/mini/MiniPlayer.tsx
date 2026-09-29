@@ -14,6 +14,7 @@ import {
   IconSkip
 } from '../components/ui/icons';
 import { IconSwap } from '../components/ui/IconSwap';
+import { ProgressRing } from '../components/ui/ProgressRing';
 import { useContextMenuState } from '../components/ui/ContextMenu';
 import { MenuItem } from '../components/ui/Menu';
 import { Scrubber } from '../components/timer/Scrubber';
@@ -35,10 +36,6 @@ export interface MiniPlayerProps {
   /** Adds Tauri drag-region attributes so the frameless window can be moved. */
   draggable?: boolean;
 }
-
-// Progress ring geometry (viewBox 0 0 100 100).
-const RING_R = 46;
-const RING_C = 2 * Math.PI * RING_R;
 
 /**
  * Player shown outside the main window (Tauri window or Document PiP).
@@ -140,17 +137,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
         {...drag}
       >
         <div className="mini-art" {...drag}>
-          <svg className="mini-ring" viewBox="0 0 100 100" aria-hidden="true">
-            <circle className="mini-ring-track" cx="50" cy="50" r={RING_R} />
-            <circle
-              className="mini-ring-fill"
-              cx="50"
-              cy="50"
-              r={RING_R}
-              strokeDasharray={RING_C}
-              strokeDashoffset={RING_C * (1 - pct / 100)}
-            />
-          </svg>
+          <ProgressRing className="mini-ring" value={pct / 100} box={100} radius={46} />
           <span className="mini-art-phase" {...drag}>
             {isBreak ? strings.timer.breakPhase : strings.timer.focusPhase}
           </span>

@@ -309,6 +309,15 @@ export const strings = {
     noDatePlaceholder: 'No date',
     dateOrderError: 'The completion date needs to be on or after the start date.'
   },
+  /** The screen shown when a window stops drawing (components/shell/CrashScreen). */
+  crash: {
+    title: 'Something unexpected happened',
+    body: 'Focus Space stopped drawing this screen. Your saved data is safe. Reload to pick up where you left off.',
+    reload: 'Reload',
+    copyDetails: 'Copy details',
+    copied: 'Details copied',
+    reportHint: 'If it keeps happening, copy the details and include them when you report it.'
+  },
   auth: {
     serverUnreachable:
       'Still connecting to the local app service. We’ll keep trying every few seconds. If it takes a while, start it with npm run dev.',
@@ -398,6 +407,8 @@ export const strings = {
     whatsNewDesc: 'Changes in version {version}.',
     aboutTitle: 'About',
     aboutDesc: 'Version, privacy and credits.',
+    docsTitle: 'Documentation',
+    docsDesc: 'How everything works, on GitHub.',
     reportTitle: 'Report a problem',
     reportDesc: 'Opens GitHub Issues in your browser.',
     starTitle: 'Star on GitHub',
@@ -417,6 +428,7 @@ export const strings = {
     privacyTitle: 'Your data stays here',
     privacyBody: 'Everything is stored on this device and encrypted with your password. Nothing is sent anywhere.',
     credits: 'Made by sanmilano.',
+    licenseNote: 'Free to use and change, including for your work. Selling it, or a version built from it, isn’t allowed.',
     githubLabel: 'GitHub',
     reportBody: 'Version: {version}\nPlatform: {platform}\n\nWhat happened?\n\nWhat did you expect?\n'
   },

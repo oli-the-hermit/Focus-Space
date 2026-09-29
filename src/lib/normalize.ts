@@ -3,6 +3,8 @@
  * duplicate fields (Goal.title/type, Landmark.text, Reward.desc/icon/type,
  * Task.created). These read the old names once and return the canonical shape;
  * the next save writes only canonical fields, so the migration is automatic.
+ * Reward links saved on the reward (trigger/linkedId/linkedSessionId/linkedGoalId)
+ * move to the unlocker's `rewardId` the same way (migrateRewardLinks).
  */
 import { GOAL_FREQUENCIES, type AppState, type CalendarEvent, type Goal, type GoalFrequency, type Landmark, type NotificationSettings, type Reward, type Session, type Task, type TaskList } from '../types';
 import { strings } from '../constants/strings';
@@ -47,7 +49,8 @@ export function normalizeGoal(raw: Raw): Goal {
 }
 
 export function normalizeReward(raw: Raw): Reward {
-  const { desc, icon, type, ...rest } = raw;
+  // Links are read by migrateRewardLinks; the reward itself no longer stores them.
+  const { desc, icon, type, trigger: _trigger, linkedId: _linkedId, linkedSessionId: _linkedSessionId, linkedGoalId: _linkedGoalId, ...rest } = raw;
   return {
     ...(rest as unknown as Reward),
     name: firstText(rest.name) ?? strings.rewards.untitledReward,
@@ -55,6 +58,29 @@ export function normalizeReward(raw: Raw): Reward {
     emoji: firstText(rest.emoji, icon) ?? DEFAULT_REWARD_EMOJI,
     frequency: firstFrequency(rest.frequency, type) ?? 'daily'
   };
+}
+
+/**
+ * Older versions also stored a reward's link on the reward itself. Moves each one
+ * to the unlocker's `rewardId` unless that unlocker already points at a reward
+ * (the unlocker side was always the one the timer and goals read first).
+ */
+export function migrateRewardLinks(rawRewards: Raw[], sessions: Session[], goals: Goal[]): { sessions: Session[]; goals: Goal[] } {
+  const text = (v: unknown) => (typeof v === 'string' && v ? v : null);
+  const claim = <T extends { id: string; rewardId?: string | null }>(items: T[], ownerId: string | null, rewardId: string): T[] =>
+    ownerId ? items.map(it => (it.id === ownerId && !it.rewardId ? { ...it, rewardId } : it)) : items;
+
+  for (const r of rawRewards) {
+    const id = text(r.id);
+    if (!id) continue;
+    const linked = text(r.linkedId);
+    sessions = claim(sessions, text(r.linkedSessionId) ?? (r.trigger === 'session' ? linked : null), id);
+    goals = claim(goals, text(r.linkedGoalId) ?? (r.trigger === 'goal' ? linked : null), id);
+    if (r.trigger === 'landmark' && linked) {
+      goals = goals.map(g => (g.landmarks.some(l => l.id === linked) ? { ...g, landmarks: claim(g.landmarks, linked, id) } : g));
+    }
+  }
+  return { sessions, goals };
 }
 
 // Normalizes a raw (possibly partial/legacy) state object into a valid AppState.
@@ -85,8 +111,12 @@ export function normalizeState(raw: unknown): AppState {
     return { ...s, taskListIds: inherit };
   });
 
+  const rawRewards = Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Raw[]) : null;
+  const loadedGoals = Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Raw[]).map(normalizeGoal) : DEFAULT_GOALS;
+  const linked = migrateRewardLinks(rawRewards ?? [], migratedSessions, loadedGoals);
+
   return {
-    sessions: migratedSessions,
+    sessions: linked.sessions,
     activeSessionId,
     taskLists,
     activeListId: (typeof r?.activeListId === 'string' ? r.activeListId : null) || (Array.isArray(r?.taskLists) && (r!.taskLists as TaskList[])[0]?.id) || DEFAULT_TASK_LISTS[0].id,
@@ -98,8 +128,8 @@ export function normalizeState(raw: unknown): AppState {
     calendarDate: typeof r?.calendarDate === 'string' ? r.calendarDate : getTodayStr(),
     calendarView: (r?.calendarView === 'week' || r?.calendarView === 'day' || r?.calendarView === 'month') ? r.calendarView : 'week',
     notifications: normalizeNotifications(r?.notifications),
-    goals: Array.isArray(r?.goals) && r!.goals.length ? (r!.goals as Record<string, unknown>[]).map(normalizeGoal) : DEFAULT_GOALS,
-    rewards: Array.isArray(r?.rewards) && r!.rewards.length ? (r!.rewards as Record<string, unknown>[]).map(normalizeReward) : DEFAULT_REWARDS,
+    goals: linked.goals,
+    rewards: rawRewards ? rawRewards.map(normalizeReward) : DEFAULT_REWARDS,
     timer: {
       phase: 'focus',
       status: 'idle',
@@ -107,7 +137,9 @@ export function normalizeState(raw: unknown): AppState {
       total: focusMins * 60,
       sessionsCompletedToday: typeof (r?.timer as Record<string, unknown> | undefined)?.sessionsCompletedToday === 'number'
         ? ((r!.timer as Record<string, unknown>).sessionsCompletedToday as number)
-        : 0
+        : 0,
+      // A live run is restored from its own record (loadTimerRun), never from saved data.
+      endsAt: null
     },
     sound: typeof r?.sound === 'boolean' ? r.sound : true,
     theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system',

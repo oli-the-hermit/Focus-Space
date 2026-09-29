@@ -5,7 +5,6 @@ export type CalendarView = 'week' | 'day' | 'month';
 export const GOAL_FREQUENCIES = ['daily', 'weekly', 'monthly', 'yearly', 'custom'] as const;
 export type GoalFrequency = (typeof GOAL_FREQUENCIES)[number];
 export type RewardStatus = 'locked' | 'ready' | 'claimed';
-export type RewardTrigger = 'session' | 'landmark' | 'goal' | 'manual' | 'task';
 export type UserRole = 'owner' | 'user';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -84,10 +83,7 @@ export interface Reward {
   description: string;
   emoji: string;
   frequency: GoalFrequency;
-  trigger: RewardTrigger;
-  linkedId?: string | null;
-  linkedSessionId?: string | null;
-  linkedGoalId?: string | null;
+  /** What unlocks it is stored on the unlocker (`rewardId`); see lib/rewardLinks. */
   status: RewardStatus;
   claimedAt?: number | null;
 }
@@ -134,6 +130,8 @@ export interface TimerState {
   remaining: number;
   total: number;
   sessionsCompletedToday: number;
+  /** When the running phase ends (ms since epoch); null unless running. */
+  endsAt: number | null;
 }
 
 export interface AppState {

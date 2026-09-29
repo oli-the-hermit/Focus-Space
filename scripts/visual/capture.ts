@@ -123,8 +123,9 @@ async function main() {
     };
 
     // ── Setup screen (both themes), then create the sandbox account ──
-    await page.goto(BASE);
-    await page.locator('.auth-form').waitFor();
+    // The first load waits for Vite to transform the app, which can take a while after edits.
+    await page.goto(BASE, { timeout: 60_000 });
+    await page.locator('.auth-form').waitFor({ timeout: 60_000 });
     await page.getByRole('button', { name: strings.auth.createAccountBtn }).waitFor();
     for (const theme of THEMES) {
       await page.emulateMedia({ colorScheme: theme });
@@ -160,6 +161,10 @@ async function main() {
       }
       await page.locator('.nav-rail [data-tab="timer"]').click();
       await settle(page);
+
+      // ── Hover state: the drag grip only shows on a hovered row ──
+      await shot(theme, '17-grip-hover', async () => { await page.locator('.session-item').nth(1).hover(); });
+      await page.mouse.move(0, 0);
 
       // ── Menus ──
       await shot(theme, '20-context-menu', openGlobalMenu);
@@ -244,8 +249,14 @@ async function main() {
         await pip.waitForLoadState();
         await pip.locator('.mini-player').waitFor({ timeout: 5000 });
         fs.mkdirSync(path.join(OUT_DIR, theme), { recursive: true });
-        // The default window size, then an enlarged window (the layout is container-query driven).
-        for (const [name, size] of [['50-mini', { width: MINI_WIDTH, height: MINI_HEIGHT }], ['51-mini-large', VIEWPORT]] as const) {
+        // The default window size, an enlarged window and a tall one with the progress ring
+        // (the layout is container-query driven).
+        const sizes = [
+          ['50-mini', { width: MINI_WIDTH, height: MINI_HEIGHT }],
+          ['51-mini-large', VIEWPORT],
+          ['52-mini-portrait', { width: 320, height: 480 }]
+        ] as const;
+        for (const [name, size] of sizes) {
           await pip.setViewportSize(size);
           await settle(pip, 700);
           await pip.screenshot({ path: path.join(OUT_DIR, theme, `${name}.png`) });
@@ -265,6 +276,9 @@ async function main() {
       viewport: VIEWPORT, deviceScaleFactor: 1, reducedMotion: 'reduce', storageState: await context.storageState()
     });
     liveContext.setDefaultTimeout(5000);
+    // Flows at normal speed; one check below jumps ahead. The ticker's interval runs in a
+    // worker on real time, but each tick reads the page's Date.now(), which this controls.
+    await liveContext.clock.install();
     const live = await liveContext.newPage();
     try {
       await live.goto(BASE);
@@ -304,6 +318,37 @@ async function main() {
           && (await live.locator('#statusText').textContent())?.trim() === strings.status.ready
           && (await time.textContent())?.trim() === before;
       });
+      const isRunning = async () => (await status.getAttribute('class'))?.split(' ').includes('is-running') ?? false;
+      await check('A reload resumes the running timer', async () => {
+        await focusMain();
+        await live.keyboard.press(' ');
+        await live.waitForTimeout(1200);
+        await live.reload();
+        await live.locator('.app-shell').waitFor({ timeout: 15_000 });
+        await settle(live, 300);
+        const resumed = (await isRunning()) && (await time.textContent())?.trim() !== before;
+        await focusMain();
+        await live.keyboard.press(' ');
+        await live.keyboard.press('r');
+        await settle(live, 300);
+        return resumed;
+      });
+      await check('The mini player shows the run as soon as it starts', async () => {
+        const [pip] = await Promise.all([
+          liveContext.waitForEvent('page', { timeout: 5000 }),
+          live.locator('[data-tour="mini-player-btn"]').click()
+        ]);
+        await pip.locator('.mini-player').waitFor({ timeout: 5000 });
+        await focusMain();
+        await live.keyboard.press(' ');
+        // Well inside the first second: the end time must already be in the snapshot.
+        await pip.locator('.mini-player.is-running').waitFor({ timeout: 400 });
+        await live.keyboard.press(' ');
+        await live.keyboard.press('r');
+        await pip.close();
+        await settle(live, 300);
+        return true;
+      });
       await check('Signing out clears the session and signing back in starts on the timer', async () => {
         await live.locator('.nav-rail [data-tab="tasks"]').click();
         await live.locator('.user-badge-btn').first().click();
@@ -315,6 +360,29 @@ async function main() {
         await live.getByRole('button', { name: strings.auth.signInBtn }).click();
         await live.locator('.app-shell').waitFor({ timeout: 15_000 });
         return (await live.locator('.nav-rail [data-tab="timer"][aria-current="page"]').count()) === 1;
+      });
+      // Last: it completes a phase and changes rewards and stats.
+      await check("Finishing a focus phase unlocks the session's reward and shows the alert ring", async () => {
+        // The seeded active session ("Pomodoro Classic") unlocks the seeded reward r1.
+        const reward = live.locator('.reward-card[data-rid="r1"]');
+        await live.locator('.nav-rail [data-tab="rewards"]').click();
+        const lockedBefore = !((await reward.getAttribute('class'))?.split(' ').includes('ready'));
+        await live.locator('.nav-rail [data-tab="timer"]').click();
+        await focusMain();
+        await live.keyboard.press(' ');
+        await live.clock.fastForward('25:01');
+        await live.locator('.phase-chip.is-break').waitFor({ timeout: 4000 });
+        // The phase-end island shows with its countdown ring (ui/ProgressRing), partly full.
+        const fill = live.locator('.alert-card .alert-ring .progress-ring-fill');
+        await fill.waitFor({ timeout: 3000 });
+        const dash = Number(await fill.getAttribute('stroke-dasharray'));
+        const offset = Number(await fill.getAttribute('stroke-dashoffset'));
+        const ringOk = dash > 0 && offset >= 0 && offset < dash;
+        await live.keyboard.press('Escape');
+        await live.locator('.nav-rail [data-tab="rewards"]').click();
+        await settle(live, 300);
+        const readyAfter = (await reward.getAttribute('class'))?.split(' ').includes('ready') ?? false;
+        return lockedBefore && readyAfter && ringOk;
       });
     } finally {
       await liveContext.close();

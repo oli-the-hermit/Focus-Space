@@ -3,7 +3,7 @@ name = "focus-space"
 version = "1.1.0"
 description = "Focus Space desktop app"
 authors = ["sanmilano"]
-license = ""
+license-file = "../LICENSE"
 repository = ""
 edition = "2021"
 rust-version = "1.77.2"
@@ -36,10 +36,14 @@ base64 = "0.22"
 rand = "0.8"
 subtle = "2.6"
 
-# PBKDF2 runs 310k iterations per login; optimize dependencies even in dev/test
-# builds so logging in doesn't take seconds while developing.
+# PBKDF2 runs 310k iterations per login; optimize even dev/test builds so logging
+# in (and `cargo test`) doesn't take seconds per hash. pbkdf2_hmac::<Sha256> is
+# generic, so it is compiled in this crate, which needs its own override too.
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.dev.package.focus-space]
+opt-level = 1
 
 [profile.release]
 codegen-units = 1

@@ -110,33 +110,54 @@
   overflow: hidden;
   cursor: grab;
   box-shadow: 0 0 0 var(--ring-width) var(--surface-1);
+  /* The card's height is its duration; the layout follows it (see @container below). */
+  container: event / size;
 }
 .cal-event-card.is-session { background: var(--accent); color: var(--on-accent); }
 .cal-event-card:hover { z-index: 2; }
+
+/* Short events: title and start time share one line; the title gives way. */
+.cal-event-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-6);
+}
+.cal-event-title,
+.cal-event-time {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: var(--leading-snug);
+}
 .cal-event-title {
+  flex: 0 1 auto;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  line-height: var(--leading-snug);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* Room for the two hover actions (.cal-event-actions). */
-  padding-right: calc(2 * var(--event-action-size) + var(--space-4));
 }
 .cal-event-time {
+  flex: none;
   font-size: var(--text-3xs);
   font-weight: var(--weight-medium);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
 }
+.cal-event-detail { display: none; }
+
+/* Tall enough for two lines (title + time, at --leading-snug, plus the card padding). */
+@container event (min-height: 2.6rem) {
+  .cal-event-body { display: block; }
+  .cal-event-detail { display: inline; }
+}
+/* Shown on hover over the text, on the card's own background, so no width is reserved for them. */
 .cal-event-actions {
   position: absolute;
   top: 3px;
   right: 3px;
   display: flex;
   gap: var(--space-1);
+  padding-left: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: inherit;
   visibility: hidden;
 }
 .cal-event-card:hover .cal-event-actions,

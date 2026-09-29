@@ -46,6 +46,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Returning user | Status | Screen header | Welcome back | Sign in to pick up where you left off. | Sign in |
 | Signing in | Status | Button label | Signing in | Signing in… | — |
 | Restoring saved session on launch | Status | Full-screen status | Opening your space | Opening your space… | — |
+| A window stops drawing (render crash) | Error Recovery | Full-screen card | Something unexpected happened | Focus Space stopped drawing this screen. Your saved data is safe. Reload to pick up where you left off. If it keeps happening, copy the details and include them when you report it. | Reload / Copy details |
 | Local service not reachable yet (web) | Helpful Alert | Inline helper | Still connecting | Still connecting to the local app service. We'll keep trying every few seconds. If it takes a while, start it with npm run dev. | Retries automatically |
 | Empty required field | Error Recovery | Inline helper | Missing details | A few fields are still empty. Fill them in to continue. | Complete the form |
 | Username or password left empty (server) | Error Recovery | Inline helper | Missing details | Enter your username and password to continue. | Sign in |

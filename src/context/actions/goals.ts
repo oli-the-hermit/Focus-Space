@@ -3,6 +3,7 @@ import type { ActionDeps } from './types';
 import { strings } from '../../constants/strings';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
+import { unlockReward } from '../../lib/rewardLinks';
 import { Goal, Landmark } from '../../types';
 
 export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'setState' | 'showToast'>) {
@@ -17,21 +18,7 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
       completed: false,
       landmarks: goal.landmarks || []
     };
-    setState(prev => {
-      const updatedRewards = newGoal.rewardId
-        ? prev.rewards.map(r =>
-            r.id === newGoal.rewardId
-              ? { ...r, linkedGoalId: newGoal.id, linkedId: newGoal.id, trigger: 'goal' as const }
-              : r
-          )
-        : prev.rewards;
-
-      return {
-        ...prev,
-        goals: [...prev.goals, newGoal],
-        rewards: updatedRewards
-      };
-    });
+    setState(prev => ({ ...prev, goals: [...prev.goals, newGoal] }));
     showToast(format(strings.toasts.goalCreated, { name: newGoal.name }));
   };
 
@@ -48,30 +35,7 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
           : g
       );
 
-      let updatedRewards = prev.rewards;
-      if (goal.rewardId !== undefined) {
-        updatedRewards = prev.rewards.map(r => {
-          if ((r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) && r.id !== goal.rewardId) {
-            return {
-              ...r,
-              linkedGoalId: null,
-              linkedId: r.linkedSessionId || null,
-              trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
-            };
-          }
-          if (goal.rewardId && r.id === goal.rewardId) {
-            return {
-              ...r,
-              linkedGoalId: id,
-              linkedId: id,
-              trigger: 'goal' as const
-            };
-          }
-          return r;
-        });
-      }
-
-      return { ...prev, goals: updated, rewards: updatedRewards };
+      return { ...prev, goals: updated };
     });
     showToast(strings.toasts.goalUpdated);
   };
@@ -92,21 +56,7 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
   };
 
   const deleteGoal = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      goals: prev.goals.filter(g => g.id !== id),
-      rewards: prev.rewards.map(r => {
-        if (r.linkedGoalId === id || (r.trigger === 'goal' && r.linkedId === id)) {
-          return {
-            ...r,
-            linkedGoalId: null,
-            linkedId: r.linkedSessionId || null,
-            trigger: r.linkedSessionId ? ('session' as const) : ('manual' as const)
-          };
-        }
-        return r;
-      })
-    }));
+    setState(prev => ({ ...prev, goals: prev.goals.filter(g => g.id !== id) }));
     showToast(strings.toasts.goalDeleted);
   };
 
@@ -122,23 +72,12 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
         };
       });
 
-      // Check for goal completion rewards
+      // Completing the goal unlocks its reward
       const targetGoal = updated.find(g => g.id === id);
-      let updatedRewards = prev.rewards;
-      if (targetGoal && targetGoal.completed) {
-        updatedRewards = prev.rewards.map(r => {
-          const isLinked =
-            (r.linkedGoalId && r.linkedGoalId === id) ||
-            (r.trigger === 'goal' && r.linkedId === id) ||
-            (targetGoal.rewardId && r.id === targetGoal.rewardId);
-          return isLinked && r.status === 'locked' ? { ...r, status: 'ready' } : r;
-        });
-      }
-
       return {
         ...prev,
         goals: updated,
-        rewards: updatedRewards
+        rewards: targetGoal?.completed ? unlockReward(prev.rewards, targetGoal.rewardId) : prev.rewards
       };
     });
   };
@@ -234,28 +173,9 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
       // Unlock landmark and goal rewards if newly completed
       let updatedRewards = prev.rewards;
       if (landmarkCompleted) {
-        updatedRewards = prev.rewards.map(r => {
-          if (
-            (r.trigger === 'landmark' && r.linkedId === landmarkId && r.status === 'locked') ||
-            (landmarkRewardId && r.id === landmarkRewardId && r.status === 'locked')
-          ) {
-            return { ...r, status: 'ready' };
-          }
-          return r;
-        });
-
+        updatedRewards = unlockReward(updatedRewards, landmarkRewardId);
         const targetGoal = updatedGoals.find(g => g.id === goalId);
-        if (targetGoal && targetGoal.completed) {
-          updatedRewards = updatedRewards.map(r => {
-            if (
-              (r.trigger === 'goal' && r.linkedId === goalId && r.status === 'locked') ||
-              (targetGoal.rewardId && r.id === targetGoal.rewardId && r.status === 'locked')
-            ) {
-              return { ...r, status: 'ready' };
-            }
-            return r;
-          });
-        }
+        if (targetGoal?.completed) updatedRewards = unlockReward(updatedRewards, targetGoal.rewardId);
       }
 
       return {

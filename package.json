@@ -2,6 +2,7 @@
   "name": "focus-space-time-tracker",
   "private": true,
   "version": "1.1.0",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"node server/index.js\" \"vite\"",
@@ -23,6 +24,7 @@
     "test:rust": "cd src-tauri && cargo test --lib",
     "test:parity:web": "node scripts/parity/run-web.ts",
     "test:parity": "npm run test:parity:web && npm run test:rust",
+    "check:csp": "npm run build && node scripts/csp/check.ts",
     "check": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run audit:strings && npm run audit:css && npm run audit:errors && npm run test:parity:web",
     "visual:capture": "node scripts/visual/capture.ts",
     "visual:baseline": "node scripts/visual/capture.ts --out documentation/visual/baseline",

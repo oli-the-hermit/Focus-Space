@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState, TimerPhase } from '../../types';
 import { strings } from '../../constants/strings';
 import { getTodayStr } from '../../lib/dateUtils';
@@ -10,24 +10,29 @@ import { clearTimerRun, saveTimerRun } from '../../lib/storage';
 import { playChime as playPhaseChime } from '../../lib/audio';
 import { TIMING } from '../../constants/timing';
 import { uid } from '../../lib/id';
-import { phaseMinutes } from '../../lib/sessionTime';
+import { idleTimer, phaseMinutes, secondsUntil } from '../../lib/sessionTime';
+import { unlockReward } from '../../lib/rewardLinks';
 import type { AlertState } from './useAlertState';
 
 interface TimerEngineDeps {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   showToast: (message: string) => void;
-  /** When the running phase ends (ms since epoch), or null when not running. */
-  targetEndTimeRef: React.MutableRefObject<number | null>;
   alerts: Pick<AlertState, 'ringBell' | 'deliverAlert'>;
 }
 
 /**
  * The focus/break timer: a wall-clock ticker (drift-free, background-resilient),
  * phase completion, the desktop alert mirror, and the timer controls.
+ *
+ * `state.timer.endsAt` is the one source for when a run ends. State updaters stay
+ * pure; effects mirror the run to storage (so a reload resumes it) and to Rust.
  */
-export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, alerts }: TimerEngineDeps) {
+export function useTimerEngine({ state, setState, showToast, alerts }: TimerEngineDeps) {
   const { ringBell, deliverAlert } = alerts;
+  const { phase, status, total } = state.timer;
+  /** When the current run ends, or null when the timer isn't running. */
+  const runEnd = status === 'running' ? state.timer.endsAt : null;
 
   const playChime = (phase: TimerPhase = 'focus') => {
     if (state.sound) playPhaseChime(phase);
@@ -35,8 +40,6 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
 
   // Phase completion handler
   const handlePhaseComplete = (skipped = false) => {
-    targetEndTimeRef.current = null;
-    clearTimerRun();
     const currentSession = state.sessions.find(s => s.id === state.activeSessionId) || state.sessions[0];
     const isFocus = state.timer.phase === 'focus';
 
@@ -45,18 +48,9 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
         playChime('focus');
         announcePhaseEnd('focus');
 
-        // Unlock session rewards
-        if (currentSession) {
-          setState(prev => ({
-            ...prev,
-            rewards: prev.rewards.map(r => {
-              const isLinked =
-                (currentSession.rewardId && r.id === currentSession.rewardId) ||
-                (r.linkedSessionId && r.linkedSessionId === currentSession.id) ||
-                (r.trigger === 'session' && r.linkedId === currentSession.id);
-              return isLinked && r.status === 'locked' ? { ...r, status: 'ready' } : r;
-            })
-          }));
+        // Unlock the session's reward
+        if (currentSession?.rewardId) {
+          setState(prev => ({ ...prev, rewards: unlockReward(prev.rewards, currentSession.rewardId) }));
         }
 
         // Log session
@@ -77,16 +71,11 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
       }
 
       // Switch to break
-      const breakMins = phaseMinutes(currentSession, 'break');
-      const breakSecs = breakMins * 60;
       setState(prev => ({
         ...prev,
         activeActivityStartTime: null,
         timer: {
-          phase: 'break',
-          status: 'idle',
-          remaining: breakSecs,
-          total: breakSecs,
+          ...idleTimer(prev.timer, currentSession, 'break'),
           sessionsCompletedToday: skipped ? prev.timer.sessionsCompletedToday : prev.timer.sessionsCompletedToday + 1
         }
       }));
@@ -97,18 +86,10 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
         announcePhaseEnd('break');
       }
 
-      const focusMins = phaseMinutes(currentSession, 'focus');
-      const focusSecs = focusMins * 60;
       setState(prev => ({
         ...prev,
         activeActivityStartTime: null,
-        timer: {
-          ...prev.timer,
-          phase: 'focus',
-          status: 'idle',
-          remaining: focusSecs,
-          total: focusSecs
-        }
+        timer: idleTimer(prev.timer, currentSession, 'focus')
       }));
     }
   };
@@ -131,97 +112,78 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
   const handlePhaseCompleteRef = useRef(handlePhaseComplete);
   handlePhaseCompleteRef.current = handlePhaseComplete;
 
-  useEffect(() => {
-    if (state.timer.status === 'running') {
-      if (!targetEndTimeRef.current) {
-        targetEndTimeRef.current = Date.now() + state.timer.remaining * 1000;
-        saveTimerRun({
-              targetEndTime: targetEndTimeRef.current,
-              phase: state.timer.phase,
-              sessionId: state.activeSessionId,
-              total: state.timer.total
-            });
-      }
-
-      // Ticks from a worker so a hidden tab/minimized window still ends on time.
-      timerRef.current = startTicker(() => {
-        const targetEnd = targetEndTimeRef.current;
-        if (!targetEnd) return;
-        const now = Date.now();
-        const remainingSecs = Math.max(0, Math.ceil((targetEnd - now) / 1000));
-
-        if (remainingSecs <= 0) {
-          stopTicker();
-          targetEndTimeRef.current = null;
-          clearTimerRun();
-          handlePhaseCompleteRef.current(false);
-        } else {
-          setState(prev => {
-            if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
-            return {
-              ...prev,
-              timer: { ...prev.timer, remaining: remainingSecs }
-            };
-          });
-        }
-      }, TIMING.timerTickMs);
-    } else {
-      stopTicker();
-    }
-
-    return stopTicker;
-    // Restarts only when the run itself changes. remaining/total are read once to set
-    // the end time; re-running on every tick would reset the ticker each second.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.timer.status, state.timer.phase, state.activeSessionId]);
-
-  function stopTicker() {
+  /** Stops the ticker right away, before the state change that ends the run commits. */
+  const stopTicker = useCallback(() => {
     timerRef.current?.();
     timerRef.current = null;
-  }
+  }, []);
 
-  // Desktop: mirror the running phase's end in Rust so the alert fires on time
-  // even while WebView2 throttles this window.
   useEffect(() => {
-    if (!isTauri()) return;
-    const n = state.notifications;
-    if (state.timer.status === 'running' && targetEndTimeRef.current && n.phaseAlerts) {
-      scheduleDesktopAlert(targetEndTimeRef.current, buildPhaseAlert(state.timer.phase, n)).catch(() => {});
-    } else {
-      cancelDesktopAlert().catch(() => {});
-    }
-    // buildPhaseAlert reads only phaseAlerts and autoDismissSec, listed below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    state.timer.status,
-    state.timer.phase,
-    state.activeSessionId,
-    state.notifications.phaseAlerts,
-    state.notifications.autoDismissSec
-  ]);
-
-  // Re-reads the wall clock; completes the phase if it already elapsed
-  const syncTimer = () => {
-    if (state.timer.status === 'running' && targetEndTimeRef.current) {
-      const now = Date.now();
-      const remainingSecs = Math.max(0, Math.ceil((targetEndTimeRef.current - now) / 1000));
+    if (runEnd === null) return;
+    // Ticks from a worker so a hidden tab/minimized window still ends on time.
+    const stop = startTicker(() => {
+      const remainingSecs = secondsUntil(runEnd);
       if (remainingSecs <= 0) {
-        targetEndTimeRef.current = null;
-        clearTimerRun();
-        handlePhaseComplete(false);
+        stopTicker();
+        handlePhaseCompleteRef.current(false);
       } else {
         setState(prev => {
-          if (prev.timer.status !== 'running' || prev.timer.remaining === remainingSecs) return prev;
+          if (prev.timer.status !== 'running' || prev.timer.endsAt !== runEnd || prev.timer.remaining === remainingSecs) return prev;
           return {
             ...prev,
             timer: { ...prev.timer, remaining: remainingSecs }
           };
         });
       }
+    }, TIMING.timerTickMs);
+    timerRef.current = stop;
+    return stopTicker;
+  }, [runEnd, setState, stopTicker]);
+
+  // Keep the run record in storage in step with the state, so a reload resumes the run.
+  const savedRunRef = useRef(false);
+  const activeSessionId = state.activeSessionId;
+  useEffect(() => {
+    if (runEnd !== null) {
+      saveTimerRun({ targetEndTime: runEnd, phase, sessionId: activeSessionId, total });
+      savedRunRef.current = true;
+    } else if (savedRunRef.current) {
+      // Only after a run of ours: on mount the record is still waiting to be restored.
+      clearTimerRun();
+      savedRunRef.current = false;
+    }
+  }, [runEnd, phase, activeSessionId, total]);
+
+  // Desktop: mirror the running phase's end in Rust so the alert fires on time
+  // even while WebView2 throttles this window.
+  const { phaseAlerts, autoDismissSec } = state.notifications;
+  useEffect(() => {
+    if (!isTauri()) return;
+    if (runEnd !== null && phaseAlerts) {
+      scheduleDesktopAlert(runEnd, buildPhaseAlert(phase, { autoDismissSec })).catch(() => {});
+    } else {
+      cancelDesktopAlert().catch(() => {});
+    }
+  }, [runEnd, phase, phaseAlerts, autoDismissSec]);
+
+  // Re-reads the wall clock; completes the phase if it already elapsed
+  const syncTimer = () => {
+    if (runEnd === null) return;
+    const remainingSecs = secondsUntil(runEnd);
+    if (remainingSecs <= 0) {
+      stopTicker();
+      handlePhaseComplete(false);
+    } else {
+      setState(prev => {
+        if (prev.timer.status !== 'running' || prev.timer.endsAt !== runEnd || prev.timer.remaining === remainingSecs) return prev;
+        return {
+          ...prev,
+          timer: { ...prev.timer, remaining: remainingSecs }
+        };
+      });
     }
   };
 
-  const getTimerTargetEnd = () => targetEndTimeRef.current;
   const syncTimerRef = useRef(syncTimer);
   syncTimerRef.current = syncTimer;
 
@@ -243,16 +205,11 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
   // Timer Controls
   const toggleTimer = () => {
     setState(prev => {
-      const isRunning = prev.timer.status === 'running';
-      if (isRunning) {
-        const currentRemaining = targetEndTimeRef.current
-          ? Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000))
-          : prev.timer.remaining;
-        targetEndTimeRef.current = null;
-        clearTimerRun();
+      if (prev.timer.status === 'running') {
+        const remaining = prev.timer.endsAt !== null ? secondsUntil(prev.timer.endsAt) : prev.timer.remaining;
         return {
           ...prev,
-          timer: { ...prev.timer, status: 'paused', remaining: currentRemaining }
+          timer: { ...prev.timer, status: 'paused', remaining, endsAt: null }
         };
       }
 
@@ -271,15 +228,6 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
         total = expectedTotal;
       }
 
-      const targetEndTime = Date.now() + remaining * 1000;
-      targetEndTimeRef.current = targetEndTime;
-      saveTimerRun({
-            targetEndTime,
-            phase: prev.timer.phase,
-            sessionId: prev.activeSessionId,
-            total
-          });
-
       return {
         ...prev,
         activeActivityStartTime: !prev.activeActivityStartTime ? Date.now() : prev.activeActivityStartTime,
@@ -287,7 +235,8 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
           ...prev.timer,
           status: 'running',
           remaining,
-          total
+          total,
+          endsAt: Date.now() + remaining * 1000
         }
       };
     });
@@ -295,30 +244,18 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
 
   const resetTimer = () => {
     stopTicker();
-    targetEndTimeRef.current = null;
-    clearTimerRun();
     setState(prev => {
       const activeSession = prev.sessions.find(s => s.id === prev.activeSessionId) || prev.sessions[0];
-      const mins = phaseMinutes(activeSession, 'focus');
-      const total = mins * 60;
       return {
         ...prev,
         activeActivityStartTime: null,
-        timer: {
-          ...prev.timer,
-          phase: 'focus',
-          status: 'idle',
-          remaining: total,
-          total
-        }
+        timer: idleTimer(prev.timer, activeSession, 'focus')
       };
     });
   };
 
   const skipPhase = () => {
     stopTicker();
-    targetEndTimeRef.current = null;
-    clearTimerRun();
     handlePhaseComplete(true);
   };
 
@@ -327,5 +264,5 @@ export function useTimerEngine({ state, setState, showToast, targetEndTimeRef, a
   const toggleTimerRef = useRef(toggleTimer);
   toggleTimerRef.current = toggleTimer;
 
-  return { toggleTimer, resetTimer, skipPhase, toggleSound, syncTimer, getTimerTargetEnd, syncTimerRef, toggleTimerRef };
+  return { toggleTimer, resetTimer, skipPhase, toggleSound, syncTimer, stopTicker, syncTimerRef, toggleTimerRef };
 }

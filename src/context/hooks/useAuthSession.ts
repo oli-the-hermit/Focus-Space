@@ -27,7 +27,6 @@ interface AuthSessionDeps {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   showToast: (message: string) => void;
-  targetEndTimeRef: React.MutableRefObject<number | null>;
   /** Resets UI state (tab, tour, help, alert) after signing out. */
   onSignedOut: () => void;
 }
@@ -36,7 +35,7 @@ interface AuthSessionDeps {
  * Sign-in state and the encrypted data layer: restores the session on startup,
  * auto-saves the sealed state (debounced), and the auth actions.
  */
-export function useAuthSession({ state, setState, showToast, targetEndTimeRef, onSignedOut }: AuthSessionDeps) {
+export function useAuthSession({ state, setState, showToast, onSignedOut }: AuthSessionDeps) {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
   const [profile, setProfile] = useState<Profile | null>(null);
   const tokenRef = useRef<string | null>(null);
@@ -87,10 +86,10 @@ export function useAuthSession({ state, setState, showToast, targetEndTimeRef, o
                 phase: runInfo.phase,
                 status: 'running',
                 remaining: remainingSecs,
-                total: runInfo.total || nextState.timer.total
+                total: runInfo.total || nextState.timer.total,
+                endsAt: runInfo.targetEndTime
               }
             };
-            targetEndTimeRef.current = runInfo.targetEndTime;
           } else {
             clearTimerRun();
           }
@@ -106,7 +105,6 @@ export function useAuthSession({ state, setState, showToast, targetEndTimeRef, o
           storage.remove('authToken', 'authKey', 'timerRun');
           tokenRef.current = null;
           dataKeyRef.current = null;
-          targetEndTimeRef.current = null;
           setProfile(null);
           setAuthStatus('unauthenticated');
         }
@@ -117,8 +115,8 @@ export function useAuthSession({ state, setState, showToast, targetEndTimeRef, o
     return () => {
       cancelled = true;
     };
-    // Both are stable (a state setter and a ref), so this runs once on mount.
-  }, [setState, targetEndTimeRef]);
+    // setState is stable, so this runs once on mount.
+  }, [setState]);
 
   // Encrypted persistence (debounced) — only when authenticated
   useEffect(() => {
@@ -210,7 +208,6 @@ export function useAuthSession({ state, setState, showToast, targetEndTimeRef, o
     storage.remove('authToken', 'authKey', 'timerRun');
     tokenRef.current = null;
     dataKeyRef.current = null;
-    targetEndTimeRef.current = null;
     setProfile(null);
     setAuthStatus('unauthenticated');
     onSignedOut();
@@ -222,7 +219,6 @@ export function useAuthSession({ state, setState, showToast, targetEndTimeRef, o
     storage.remove('authToken', 'authKey', 'timerRun');
     tokenRef.current = null;
     dataKeyRef.current = null;
-    targetEndTimeRef.current = null;
     setProfile(null);
     setAuthStatus('unauthenticated');
     setState(() => normalizeState(null));

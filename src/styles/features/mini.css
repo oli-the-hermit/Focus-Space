@@ -76,9 +76,9 @@ html.mini-root #root {
 .mini-art-sub { display: none; }
 
 .mini-ring { display: none; }
-.mini-ring circle { fill: none; stroke-width: 5; }
-.mini-ring-track { stroke: var(--surface-3); }
-.mini-ring-fill {
+.mini-ring circle { stroke-width: 5; }
+.mini-ring .progress-ring-track { stroke: var(--surface-3); }
+.mini-ring .progress-ring-fill {
   stroke: var(--phase);
   stroke-linecap: round;
   transform: rotate(-90deg);

@@ -12,7 +12,8 @@
   "app": {
     "windows": [],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "devCsp": null
     }
   },
   "bundle": {
@@ -20,6 +21,7 @@
     "targets": ["nsis"],
     "publisher": "sanmilano",
     "copyright": "© 2026 sanmilano",
+    "licenseFile": "../LICENSE",
     "category": "Productivity",
     "shortDescription": "Focus timer with sessions, tasks, goals and rewards",
     "icon": [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeGoal, normalizeLandmark, normalizeReward, normalizeState, normalizeTask } from './normalize';
+import { migrateRewardLinks, normalizeGoal, normalizeLandmark, normalizeReward, normalizeState, normalizeTask } from './normalize';
 import { strings } from '../constants/strings';
 import { DEFAULT_REWARD_EMOJI } from '../constants/defaults';
 
@@ -47,8 +47,40 @@ describe('normalizeReward', () => {
     expect(normalizeReward({ id: 'r', name: 'X' })).toMatchObject({ emoji: DEFAULT_REWARD_EMOJI, description: '', frequency: 'daily' });
   });
 
-  it('keeps the other fields', () => {
-    expect(normalizeReward({ id: 'r', name: 'X', linkedGoalId: 'g1', claimedAt: 5 })).toMatchObject({ linkedGoalId: 'g1', claimedAt: 5 });
+  it('keeps the other fields and drops the old link fields', () => {
+    const r = normalizeReward({ id: 'r', name: 'X', trigger: 'goal', linkedId: 'g1', linkedSessionId: null, linkedGoalId: 'g1', claimedAt: 5 });
+    expect(r).toMatchObject({ claimedAt: 5 });
+    for (const key of ['trigger', 'linkedId', 'linkedSessionId', 'linkedGoalId']) expect(r).not.toHaveProperty(key);
+  });
+});
+
+describe('migrateRewardLinks', () => {
+  const s = (id: string, rewardId: string | null = null) => ({ id, name: id, focusMinutes: 25, breakMinutes: 5, rewardId });
+  const g = (id: string, rewardId: string | null = null) => ({
+    id, name: id, frequency: 'daily' as const, completed: false, rewardId,
+    landmarks: [{ id: `${id}-lm`, name: 'L', completed: false, rewardId: null }]
+  });
+
+  it('moves each old link form onto the unlocker', () => {
+    const out = migrateRewardLinks(
+      [
+        { id: 'r1', linkedSessionId: 's1' },
+        { id: 'r2', trigger: 'session', linkedId: 's2' },
+        { id: 'r3', trigger: 'goal', linkedId: 'g1' },
+        { id: 'r4', linkedGoalId: 'g2' },
+        { id: 'r5', trigger: 'landmark', linkedId: 'g1-lm' }
+      ],
+      [s('s1'), s('s2'), s('s3')],
+      [g('g1'), g('g2')]
+    );
+    expect(out.sessions.map(x => x.rewardId)).toEqual(['r1', 'r2', null]);
+    expect(out.goals.map(x => x.rewardId)).toEqual(['r3', 'r4']);
+    expect(out.goals[0].landmarks[0].rewardId).toBe('r5');
+  });
+
+  it('keeps a link the unlocker already has, and ignores unknown ids', () => {
+    const out = migrateRewardLinks([{ id: 'r1', linkedSessionId: 's1' }, { id: 'r2', linkedSessionId: 'gone' }], [s('s1', 'r0')], []);
+    expect(out.sessions[0].rewardId).toBe('r0');
   });
 });
 
@@ -98,5 +130,14 @@ describe('normalizeState', () => {
     expect(s.taskLists[0].tasks[0].createdAt).toBe(7);
     expect(s.goals[0]).toMatchObject({ name: 'Old goal', frequency: 'weekly' });
     expect(s.rewards[0].emoji).toBe('☕');
+  });
+
+  it('moves reward links onto sessions while loading', () => {
+    const s = normalizeState({
+      sessions: [{ id: 'a', name: 'A', focusMinutes: 25, breakMinutes: 5 }],
+      rewards: [{ id: 'r', name: 'R', trigger: 'session', linkedId: 'a', linkedSessionId: 'a', status: 'locked' }]
+    });
+    expect(s.sessions[0].rewardId).toBe('r');
+    expect(s.rewards[0]).not.toHaveProperty('linkedSessionId');
   });
 });

@@ -41,7 +41,7 @@ export interface AlertActionMessage {
 
 export const DEFAULT_AUTO_DISMISS_SEC = 10;
 
-export function buildPhaseAlert(endedPhase: TimerPhase, settings: NotificationSettings): AlertPayload {
+export function buildPhaseAlert(endedPhase: TimerPhase, settings: Pick<NotificationSettings, 'autoDismissSec'>): AlertPayload {
   const focusEnded = endedPhase === 'focus';
   return {
     id: `${endedPhase}-${Date.now()}`,

@@ -25,7 +25,7 @@ import { createSessionActions } from './actions/sessions';
 import { createListActions } from './actions/lists';
 import { createCalendarActions } from './actions/calendar';
 import { createGoalActions } from './actions/goals';
-import { createRewardActions } from './actions/rewards';
+import { createRewardActions, type RewardLinkChoice } from './actions/rewards';
 import { useAlertState } from './hooks/useAlertState';
 import { useAuthSession, type AuthStatus } from './hooks/useAuthSession';
 import { useThemeSync } from './hooks/useThemeSync';
@@ -65,8 +65,6 @@ interface AppContextType {
   toggleSound: () => void;
   /** Re-reads the wall clock and completes the phase if it has elapsed. */
   syncTimer: () => void;
-  /** Epoch ms at which the running phase ends, or null when not running. */
-  getTimerTargetEnd: () => number | null;
 
   // Drag & Drop Reordering
   reorderSessions: (sourceId: string, targetId: string) => void;
@@ -118,8 +116,8 @@ interface AppContextType {
   toggleLandmark: (goalId: string, landmarkId: string) => void;
 
   // Rewards CRUD
-  addReward: (reward: NewReward) => string;
-  updateReward: (id: string, reward: Partial<Reward>) => void;
+  addReward: (reward: NewReward, links?: Partial<RewardLinkChoice>) => string;
+  updateReward: (id: string, reward: Partial<Reward>, links?: RewardLinkChoice) => void;
   duplicateReward: (id: string) => void;
   deleteReward: (id: string) => void;
   claimReward: (id: string) => void;
@@ -190,7 +188,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeModal, setActiveModal] = useState<ActiveModal | null>(null);
 
   const [state, setState] = useState<AppState>(() => normalizeState(null));
-  const targetEndTimeRef = useRef<number | null>(null);
   const alertState = useAlertState();
   const { alertRinging, activeAlert, setActiveAlert, dismissAlert } = alertState;
 
@@ -209,7 +206,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     state,
     setState,
     showToast,
-    targetEndTimeRef,
     onSignedOut: () => {
       setActiveTabState('timer');
       setTourActive(false);
@@ -233,11 +229,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // ── Timer (hooks/useTimerEngine) ─────────────────────────────────────
-  const { toggleTimer, resetTimer, skipPhase, toggleSound, syncTimer, getTimerTargetEnd, syncTimerRef, toggleTimerRef } = useTimerEngine({
+  const { toggleTimer, resetTimer, skipPhase, toggleSound, syncTimer, stopTicker, syncTimerRef, toggleTimerRef } = useTimerEngine({
     state,
     setState,
     showToast,
-    targetEndTimeRef,
     alerts: alertState
   });
 
@@ -256,7 +251,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // ── Entity actions (src/context/actions) ──────────────────────────
-  const { reorderSessions, setActiveSession, createSession, updateSession, duplicateSession, deleteSession, setSessionTaskLists } = createSessionActions({ setState, showToast, targetEndTimeRef });
+  const { reorderSessions, setActiveSession, createSession, updateSession, duplicateSession, deleteSession, setSessionTaskLists } = createSessionActions({ setState, showToast, stopTicker });
   const { reorderTaskLists, reorderTasks, setActiveList, createList, renameList, duplicateList, deleteList, setSelectedListForTimer, addTask, toggleTask, renameTask, duplicateTask, deleteTask } = createListActions({ setState, showToast, stateRef });
   const { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, duplicateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate } = createCalendarActions({ setState, showToast, stateRef });
   const { addGoal, updateGoal, duplicateGoal, deleteGoal, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark } = createGoalActions({ setState, showToast });
@@ -301,7 +296,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         skipPhase,
         toggleSound,
         syncTimer,
-        getTimerTargetEnd,
         reorderSessions,
         reorderTaskLists,
         reorderTasks,

@@ -7,6 +7,7 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { IconButton } from '../ui/IconButton';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
+import { isManualReward, rewardLinks } from '../../lib/rewardLinks';
 
 export interface RewardCardProps {
   reward: Reward;
@@ -15,15 +16,13 @@ export interface RewardCardProps {
 }
 
 export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isClaimed }) => {
-  const { openModal, duplicateReward, deleteReward, claimReward } = useApp();
+  const { state, openModal, duplicateReward, deleteReward, claimReward } = useApp();
   const contextMenu = useContextMenu();
 
   const claimed = isClaimed || reward.status === 'claimed';
   const ready = showClaim !== undefined ? showClaim : reward.status === 'ready';
   const rewardFrequency = reward.frequency;
-  const hasSessionLink = !!(reward.linkedSessionId || (reward.trigger === 'session' && reward.linkedId));
-  const hasGoalLink = !!(reward.linkedGoalId || (reward.trigger === 'goal' && reward.linkedId));
-  const isLandmark = reward.trigger === 'landmark';
+  const links = rewardLinks(state, reward.id);
 
   const handleEdit = () => {
     openModal('EDIT_REWARD', { reward });
@@ -66,12 +65,10 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
             <span className={`goal-type-badge badge-${rewardFrequency}`}>
               {frequencyLabel(rewardFrequency)}
             </span>
-            {hasSessionLink && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
-            {hasGoalLink && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
-            {isLandmark && <span className="reward-trigger-badge">{strings.rewards.badgeLandmark}</span>}
-            {!hasSessionLink && !hasGoalLink && !isLandmark && (
-              <span className="reward-trigger-badge">{strings.rewards.badgeManual}</span>
-            )}
+            {links.sessionId && <span className="reward-trigger-badge">{strings.rewards.badgeSession}</span>}
+            {links.goalId && <span className="reward-trigger-badge">{strings.rewards.badgeGoal}</span>}
+            {links.landmarkIds.length > 0 && <span className="reward-trigger-badge">{strings.rewards.badgeLandmark}</span>}
+            {isManualReward(links) && <span className="reward-trigger-badge">{strings.rewards.badgeManual}</span>}
             {claimed && (
               <span className="reward-trigger-badge claimed">
                 {strings.rewards.claimed}

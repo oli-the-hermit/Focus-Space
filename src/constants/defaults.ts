@@ -59,10 +59,6 @@ export const DEFAULT_REWARDS: Reward[] = [
     description: 'Enjoy a warm cup of coffee or tea completely guilt-free.',
     emoji: '☕',
     frequency: 'daily',
-    trigger: 'session',
-    linkedId: 's1',
-    linkedSessionId: 's1',
-    linkedGoalId: null,
     status: 'locked',
     claimedAt: null
   },
@@ -72,10 +68,6 @@ export const DEFAULT_REWARDS: Reward[] = [
     description: 'Listen to 1 episode of your favorite podcast.',
     emoji: '🎧',
     frequency: 'daily',
-    trigger: 'session',
-    linkedId: 's2',
-    linkedSessionId: 's2',
-    linkedGoalId: null,
     status: 'locked',
     claimedAt: null
   },
@@ -85,10 +77,6 @@ export const DEFAULT_REWARDS: Reward[] = [
     description: 'Take a relaxing 20-minute walk outside.',
     emoji: '🌿',
     frequency: 'weekly',
-    trigger: 'goal',
-    linkedId: 'g1',
-    linkedSessionId: null,
-    linkedGoalId: 'g1',
     status: 'ready',
     claimedAt: null
   }

@@ -149,7 +149,6 @@
   --checkbox-size:    20px;
   --progress-height:  6px;
   --progress-height-lg: 8px;
-  --grip-tracking:    -3px;      /* pulls the two ⋮ of the drag grip into one handle */
 
   /* ── Elevation (floating layers only) ── */
   --elev-overlay:     0 12px 32px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 35%);

@@ -6,7 +6,7 @@ import { encryptBlob, type SealedBlob } from './crypto';
  * restored from its own record (loadTimerRun in lib/storage) instead.
  */
 export function stateForSave(state: AppState): AppState {
-  return { ...state, timer: { ...state.timer, status: 'idle' } };
+  return { ...state, timer: { ...state.timer, status: 'idle', endsAt: null } };
 }
 
 /** Encrypts the saveable state with the profile's data key. */

@@ -1,0 +1,4 @@
+/* ── Progress ring (ui/ProgressRing) ───────────────────────
+   Geometry comes from the component; each use sets stroke width,
+   colors and rotation on .progress-ring-track / .progress-ring-fill. */
+.progress-ring circle { fill: none; }

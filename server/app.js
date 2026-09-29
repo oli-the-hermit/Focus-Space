@@ -8,6 +8,7 @@ import { getDb } from './db.js';
 import { hashPassword, verifyPassword, generateToken, hashToken } from './crypto.js';
 import { LIMITS, USERNAME_RE, SESSION_TTL_MS, LOCKOUT_MS } from './limits.js';
 import { E, fail, ApiFailure } from './errors.js';
+import { securityHeaders } from './security.js';
 
 const MAX_BLOB_BYTES = LIMITS.maxBlobBytes; // encrypted data blob cap
 const LOGIN_FAIL_DELAY_MS = LIMITS.login.failDelayMs;
@@ -160,6 +161,8 @@ function assertUniqueUsername(username) {
 // ── App ──────────────────────────────────────────────────────────
 function createApp() {
   const app = express();
+  app.disable('x-powered-by');
+  app.use(securityHeaders);
   app.use(express.json({ limit: '2mb' }));
 
   // ── Health / bootstrap ────────────────────────────────────────

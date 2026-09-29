@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
-import { GITHUB_URL, githubIssueUrl } from '../../constants/links';
+import { GITHUB_URL, docsUrl, githubIssueUrl } from '../../constants/links';
 import { isTauri, openExternal } from '../../lib/desktop';
-import { IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
+import { IconBook, IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 import { format } from '../../lib/i18n';
 import { SHORTCUTS } from '../../constants/shortcuts';
@@ -91,6 +91,13 @@ export const HelpModal: React.FC = () => {
           {GITHUB_URL && (
             <>
               <HelpRow
+                icon={<IconBook size={20} />}
+                title={strings.help.docsTitle}
+                desc={strings.help.docsDesc}
+                external
+                onClick={() => open(docsUrl())}
+              />
+              <HelpRow
                 icon={<IconBug size={20} />}
                 title={strings.help.reportTitle}
                 desc={strings.help.reportDesc}
@@ -163,6 +170,7 @@ export const HelpModal: React.FC = () => {
               <p>{strings.help.privacyBody}</p>
             </div>
           </div>
+          <p className="help-note">{strings.help.licenseNote}</p>
           <p className="help-note">
             {strings.help.credits}
             {GITHUB_URL && (

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { strings } from '../../constants/strings';
 import type { AlertActionId, AlertPayload } from '../../lib/notify';
 import { IconBell, IconCalendar, IconClose } from '../ui/icons';
+import { ProgressRing } from '../ui/ProgressRing';
 
 export interface AlertCardProps {
   payload: AlertPayload;
@@ -10,8 +11,6 @@ export interface AlertCardProps {
   /** Sits in its own always-on-top window (desktop) rather than inside the app. */
   standalone?: boolean;
 }
-
-const RING = 2 * Math.PI * 17;
 
 /**
  * The "island": a dark pill with the alert, its actions and a countdown ring
@@ -82,17 +81,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ payload, onAction, onDismi
         aria-label={strings.alerts.dismiss}
         title={strings.alerts.dismiss}
       >
-        <svg className="alert-ring" viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="17" className="alert-ring-track" />
-          <circle
-            cx="20"
-            cy="20"
-            r="17"
-            className="alert-ring-fill"
-            strokeDasharray={RING}
-            strokeDashoffset={RING * (1 - left / total)}
-          />
-        </svg>
+        <ProgressRing className="alert-ring" value={left / total} box={40} radius={17} />
         <IconClose size={14} strokeWidth={2.4} />
       </button>
     </div>

@@ -339,6 +339,14 @@ export const IconBug: React.FC<IconProps> = p => (
   </StrokeIcon>
 );
 
+export const IconBook: React.FC<IconProps> = p => (
+  <StrokeIcon {...p}>
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+    <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+    <line x1="8" y1="7.5" x2="16" y2="7.5" />
+  </StrokeIcon>
+);
+
 export const IconStar: React.FC<IconProps> = p => (
   <StrokeIcon {...p}>
     <polygon points="12 2.8 14.9 8.7 21.4 9.6 16.7 14.2 17.8 20.6 12 17.6 6.2 20.6 7.3 14.2 2.6 9.6 9.1 8.7" />
@@ -432,9 +440,17 @@ export const IconChevronUp: React.FC<IconProps> = ({ size = 16, strokeWidth = 2.
   </StrokeIcon>
 );
 
-/** Drag handle glyph ("⋮⋮", pulled together by --grip-tracking). */
+/** Drag handle: two columns of three dots. The span carries the class and the title tooltip. */
 export const IconGrip: React.FC<React.HTMLAttributes<HTMLSpanElement>> = ({ className = 'drag-handle', ...props }) => (
   <span className={className} {...props}>
-    ⋮⋮
+    {/* Tight box (not the 24-unit icon grid) so the handle takes little room in a row. */}
+    <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" aria-hidden="true">
+      <circle cx="2" cy="3" r="1.25" />
+      <circle cx="6" cy="3" r="1.25" />
+      <circle cx="2" cy="7" r="1.25" />
+      <circle cx="6" cy="7" r="1.25" />
+      <circle cx="2" cy="11" r="1.25" />
+      <circle cx="6" cy="11" r="1.25" />
+    </svg>
   </span>
 );

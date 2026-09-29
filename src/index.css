@@ -29,6 +29,7 @@
 @import url('./styles/components/button.css') layer(app);
 @import url('./styles/components/chip.css') layer(app);
 @import url('./styles/components/progress.css') layer(app);
+@import url('./styles/components/progress-ring.css') layer(app);
 @import url('./styles/components/checkbox.css') layer(app);
 @import url('./styles/components/drag.css') layer(app);
 @import url('./styles/components/form.css') layer(app);
@@ -66,6 +67,7 @@
 @import url('./styles/features/rewards.css') layer(app);
 @import url('./styles/features/celebration.css') layer(app);
 @import url('./styles/features/auth.css') layer(app);
+@import url('./styles/features/crash.css') layer(app);
 @import url('./styles/features/profile.css') layer(app);
 @import url('./styles/features/help.css') layer(app);
 @import url('./styles/features/tour.css') layer(app);

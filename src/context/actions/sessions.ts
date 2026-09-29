@@ -1,14 +1,12 @@
 /** Timer sessions: create, edit, duplicate, delete, reorder, pick the active one. */
 import type { ActionDeps } from './types';
 import { strings } from '../../constants/strings';
-import { cancelDesktopAlert, isTauri } from '../../lib/desktop';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
-import { clearTimerRun } from '../../lib/storage';
 import { Session } from '../../types';
-import { phaseMinutes } from '../../lib/sessionTime';
+import { idleTimer, phaseMinutes } from '../../lib/sessionTime';
 
-export function createSessionActions({ setState, showToast, targetEndTimeRef }: Pick<ActionDeps, 'setState' | 'showToast' | 'targetEndTimeRef'>) {
+export function createSessionActions({ setState, showToast, stopTicker }: Pick<ActionDeps, 'setState' | 'showToast' | 'stopTicker'>) {
   const reorderSessions = (sourceId: string, targetId: string) => {
     if (sourceId === targetId) return;
     setState(prev => {
@@ -23,40 +21,27 @@ export function createSessionActions({ setState, showToast, targetEndTimeRef }: 
   };
 
   const setActiveSession = (id: string) => {
-    if (isTauri()) cancelDesktopAlert().catch(() => {});
-    targetEndTimeRef.current = null;
-    clearTimerRun();
+    // Switching sessions stops the run; the timer engine clears its record and alert.
+    stopTicker();
     setState(prev => {
       const s = prev.sessions.find(x => x.id === id) || prev.sessions[0];
-      const dur = phaseMinutes(s, 'focus') * 60;
       return {
         ...prev,
         activeSessionId: id,
         selectedListIdForTimer: s?.taskListIds?.[0] ?? prev.selectedListIdForTimer,
         activeActivityStartTime: null,
-        timer: { ...prev.timer, phase: 'focus', status: 'idle', remaining: dur, total: dur }
+        timer: idleTimer(prev.timer, s, 'focus')
       };
     });
   };
 
   const createSession = (session: Omit<Session, 'id'>): string => {
     const newSession: Session = { ...session, taskListIds: session.taskListIds ? [...session.taskListIds] : [], id: uid() };
-    setState(prev => {
-      const updatedRewards = newSession.rewardId
-        ? prev.rewards.map(r =>
-            r.id === newSession.rewardId
-              ? { ...r, linkedSessionId: newSession.id, linkedId: newSession.id, trigger: 'session' as const }
-              : r
-          )
-        : prev.rewards;
-
-      return {
-        ...prev,
-        sessions: [...prev.sessions, newSession],
-        rewards: updatedRewards,
-        activeSessionId: prev.activeSessionId || newSession.id
-      };
-    });
+    setState(prev => ({
+      ...prev,
+      sessions: [...prev.sessions, newSession],
+      activeSessionId: prev.activeSessionId || newSession.id
+    }));
     showToast(format(strings.toasts.sessionCreated, { name: newSession.name }));
     return newSession.id;
   };
@@ -71,32 +56,7 @@ export function createSessionActions({ setState, showToast, targetEndTimeRef }: 
         timerUpdate = { ...prev.timer, remaining: mins * 60, total: mins * 60 };
       }
 
-      let updatedRewards = prev.rewards;
-      if (session.rewardId !== undefined) {
-        updatedRewards = prev.rewards.map(r => {
-          // Unlink previously linked reward if it changed
-          if ((r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) && r.id !== session.rewardId) {
-            return {
-              ...r,
-              linkedSessionId: null,
-              linkedId: r.linkedGoalId || null,
-              trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
-            };
-          }
-          // Link new reward
-          if (session.rewardId && r.id === session.rewardId) {
-            return {
-              ...r,
-              linkedSessionId: id,
-              linkedId: id,
-              trigger: 'session' as const
-            };
-          }
-          return r;
-        });
-      }
-
-      return { ...prev, sessions: updated, rewards: updatedRewards, timer: timerUpdate };
+      return { ...prev, sessions: updated, timer: timerUpdate };
     });
     showToast(strings.toasts.sessionUpdated);
   };
@@ -121,32 +81,12 @@ export function createSessionActions({ setState, showToast, targetEndTimeRef }: 
       const filtered = prev.sessions.filter(s => s.id !== id);
       const nextActiveId = prev.activeSessionId === id ? (filtered[0]?.id || null) : prev.activeSessionId;
       const nextActive = filtered.find(s => s.id === nextActiveId) || filtered[0];
-      const mins = phaseMinutes(nextActive, 'focus');
-
-      const updatedRewards = prev.rewards.map(r => {
-        if (r.linkedSessionId === id || (r.trigger === 'session' && r.linkedId === id)) {
-          return {
-            ...r,
-            linkedSessionId: null,
-            linkedId: r.linkedGoalId || null,
-            trigger: r.linkedGoalId ? ('goal' as const) : ('manual' as const)
-          };
-        }
-        return r;
-      });
 
       return {
         ...prev,
         sessions: filtered,
-        rewards: updatedRewards,
         activeSessionId: nextActiveId,
-        timer: {
-          ...prev.timer,
-          status: 'idle',
-          phase: 'focus',
-          remaining: mins * 60,
-          total: mins * 60
-        }
+        timer: idleTimer(prev.timer, nextActive, 'focus')
       };
     });
     showToast(strings.toasts.sessionDeleted);

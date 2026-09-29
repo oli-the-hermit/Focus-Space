@@ -71,9 +71,9 @@
 }
 .alert-dismiss:hover { background: var(--surface-4); color: var(--text-1); }
 .alert-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.alert-ring circle { fill: none; stroke-width: 3; }
-.alert-ring-track { stroke: transparent; }
-.alert-ring-fill { stroke: currentColor; stroke-linecap: round; transition: stroke-dashoffset var(--dur-1) linear; }
+.alert-ring circle { stroke-width: 3; }
+.alert-ring .progress-ring-track { stroke: transparent; }
+.alert-ring .progress-ring-fill { stroke: currentColor; stroke-linecap: round; transition: stroke-dashoffset var(--dur-1) linear; }
 
 /* Desktop island window: the card is the whole window. */
 html.island-root,

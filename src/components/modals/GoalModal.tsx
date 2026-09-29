@@ -23,18 +23,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   const [startDate, setStartDate] = useState(goal?.startDate || '');
   const [dueDate, setDueDate] = useState(goal?.dueDate || '');
 
-  const initialRewardId = () => {
-    if (goal?.rewardId) return goal.rewardId;
-    if (goal?.id) {
-      const linked = state.rewards.find(
-        r => r.linkedGoalId === goal.id || (r.trigger === 'goal' && r.linkedId === goal.id)
-      );
-      if (linked) return linked.id;
-    }
-    return '';
-  };
-
-  const [rewardId, setRewardId] = useState<string>(initialRewardId);
+  const [rewardId, setRewardId] = useState<string>(goal?.rewardId ?? '');
   const datesInvalid = isDateRangeInvalid(startDate, dueDate);
 
   const handleSubmit = (e: React.FormEvent) => {

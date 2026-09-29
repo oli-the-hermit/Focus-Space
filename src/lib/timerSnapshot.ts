@@ -54,7 +54,7 @@ export function getPhaseTimes(state: AppState, session: Session | undefined): { 
   return { total, remaining };
 }
 
-export function buildTimerSnapshot(state: AppState, targetEndTime: number | null, noSessionLabel: string): TimerSnapshot {
+export function buildTimerSnapshot(state: AppState, noSessionLabel: string): TimerSnapshot {
   const session = getActiveSession(state);
   const { total, remaining } = getPhaseTimes(state, session);
   const nextMins = phaseMinutes(session, nextPhase(state.timer.phase));
@@ -64,7 +64,7 @@ export function buildTimerSnapshot(state: AppState, targetEndTime: number | null
     status: state.timer.status,
     remaining,
     total,
-    targetEndTime: state.timer.status === 'running' ? targetEndTime : null,
+    targetEndTime: state.timer.status === 'running' ? state.timer.endsAt : null,
     sessionName: session?.name || noSessionLabel,
     currentTask: getCurrentTask(state, session),
     nextPhaseSeconds: nextMins * 60,

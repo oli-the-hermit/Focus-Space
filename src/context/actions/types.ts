@@ -10,7 +10,7 @@ export interface ActionDeps {
   showToast: (message: string) => void;
   /** The latest state, for decisions that must happen outside a setState updater. */
   stateRef: React.MutableRefObject<AppState>;
-  /** When the running phase ends (ms since epoch), or null when idle. */
-  targetEndTimeRef: React.MutableRefObject<number | null>;
+  /** Stops the timer's ticker at once (the state change that ends the run follows). */
+  stopTicker: () => void;
   setActiveCelebrationReward: (reward: Reward | null) => void;
 }

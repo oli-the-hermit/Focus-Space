@@ -5,6 +5,9 @@ use std::sync::Arc;
 
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
+/** The log file is replaced once it reaches this size. */
+const LOG_MAX_BYTES: u128 = 1_000_000;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -20,19 +23,24 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(alerts::Alerts::default())
         .setup(|app| {
-            if cfg!(debug_assertions) {
-                app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
-                        .build(),
-                )?;
-            }
+            // Release builds log too, so a user can attach the file to a bug report:
+            // %LOCALAPPDATA%\com.focusspace.desktop\logs\Focus Space.log (one file, capped).
+            app.handle().plugin(
+                tauri_plugin_log::Builder::default()
+                    .level(if cfg!(debug_assertions) { log::LevelFilter::Info } else { log::LevelFilter::Warn })
+                    .max_file_size(LOG_MAX_BYTES)
+                    .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepOne)
+                    .build(),
+            )?;
 
             // Data lives in the per-user app data folder:
             // %APPDATA%\com.focusspace.desktop\focusspace.db
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
-            let backend = backend::Backend::open(&data_dir.join("focusspace.db"))?;
+            let backend = backend::Backend::open(&data_dir.join("focusspace.db")).inspect_err(|err| {
+                // Setup errors end the app; keep the reason in the log.
+                log::error!("could not open the database in {}: {err}", data_dir.display());
+            })?;
             app.manage(Arc::new(backend));
 
             // Dev: the Vite dev server (devUrl). Release: the UI bundled into the binary.

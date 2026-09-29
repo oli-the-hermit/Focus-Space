@@ -303,10 +303,15 @@ export const CalendarGrid: React.FC = () => {
                       handleEditEvent(ev);
                     }}
                   >
-                    <div className="cal-event-title">{ev.title}</div>
-                    <div className="cal-event-time">
-                      {ev.startTime} · {ev.durationMins}′
-                      {session ? ` · ${session.name}` : ''}
+                    <div className="cal-event-body">
+                      <div className="cal-event-title">{ev.title}</div>
+                      <div className="cal-event-time">
+                        {ev.startTime}
+                        <span className="cal-event-detail">
+                          {` · ${ev.durationMins}′`}
+                          {session ? ` · ${session.name}` : ''}
+                        </span>
+                      </div>
                     </div>
                     <div className="cal-event-actions">
                       <IconButton

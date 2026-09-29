@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { FormActions } from '../ui/FormActions';
 import { useDirty } from '../../hooks/useDirty';
 import { useApp } from '../../context/AppContext';
-import { Reward, RewardTrigger, GoalFrequency } from '../../types';
+import { Reward, GoalFrequency } from '../../types';
+import { rewardLinks } from '../../lib/rewardLinks';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Field, TextArea, TextInput } from '../ui/Field';
@@ -25,67 +26,22 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
     reward ? reward.frequency : 'daily'
   );
 
-  const initialSessionId = () => {
-    if (!reward) return '';
-    if (reward.linkedSessionId) return reward.linkedSessionId;
-    if (reward.trigger === 'session' && reward.linkedId) return reward.linkedId;
-    const matched = state.sessions.find(s => s.rewardId === reward.id);
-    return matched ? matched.id : '';
-  };
-
-  const initialGoalId = () => {
-    if (!reward) return '';
-    if (reward.linkedGoalId) return reward.linkedGoalId;
-    if (reward.trigger === 'goal' && reward.linkedId) return reward.linkedId;
-    const matched = state.goals.find(g => g.rewardId === reward.id);
-    return matched ? matched.id : '';
-  };
-
-  const [linkedSessionId, setLinkedSessionId] = useState<string>(initialSessionId);
-  const [linkedGoalId, setLinkedGoalId] = useState<string>(initialGoalId);
+  const [initialLinks] = useState(() => (reward ? rewardLinks(state, reward.id) : null));
+  const [linkedSessionId, setLinkedSessionId] = useState<string>(initialLinks?.sessionId ?? '');
+  const [linkedGoalId, setLinkedGoalId] = useState<string>(initialLinks?.goalId ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalName = name.trim() || strings.rewards.untitledReward;
     const finalEmoji = emoji.trim() || DEFAULT_REWARD_EMOJI;
-    const finalSessionId = linkedSessionId || null;
-    const finalGoalId = linkedGoalId || null;
+    const links = { sessionId: linkedSessionId || null, goalId: linkedGoalId || null };
+    // Landmarks link rewards from the goal card, so they count even though this form doesn't show them.
+    const manual = !links.sessionId && !links.goalId && !initialLinks?.landmarkIds.length;
+    const finalStatus = manual ? 'ready' : (reward ? reward.status : 'locked');
+    const fields = { name: finalName, description: description.trim(), emoji: finalEmoji, frequency, status: finalStatus };
 
-    let inferredTrigger: RewardTrigger = 'manual';
-    if (finalSessionId) inferredTrigger = 'session';
-    else if (finalGoalId) inferredTrigger = 'goal';
-    else if (reward?.trigger === 'landmark') inferredTrigger = 'landmark';
-
-    const finalStatus = (!finalSessionId && !finalGoalId && inferredTrigger === 'manual')
-      ? 'ready'
-      : (reward ? reward.status : 'locked');
-
-    if (reward) {
-      updateReward(reward.id, {
-        name: finalName,
-        description: description.trim(),
-        emoji: finalEmoji,
-        frequency,
-        trigger: inferredTrigger,
-        linkedSessionId: finalSessionId,
-        linkedGoalId: finalGoalId,
-        linkedId: finalSessionId || finalGoalId || (reward.trigger === 'landmark' ? reward.linkedId : null),
-        status: finalStatus
-      });
-    } else {
-      addReward({
-        name: finalName,
-        description: description.trim(),
-        emoji: finalEmoji,
-        frequency,
-        trigger: inferredTrigger,
-        linkedSessionId: finalSessionId,
-        linkedGoalId: finalGoalId,
-        linkedId: finalSessionId || finalGoalId || null,
-        status: finalStatus,
-        claimedAt: null
-      });
-    }
+    if (reward) updateReward(reward.id, fields, links);
+    else addReward({ ...fields, claimedAt: null }, links);
     onClose();
   };
 

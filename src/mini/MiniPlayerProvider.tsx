@@ -65,7 +65,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isOpen, setIsOpen] = useState(false);
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
 
-  const snapshot = buildTimerSnapshot(app.state, app.getTimerTargetEnd(), strings.timer.noSession);
+  const snapshot = buildTimerSnapshot(app.state, strings.timer.noSession);
   const snapshotKey = JSON.stringify(snapshot);
 
   // Commands arrive asynchronously; always dispatch against the latest context.

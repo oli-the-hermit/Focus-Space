@@ -1,0 +1,4 @@
+/* ── Crash screen (shell/CrashScreen) ──────────────────────
+   Reuses the auth card; only the actions row and the hint are its own. */
+.crash-actions { display: flex; flex-wrap: wrap; gap: var(--space-10); margin-top: var(--space-22); }
+.crash-hint { margin-top: var(--space-14); font-size: var(--text-xs); color: var(--text-3); }

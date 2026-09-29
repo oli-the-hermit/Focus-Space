@@ -4,15 +4,19 @@ import { DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 import { strings } from '../../constants/strings';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
+import { assignReward, rewardLinks } from '../../lib/rewardLinks';
 import { Reward } from '../../types';
 import type { NewReward } from '../../types';
 
-export function createRewardActions({ setState, showToast, stateRef, setActiveCelebrationReward }: Pick<ActionDeps, 'setState' | 'showToast' | 'stateRef' | 'setActiveCelebrationReward'>) {
-  const addReward = (reward: NewReward): string => {
-    const linkedSession = reward.linkedSessionId || (reward.trigger === 'session' ? reward.linkedId : null);
-    const linkedGoal = reward.linkedGoalId || (reward.trigger === 'goal' ? reward.linkedId : null);
-    const inferredTrigger: Reward['trigger'] = reward.trigger || (linkedSession ? 'session' : linkedGoal ? 'goal' : 'manual');
+/** The session and goal that unlock a reward, as picked in the reward form. */
+export interface RewardLinkChoice {
+  sessionId: string | null;
+  goalId: string | null;
+}
 
+export function createRewardActions({ setState, showToast, stateRef, setActiveCelebrationReward }: Pick<ActionDeps, 'setState' | 'showToast' | 'stateRef' | 'setActiveCelebrationReward'>) {
+  const addReward = (reward: NewReward, links?: Partial<RewardLinkChoice>): string => {
+    const linked = !!(links?.sessionId || links?.goalId);
     const newReward: Reward = {
       ...reward,
       id: uid(),
@@ -20,98 +24,30 @@ export function createRewardActions({ setState, showToast, stateRef, setActiveCe
       description: reward.description ?? '',
       emoji: reward.emoji || DEFAULT_REWARD_EMOJI,
       frequency: reward.frequency ?? 'daily',
-      trigger: inferredTrigger,
-      linkedSessionId: linkedSession,
-      linkedGoalId: linkedGoal,
-      linkedId: linkedSession || linkedGoal || reward.linkedId || null,
-      status: reward.status || (inferredTrigger === 'manual' && !linkedSession && !linkedGoal ? 'ready' : 'locked'),
+      // Nothing unlocks a manual reward, so it starts claimable.
+      status: reward.status || (linked ? 'locked' : 'ready'),
       claimedAt: null
     };
 
-    setState(prev => {
-      const updatedSessions = newReward.linkedSessionId
-        ? prev.sessions.map(s => (s.id === newReward.linkedSessionId ? { ...s, rewardId: newReward.id } : s))
-        : prev.sessions;
-
-      const updatedGoals = newReward.linkedGoalId
-        ? prev.goals.map(g => (g.id === newReward.linkedGoalId ? { ...g, rewardId: newReward.id } : g))
-        : prev.goals;
-
-      return {
-        ...prev,
-        rewards: [...prev.rewards, newReward],
-        sessions: updatedSessions,
-        goals: updatedGoals
-      };
-    });
+    setState(prev => ({
+      ...prev,
+      rewards: [...prev.rewards, newReward],
+      sessions: links?.sessionId ? assignReward(prev.sessions, newReward.id, links.sessionId) : prev.sessions,
+      goals: links?.goalId ? assignReward(prev.goals, newReward.id, links.goalId) : prev.goals
+    }));
     showToast(format(strings.toasts.rewardCreated, { name: newReward.name }));
     return newReward.id;
   };
 
-  const updateReward = (id: string, reward: Partial<Reward>) => {
+  /** With `links`, a changed session or goal replaces every earlier one of that kind. */
+  const updateReward = (id: string, reward: Partial<Reward>, links?: RewardLinkChoice) => {
     setState(prev => {
-      const updatedRewards = prev.rewards.map(r => {
-        if (r.id !== id) return r;
-        const nextLinkedSession = reward.linkedSessionId !== undefined
-          ? reward.linkedSessionId
-          : (reward.linkedId && reward.trigger === 'session' ? reward.linkedId : r.linkedSessionId);
-        const nextLinkedGoal = reward.linkedGoalId !== undefined
-          ? reward.linkedGoalId
-          : (reward.linkedId && reward.trigger === 'goal' ? reward.linkedId : r.linkedGoalId);
-
-        let nextTrigger = reward.trigger || r.trigger;
-        if (reward.linkedSessionId !== undefined || reward.linkedGoalId !== undefined) {
-          if (nextLinkedSession) nextTrigger = 'session';
-          else if (nextLinkedGoal) nextTrigger = 'goal';
-          else if (!r.linkedId) nextTrigger = 'manual';
-        }
-
-        return {
-          ...r,
-          ...reward,
-          emoji: reward.emoji || r.emoji,
-          trigger: nextTrigger,
-          linkedSessionId: nextLinkedSession,
-          linkedGoalId: nextLinkedGoal,
-          linkedId: nextLinkedSession || nextLinkedGoal || (reward.linkedId !== undefined ? reward.linkedId : r.linkedId)
-        };
-      });
-
-      const target = updatedRewards.find(r => r.id === id);
-      const targetSessionId = target?.linkedSessionId || (target?.trigger === 'session' ? target?.linkedId : null);
-      const targetGoalId = target?.linkedGoalId || (target?.trigger === 'goal' ? target?.linkedId : null);
-
-      let updatedSessions = prev.sessions;
-      if (reward.linkedSessionId !== undefined || reward.linkedId !== undefined) {
-        updatedSessions = prev.sessions.map(s => {
-          if (s.rewardId === id && s.id !== targetSessionId) {
-            return { ...s, rewardId: null };
-          }
-          if (targetSessionId && s.id === targetSessionId) {
-            return { ...s, rewardId: id };
-          }
-          return s;
-        });
-      }
-
-      let updatedGoals = prev.goals;
-      if (reward.linkedGoalId !== undefined || reward.linkedId !== undefined) {
-        updatedGoals = prev.goals.map(g => {
-          if (g.rewardId === id && g.id !== targetGoalId) {
-            return { ...g, rewardId: null };
-          }
-          if (targetGoalId && g.id === targetGoalId) {
-            return { ...g, rewardId: id };
-          }
-          return g;
-        });
-      }
-
+      const current = rewardLinks(prev, id);
       return {
         ...prev,
-        rewards: updatedRewards,
-        sessions: updatedSessions,
-        goals: updatedGoals
+        rewards: prev.rewards.map(r => (r.id === id ? { ...r, ...reward, emoji: reward.emoji || r.emoji } : r)),
+        sessions: links && links.sessionId !== current.sessionId ? assignReward(prev.sessions, id, links.sessionId) : prev.sessions,
+        goals: links && links.goalId !== current.goalId ? assignReward(prev.goals, id, links.goalId) : prev.goals
       };
     });
     showToast(strings.toasts.rewardUpdated);
@@ -121,11 +57,12 @@ export function createRewardActions({ setState, showToast, stateRef, setActiveCe
     setState(prev => {
       const target = prev.rewards.find(r => r.id === id);
       if (!target) return prev;
+      // The copy isn't linked to anything (links live on the unlockers), so it's claimable.
       const dup: Reward = {
         ...target,
         id: uid(),
         name: format(strings.common.copyOf, { name: target.name }),
-        status: target.trigger === 'manual' ? 'ready' : 'locked',
+        status: 'ready',
         claimedAt: null
       };
       return { ...prev, rewards: [...prev.rewards, dup] };
