@@ -56,7 +56,7 @@ function need(value: string | null, what: string): string {
 /**
  * The eight accent roles of one base color in one theme: fill, hover, text on the
  * fill, secondary text on the fill, container, text on the container, accent as text,
- * and the focus ring. A break color uses the first six.
+ * and the focus ring. A break color uses all but the focus ring.
  */
 export function deriveRoles(base: Oklch, theme: ThemeName, surfaces: string[], label: string): string[] {
   const fill = hex(base.l, base.c, base.h);
@@ -107,7 +107,8 @@ export function buildPalette(tokensCss: string): Palette {
   const accentNames = ACCENT_TOKENS.slice(0, 8);
   const breakNames = ACCENT_TOKENS.slice(8);
   const teal = { dark: pick(tokens.dark, breakNames), light: pick(tokens.light, breakNames) };
-  const coral = Object.fromEntries(THEME_NAMES.map(t => [t, deriveRoles(CORAL_BREAK, t, pick(tokens[t], SURFACES), 'the coral break').slice(0, 6)])) as Record<ThemeName, string[]>;
+  // A break has every role but the focus ring (the last one).
+  const coral = Object.fromEntries(THEME_NAMES.map(t => [t, deriveRoles(CORAL_BREAK, t, pick(tokens[t], SURFACES), 'the coral break').slice(0, 7)])) as Record<ThemeName, string[]>;
 
   const palette = {} as Palette;
   for (const preset of ACCENT_PRESETS) {
@@ -141,6 +142,7 @@ export function auditPalette(palette: Palette, tokensCss: string): string[] {
         expect(contrast(v[`--on-${prefix}-container`], v[`--${prefix}-container`]), RULES.text, `--on-${prefix}-container on its container`);
       }
       expect(minContrast(v['--accent-text'], surfaces), RULES.text, '--accent-text on the surfaces');
+      expect(minContrast(v['--break-text'], surfaces), RULES.text, '--break-text on the surfaces');
       expect(minContrast(v['--focus-ring'], surfaces), RULES.ui, '--focus-ring on the surfaces');
       if (!phasesDistinct(v['--accent'], v['--break'])) problems.push(`${id} (${theme}): focus and break colors look alike`);
     }

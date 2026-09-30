@@ -27,12 +27,17 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
   return (
     <Modal isOpen={isOpen} title={strings.notifications.modalTitle} onClose={onClose}>
       {/* Remounted on every open, so the draft starts from the saved settings. */}
-      {isOpen && <NotificationForm onClose={onClose} />}
+      {isOpen && <NotificationForm onDone={onClose} />}
     </Modal>
   );
 };
 
-const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+/**
+ * The notification settings form, used by the bell's dialog and by Settings.
+ * `onDone` runs after Save and after Cancel; remount the form (a new `key`) to
+ * start again from the saved settings.
+ */
+export const NotificationForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
   const { state, updateNotifications, showToast } = useApp();
   const [draft, setDraft] = useState<NotificationSettings>(state.notifications);
   const [permission, setPermission] = useState<WebPermission>(webNotificationPermission);
@@ -52,7 +57,7 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const save = () => {
     updateNotifications(draft);
     showToast(strings.notifications.savedMsg);
-    onClose();
+    onDone();
   };
 
   const n = strings.notifications;
@@ -146,7 +151,7 @@ const NotificationForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
       )}
 
-      <FormActions dirty={dirty} onCancel={onClose} primaryLabel={strings.common.save} primaryDisabled={!dirty} onPrimary={save} />
+      <FormActions dirty={dirty} onCancel={onDone} primaryLabel={strings.common.save} primaryDisabled={!dirty} onPrimary={save} />
     </div>
   );
 };

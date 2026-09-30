@@ -10,6 +10,11 @@ export type RewardStatus = 'locked' | 'ready' | 'claimed';
 export type UserRole = 'owner' | 'user';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+/** A toast's kind: its color and icon (success green, info the accent, warning amber, error red). */
+export type ToastTone = 'success' | 'info' | 'warning' | 'error';
+/** Shows a one-line toast; confirmations use the default, 'success'. */
+export type ShowToast = (message: string, tone?: ToastTone) => void;
+
 export interface Profile {
   id: number;
   username: string;

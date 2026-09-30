@@ -3,8 +3,6 @@
 .section-title.danger-text,
 .danger-text { color: var(--danger); }
 .section-divider { height: 0; margin: var(--space-12) 0 !important; }
-/* A view that starts with an optional section (Settings > Updates) needs no gap above it. */
-.modal-body > .section-divider:first-child { display: none; }
 .settings-subtitle { font-size: var(--text-sm); color: var(--text-2); margin-top: var(--space-4) !important; }
 
 .theme-segmented {
@@ -72,6 +70,8 @@
   font-size: var(--text-3xs);
   font-weight: var(--weight-heavy);
 }
+/* The signed-in profile. */
+.role-badge.is-active { background: var(--success-container); color: var(--success); }
 .rename-inline { display: flex; gap: var(--space-6); }
 .rename-inline .form-input { height: 34px; }
 

@@ -85,8 +85,9 @@ async function main() {
       try {
         if (action) await action();
         await settle(page);
-        // Toasts expire on a timer, so they would make runs differ; hide them.
-        await page.addStyleTag({ content: '.toast-container { visibility: hidden !important; }' });
+        // Toasts and the bell's dot expire on timers, so they would make runs differ; hide
+        // them, except in views taken with html.show-toasts (48-toast-success).
+        await page.addStyleTag({ content: 'html:not(.show-toasts) .toast-container, html:not(.show-toasts) .bell-dot { visibility: hidden !important; }' });
         const dir = path.join(OUT_DIR, theme);
         fs.mkdirSync(dir, { recursive: true });
         await page.screenshot({ path: path.join(dir, `${name}.png`) });
@@ -225,6 +226,24 @@ async function main() {
       await shot(theme, '46-appearance-muted', () => pickAccent('slate'));
       await pickAccent('solar-lime');
       await closeOverlays();
+
+      // ── Settings: notifications, profiles; saving shows a success toast and the bell's dot ──
+      await shot(theme, '47-settings', async () => {
+        await page.locator('.user-badge-btn').first().click();
+        await page.getByRole('menuitem', { name: strings.userMenu.settings }).click();
+        await page.locator('.modal .notif-form').waitFor({ timeout: 3000 });
+      });
+      const soundSwitch = page.locator('.modal .notif-form input.switch').last();
+      const saveNotifications = () => page.locator('.modal .notif-form').getByRole('button', { name: strings.common.save, exact: true }).click();
+      await soundSwitch.click();
+      await saveNotifications();
+      await page.evaluate(() => document.documentElement.classList.add('show-toasts'));
+      await shot(theme, '48-toast-success');
+      await page.evaluate(() => document.documentElement.classList.remove('show-toasts'));
+      // Put the setting back so later views match.
+      await soundSwitch.click();
+      await saveNotifications();
+      await closeOverlays();
     }
 
     // ── Behavior checks: keyboard shortcuts pause while a menu is open ──
@@ -232,6 +251,16 @@ async function main() {
       checks++;
       try { if (!(await fn())) failures.push(`check: ${name}`); } catch (err) { failures.push(`check: ${name}: ${(err as Error).message.split('\n')[0]}`); }
     };
+    await check("A toast lights the bell's dot, and opening the bell clears it", async () => {
+      // The Settings saves above just showed success toasts.
+      const dot = page.locator('.bell-dot');
+      const lit = (await dot.getAttribute('class'))?.split(' ').includes('is-success') ?? false;
+      await page.locator('[data-tour="alerts-btn"]').click();
+      await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
+      const cleared = (await dot.count()) === 0;
+      await closeOverlays();
+      return lit && cleared;
+    });
     await check('N is ignored while a menu is open', async () => {
       await openGlobalMenu();
       await page.keyboard.press('n');

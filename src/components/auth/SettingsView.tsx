@@ -10,6 +10,7 @@ import { format } from '../../lib/i18n';
 import { formatFullDate, initials } from '../../lib/formatUtils';
 import { LIMITS } from '../../constants/limits';
 import { UpdateSettings } from '../updates/UpdateSettings';
+import { NotificationForm } from '../modals/NotificationModal';
 
 const MAX_PROFILES = LIMITS.maxProfiles;
 
@@ -29,6 +30,7 @@ export const SettingsView: React.FC = () => {
   const [deleting, setDeleting] = useState<Profile | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [notifFormKey, setNotifFormKey] = useState(0);
 
   // ── Danger zone ──────────────────────────────────────────────────────
   const [resetStep, setResetStep] = useState<'none' | 'confirm' | 'password'>('none');
@@ -131,81 +133,89 @@ export const SettingsView: React.FC = () => {
   };
 
   const profileCount = profiles?.length ?? 1;
+  // Until the main account's list arrives (and always for a regular profile), show the signed-in one.
+  const listedProfiles = isOwner && profiles ? profiles : profile ? [profile] : [];
 
   return (
     <>
+      {/* Notifications: the same form as the bell's dialog */}
+      <h4 className="section-title">{strings.settings.notificationsTitle}</h4>
+      <div>
+        {/* Remounted after Save or Cancel, so it starts again from the saved settings. */}
+        <NotificationForm key={notifFormKey} onDone={() => setNotifFormKey(k => k + 1)} />
+      </div>
+
       {/* Updates — desktop app only */}
       <UpdateSettings />
 
-      {/* Profiles manager — owner only */}
+      {/* Profiles: the main account manages every profile; a regular profile sees its own */}
+      <div className="section-divider" />
+      <h4 className="section-title">{strings.settings.profilesSectionTitle}</h4>
+      {isOwner && (
+        <p className="settings-subtitle">
+          {format(strings.settings.profileCounter, { count: profileCount, max: MAX_PROFILES })}
+        </p>
+      )}
+
+      <div className="profile-list">
+        {listedProfiles.map(p => (
+          <div className="profile-row" key={p.id}>
+            <span className="profile-row-avatar">
+              {p.avatar ? <img src={p.avatar} alt="" /> : initials(p.displayName)}
+            </span>
+            <div className="profile-row-info">
+              <span className="profile-row-name">
+                {p.displayName}
+                {p.role === 'owner' && <span className="role-badge">{strings.auth.mainBadge}</span>}
+                {p.id === profile?.id && <span className="role-badge is-active">{strings.settings.activeBadge}</span>}
+              </span>
+              <span className="profile-row-meta">
+                @{p.username} · {formatFullDate(p.createdAt)}
+              </span>
+            </div>
+            {/* Your own name and photo are edited in Profile. */}
+            {isOwner && p.id !== profile?.id && (
+              <div className="profile-row-actions">
+                {renamingId === p.id ? (
+                  <div className="rename-inline">
+                    <TextInput
+                      value={renameVal}
+                      onChange={e => setRenameVal(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') renameProfile(p.id);
+                        if (e.key === 'Escape') setRenamingId(null);
+                      }}
+                      maxLength={LIMITS.displayName.max}
+                      autoFocus
+                    />
+                    <Button variant="primary" onClick={() => renameProfile(p.id)} disabled={busy}>
+                      {strings.common.rename}
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setRenamingId(p.id);
+                        setRenameVal(p.displayName);
+                      }}
+                    >
+                      {strings.common.rename}
+                    </Button>
+                    <Button variant="danger" onClick={() => setDeleting(p)} disabled={busy}>
+                      {strings.common.delete}
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Adding profiles and the permanent actions — main account only */}
       {isOwner && (
         <>
-          <div className="section-divider" />
-          <h4 className="section-title">{strings.settings.profilesSectionTitle}</h4>
-          <p className="settings-subtitle">
-            {format(strings.settings.profileCounter, { count: profileCount, max: MAX_PROFILES })}
-          </p>
-
-          <div className="profile-list">
-            {(profiles || []).map(p => (
-              <div className="profile-row" key={p.id}>
-                <span className="profile-row-avatar">
-                  {p.avatar ? <img src={p.avatar} alt="" /> : initials(p.displayName)}
-                </span>
-                <div className="profile-row-info">
-                  <span className="profile-row-name">
-                    {p.displayName}
-                    {p.role === 'owner' && <span className="role-badge">{strings.auth.mainBadge}</span>}
-                  </span>
-                  <span className="profile-row-meta">
-                    @{p.username} · {formatFullDate(p.createdAt)}
-                  </span>
-                </div>
-                <div className="profile-row-actions">
-                  {renamingId === p.id ? (
-                    <div className="rename-inline">
-                      <TextInput
-                        value={renameVal}
-                        onChange={e => setRenameVal(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') renameProfile(p.id);
-                          if (e.key === 'Escape') setRenamingId(null);
-                        }}
-                        maxLength={LIMITS.displayName.max}
-                        autoFocus
-                      />
-                      <Button variant="primary" onClick={() => renameProfile(p.id)} disabled={busy}>
-                        {strings.common.rename}
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={() => {
-                          setRenamingId(p.id);
-                          setRenameVal(p.displayName);
-                        }}
-                        disabled={p.id === profile?.id}
-                        title={p.id === profile?.id ? 'Main account' : strings.common.rename}
-                      >
-                        {strings.common.rename}
-                      </Button>
-                      {p.id !== profile?.id && (
-                        <Button
-                          variant="danger"
-                          onClick={() => setDeleting(p)}
-                          disabled={busy}
-                        >
-                          {strings.common.delete}
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
           {showAddForm ? (
             <div className="add-profile-form">
               <Field label={strings.auth.displayNameLabel}>

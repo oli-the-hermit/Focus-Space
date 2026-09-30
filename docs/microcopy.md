@@ -28,7 +28,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 **The wizard nod.** First-run setup has one small nod to classic installation wizards: *"One quick step, no Next › Next › Finish required."* The success toast then reads *"Setup complete, no restart required."* That's the only Easter egg. Don't add more.
 
 **Reading the table**
-- **Toasts** render one line of text with no title or button. For toasts, *Semantic Title* is the intent (for docs and accessibility), and *Suggested Action* points to a control already on screen.
+- **Toasts** render one line of text with no title or button. They appear top right, under the bell, in one of four tones, each with its own color and icon: *success* (green, check; the default for confirmations), *info* (accent color, "i"; phase-end notices), *warning* (amber, triangle; e.g. the mini player didn't open) and *error* (red, ×; announced as an alert). The bell keeps a dot in the most important tone since it was last opened; it clears when the bell opens or a minute after the last toast. For toasts, *Semantic Title* is the intent (for docs and accessibility), and *Suggested Action* points to a control already on screen.
 - **Placeholders** such as `{name}` are filled at runtime.
 - ***(needs wiring)*** marks a state the app doesn't announce yet. The copy is ready, but the behavior still needs to be built. These strings are **not** in `strings.ts` yet.
 - ***(inactive)*** marks the Agenda view, whose components exist but aren't currently rendered.
@@ -100,6 +100,8 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Saved data couldn't be read or written | Error Recovery | Inline helper | Change not saved | We couldn't save that change. Your data is safe, so please try again. | Try again |
 | Unexpected problem on the app service | Error Recovery | Inline helper | Unexpected hiccup | Something unexpected happened on our side. Your data is safe, so please try again. | Try again |
 | Unknown address (desktop service) | Error Recovery | Inline helper | Not found | We couldn't find what you were looking for. | — |
+| Settings: notification options (same form as the bell's dialog) | Status | Section | Notifications | The bell's settings: phase alerts, reminders, hide-after, chime, browser permission | Save |
+| Settings: profile list (the main account sees every profile; a regular profile sees its own) | Status | Badges | Main · Active | "Main" marks the main account, "Active" the profile signed in now | — |
 | Appearance: theme | Status | Segmented control | Theme | Light · Dark · System | Pick one |
 | Appearance: accent color | Status | Section description | Accent color | Colors buttons, highlights and the focus timer. | Pick a swatch |
 | Appearance: colors used before (this device, hidden until one is picked) | Status | Swatch row | Recent colors | Each swatch's name as its tooltip | Pick a swatch |
@@ -116,14 +118,14 @@ The single reference for every user-facing message in Focus Space: what the app 
 | No session picked | Empty State | Player card | No session | Pick a session to start | + New session |
 | Focus phase ends | Success | Alert island (in-app, desktop popup or browser notification) | Focus session complete | Nice work. Time for a break. | Start break · Open app |
 | Break ends | Status | Alert island | Break's over | Ready when you are. | Start focus · Open app |
-| Focus phase ends, alerts turned off | Success | Toast | Focus complete | Focus session complete. Nice work, time for a break. | Start (break) |
-| Break ends, alerts turned off | Status | Toast | Break over | Break's over. Ready when you are. | Start |
+| Focus phase ends, alerts turned off | Success | Toast (info) | Focus complete | Focus session complete. Nice work, time for a break. | Start (break) |
+| Break ends, alerts turned off | Status | Toast (info) | Break over | Break's over. Ready when you are. | Start |
 | Task checked off during a session | Success | Toast | Task done | Task done in {duration}. | Keep going |
 | Session created | Success | Toast | Session saved | Session "{name}" is ready. | — |
 | Session updated / duplicated / deleted | Success | Toast | Session saved | Session updated. · Session duplicated. · Session deleted. | — |
 | No sessions | Empty State | Inline | No sessions | No sessions yet. Create one above to get started. | + New session |
 | No task list attached to the session | Empty State | Inline | No task list | No task list for this session yet. Pick a list or create a new one. Lists are saved, so any session can reuse them. | Choose a task list… |
-| Mini player didn't open | Error Recovery | Toast | Mini player | The mini player didn't open this time. Try again, or keep going here. | Open mini player |
+| Mini player didn't open | Error Recovery | Toast (warning) | Mini player | The mini player didn't open this time. Try again, or keep going here. | Open mini player |
 | Update found on launch (desktop) | Helpful Alert | Card (bottom right) | Version {version} is ready | Update now and Focus Space reopens where you left off. Your data stays as it is. | Update and restart / Maybe later |
 | Update downloading | Status | Card and Settings | Downloading | Downloading the update… {percent}% | — |
 | Update installing | Status | Card and Settings | Installing | Installing. Focus Space will reopen in a moment. | — |

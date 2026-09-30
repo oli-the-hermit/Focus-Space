@@ -447,6 +447,8 @@ export const strings = {
   },
   settings: {
     title: 'Settings',
+    notificationsTitle: 'Notifications',
+    activeBadge: 'Active',
     profilesSectionTitle: 'Profiles',
     profileCounter: '{count} of {max} profiles',
     addProfileBtn: 'Add profile',

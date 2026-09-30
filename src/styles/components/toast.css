@@ -1,5 +1,4 @@
-/* ── Toast ──────────────────────────────────────────────── */
-/* Bottom-right corner: toasts stack above anything else parked there (the update card). */
+/* ── Bottom-right corner: the update card (desktop) ─────── */
 .corner-stack {
   position: fixed;
   right: 24px;
@@ -11,7 +10,13 @@
   gap: var(--space-8);
   pointer-events: none;
 }
+
+/* ── Toasts: top right, sliding in under the bell ────────── */
 .toast-container {
+  position: fixed;
+  top: calc(var(--topbar-height) + var(--space-4));
+  right: 24px;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -20,17 +25,31 @@
 }
 .toast {
   max-width: 380px;
-  padding: var(--space-12) var(--space-18);
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-12) var(--space-18) var(--space-12) var(--space-14);
   border-radius: var(--radius-lg);
-  background: var(--inverse-surface);
-  color: var(--inverse-on-surface);
+  color: var(--text-1);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   box-shadow: var(--elev-overlay);
   animation: toast-in var(--dur-3) var(--ease-emphasized);
 }
+.toast-icon { flex: none; display: grid; place-items: center; }
+
+/* Each tone: its container color and an icon in its own color (the icon differs too). */
+.toast.is-success { background: var(--success-container); }
+.toast.is-success .toast-icon { color: var(--success); }
+.toast.is-info { background: var(--accent-container); }
+.toast.is-info .toast-icon { color: var(--on-accent-container); }
+.toast.is-warning { background: var(--warning-container); }
+.toast.is-warning .toast-icon { color: var(--warning); }
+.toast.is-error { background: var(--danger-container); }
+.toast.is-error .toast-icon { color: var(--danger); }
+
 @keyframes toast-in {
-  from { transform: translateY(12px); }
+  from { transform: translateY(-12px); }
   to { transform: none; }
 }
 

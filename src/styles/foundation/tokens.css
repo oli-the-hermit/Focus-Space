@@ -53,10 +53,6 @@
   --live:             #FF6B5B;      /* "now" markers and counters */
   --on-live:          #FFFFFF;
 
-  /* ── Color: inverse (toasts) ── */
-  --inverse-surface:  #E8E9E2;
-  --inverse-on-surface:#1A1C17;
-
   /* ── Color: structure ── */
   --grid-line:        #1E2024;
   --scrim:            rgb(6 7 8 / 72%);
@@ -217,9 +213,6 @@
   --live:             #D93A2B;
   --on-live:          #FFFFFF;
 
-  --inverse-surface:  #2E302B;
-  --inverse-on-surface:#F1F2EC;
-
   --grid-line:        #EDEEE8;
   --scrim:            rgb(26 28 23 / 40%);
   --elev-overlay:     0 12px 32px rgb(26 28 23 / 16%), 0 2px 8px rgb(26 28 23 / 10%);
@@ -238,6 +231,7 @@
   --on-break-2:       #0E4F46;
   --break-container:  #103B36;
   --on-break-container: #A6EEE2;
+  --break-text:       #5EC8B8;      /* break used as text/icon colour */
 
   /* ── Layout ── */
   --rail-width:       88px;
@@ -259,4 +253,5 @@
   --on-break-2:       #0E4F46;
   --break-container:  #CBF1EA;
   --on-break-container: #00443C;
+  --break-text:       #007569;
 }

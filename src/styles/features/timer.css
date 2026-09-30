@@ -46,7 +46,7 @@
   --phase-hover: var(--break-hover);
   --on-phase: var(--on-break);
   --on-phase-2: var(--on-break-2);
-  --phase-text: var(--break);
+  --phase-text: var(--break-text);
 }
 
 .player-head { display: flex; align-items: center; justify-content: space-between; }

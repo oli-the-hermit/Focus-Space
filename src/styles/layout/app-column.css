@@ -26,6 +26,23 @@
 .top-bar-tools .icon-btn:hover:not(:disabled) { background: var(--surface-1); }
 .top-bar-tools .icon-btn.is-active { background: var(--accent-container); }
 
+/* The bell's dot: the most important unseen toast (see useToasts). */
+.bell-btn { position: relative; }
+.bell-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-round);
+  box-shadow: 0 0 0 var(--ring-width) var(--bg);
+  animation: pop-in var(--dur-2) var(--ease-decel);
+}
+.bell-dot.is-success { background: var(--success); }
+.bell-dot.is-info { background: var(--accent-text); }
+.bell-dot.is-warning { background: var(--warning); }
+.bell-dot.is-error { background: var(--danger); }
+
 /* Status chip */
 .status-chip {
   display: inline-flex;
@@ -50,7 +67,7 @@
 }
 .status-chip-main:hover { background: var(--surface-2); }
 .status-chip-time { font-variant-numeric: tabular-nums; color: var(--accent-text); font-weight: var(--weight-bold); }
-.status-chip.is-break .status-chip-time { color: var(--break); }
+.status-chip.is-break .status-chip-time { color: var(--break-text); }
 .status-chip-action {
   width: 28px;
   height: 28px;

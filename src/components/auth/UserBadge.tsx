@@ -4,7 +4,6 @@ import { strings } from '../../constants/strings';
 import { Popover } from '../ui/Popover';
 import { IconLogOut, IconPalette, IconSettings, IconUser } from '../ui/icons';
 import { initials } from '../../lib/formatUtils';
-import { hasUpdateSettings } from '../updates/UpdateSettings';
 import type { UserMenuView } from './UserMenuModal';
 
 export interface UserBadgeProps {
@@ -26,8 +25,6 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false })
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!profile) return null;
-  // Settings holds Updates (desktop) and the profile manager (main account); hide it when empty.
-  const items = MENU_ITEMS.filter(i => i.view !== 'settings' || profile.role === 'owner' || hasUpdateSettings());
 
   const handleExit = async () => {
     setBusy(true);
@@ -75,7 +72,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false })
           <span className="user-menu-name">{profile.displayName}</span>
           <span className="user-menu-handle">@{profile.username}</span>
         </div>
-        {items.map(item => (
+        {MENU_ITEMS.map(item => (
           <button
             key={item.view}
             type="button"

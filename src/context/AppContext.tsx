@@ -15,11 +15,11 @@ import {
   ActiveModal,
   Profile,
   ThemeMode,
-  NewReward
+  NewReward,
+  ShowToast,
+  ToastTone
 } from '../types';
 import { AlertActionId, AlertPayload } from '../lib/notify';
-import { cssDurationMs } from '../lib/theme';
-import { TIMING } from '../constants/timing';
 import type { AccentId } from '../constants/accents';
 import { normalizeState } from '../lib/normalize';
 import { createSessionActions } from './actions/sessions';
@@ -30,24 +30,19 @@ import { createRewardActions, type RewardLinkChoice } from './actions/rewards';
 import { useAlertState } from './hooks/useAlertState';
 import { useAuthSession, type AuthStatus } from './hooks/useAuthSession';
 import { useThemeSync } from './hooks/useThemeSync';
+import { useToasts, type ToastItem } from './hooks/useToasts';
 import { useTimerEngine } from './hooks/useTimerEngine';
 import { useAlerts } from './hooks/useAlerts';
-import { uid } from '../lib/id';
-
-interface ToastItem {
-  id: string;
-  message: string;
-  /** Playing its exit animation; removed shortly after. */
-  leaving?: boolean;
-}
-
 
 interface AppContextType {
   state: AppState;
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   toasts: ToastItem[];
-  showToast: (msg: string) => void;
+  showToast: ShowToast;
+  /** The most important toast tone since the bell was last opened (the bell's dot). */
+  bellDot: ToastTone | null;
+  clearBellDot: () => void;
   activeCelebrationReward: Reward | null;
   dismissCelebration: () => void;
 
@@ -170,7 +165,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTabState] = useState<TabType>('timer');
   const activeTabRef = useRef<TabType>('timer');
   activeTabRef.current = activeTab;
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [tourActive, setTourActive] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -192,15 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const alertState = useAlertState();
   const { alertRinging, activeAlert, setActiveAlert, dismissAlert } = alertState;
 
-  const showToast = (message: string) => {
-    const id = uid();
-    setToasts(prev => [...prev, { id, message }]);
-    setTimeout(() => {
-      setToasts(prev => prev.map(t => (t.id === id ? { ...t, leaving: true } : t)));
-      // Removed once the slide-out transition (--dur-2 in toast.css) has played.
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), cssDurationMs('--dur-2'));
-    }, TIMING.toastVisibleMs);
-  };
+  const { toasts, showToast, bellDot, clearBellDot } = useToasts();
 
   // ── Auth & encrypted data layer (hooks/useAuthSession) ───────────────
   const { authStatus, profile, tokenRef, login, setup, logout, deleteOwnProfile, changePassword, refreshProfile } = useAuthSession({
@@ -291,6 +277,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTab,
         toasts,
         showToast,
+        bellDot,
+        clearBellDot,
         activeCelebrationReward,
         dismissCelebration,
         activeModal,

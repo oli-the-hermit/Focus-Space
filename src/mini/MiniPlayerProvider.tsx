@@ -172,7 +172,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     } catch (err) {
       console.warn('Mini player failed:', err);
-      app.showToast(strings.toasts.miniPlayerUnavailable);
+      app.showToast(strings.toasts.miniPlayerUnavailable, 'warning');
     }
   };
 

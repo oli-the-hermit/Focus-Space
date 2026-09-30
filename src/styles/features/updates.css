@@ -1,6 +1,6 @@
 /* ── App updates (updates/UpdateNotice, UpdateSettings) ─── */
 
-/* Launch card: bottom right in .corner-stack, under any toasts. */
+/* Launch card: bottom right in .corner-stack (toasts sit top right). */
 .update-card {
   width: min(360px, calc(100vw - var(--space-48)));
   pointer-events: auto;

@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { AppState, Profile } from '../../types';
+import { AppState, Profile, ShowToast } from '../../types';
 import { api } from '../../lib/api';
 import { deriveDataKey, decryptBlob, randomSaltHex, exportRawKey, importRawKey } from '../../lib/crypto';
 import { sealState } from '../../lib/persistence';
@@ -26,7 +26,7 @@ interface AuthResponse {
 interface AuthSessionDeps {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
-  showToast: (message: string) => void;
+  showToast: ShowToast;
   /** Resets UI state (tab, tour, help, alert) after signing out. */
   onSignedOut: () => void;
 }

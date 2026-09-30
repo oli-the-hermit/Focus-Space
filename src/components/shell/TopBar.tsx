@@ -9,6 +9,7 @@ import { IconBell, IconHelp, IconMiniPlayer, IconPause, IconPlay, IconSoundOff, 
 import { IconSwap } from '../ui/IconSwap';
 import { WindowControls } from './WindowControls';
 import { IconButton } from '../ui/IconButton';
+import { cx } from '../../lib/cx';
 
 const PAGE_TITLES: Record<TabType, string> = {
   timer: strings.tabs.timer,
@@ -29,7 +30,7 @@ export interface TopBarProps {
  * On desktop the bar doubles as the (frameless) window's title bar.
  */
 export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
-  const { state, activeTab, setActiveTab, toggleSound, toggleTimer, setHelpOpen, alertRinging } = useApp();
+  const { state, activeTab, setActiveTab, toggleSound, toggleTimer, setHelpOpen, alertRinging, bellDot, clearBellDot } = useApp();
   const mini = useMiniPlayer();
   const desktop = isTauri();
   // Tauri only honours the attribute on the element actually pressed.
@@ -96,12 +97,17 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
         {onOpenNotifications && (
           <IconButton
             label={strings.header.notifTooltip}
-            className={alertRinging ? 'is-ringing' : ''}
+            className={cx('bell-btn', alertRinging && 'is-ringing')}
             id="notifSettingsBtn"
-            onClick={onOpenNotifications}
+            onClick={() => {
+              clearBellDot();
+              onOpenNotifications();
+            }}
             data-tour="alerts-btn"
           >
             <IconBell size={19} className="bell-icon" />
+            {/* The most important toast since the bell was last opened (color and toast icons carry the meaning). */}
+            {bellDot && <span className={`bell-dot is-${bellDot}`} aria-hidden="true" />}
           </IconButton>
         )}
         <IconButton

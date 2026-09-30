@@ -40,7 +40,7 @@ html.mini-root #root {
 .mini-player.is-break {
   --phase: var(--break);
   --on-phase: var(--on-break);
-  --phase-text: var(--break);
+  --phase-text: var(--break-text);
 }
 
 /* ── Timer tile ─────────────────────────────────────────── */

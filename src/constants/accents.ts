@@ -81,7 +81,8 @@ export const ACCENT_TOKENS = [
   '--on-break',
   '--on-break-2',
   '--break-container',
-  '--on-break-container'
+  '--on-break-container',
+  '--break-text'
 ] as const;
 
 export const isAccentId = (v: unknown): v is AccentId => ACCENT_PRESETS.some(p => p.id === v);

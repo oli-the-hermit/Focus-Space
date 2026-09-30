@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, TimerPhase } from '../../types';
+import { AppState, ShowToast, TimerPhase } from '../../types';
 import { strings } from '../../constants/strings';
 import { getTodayStr } from '../../lib/dateUtils';
 import { startTicker } from '../../lib/ticker';
@@ -17,7 +17,7 @@ import type { AlertState } from './useAlertState';
 interface TimerEngineDeps {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
-  showToast: (message: string) => void;
+  showToast: ShowToast;
   alerts: Pick<AlertState, 'ringBell' | 'deliverAlert'>;
 }
 
@@ -100,7 +100,7 @@ export function useTimerEngine({ state, setState, showToast, alerts }: TimerEngi
     ringBell();
     const n = state.notifications;
     if (!n.phaseAlerts) {
-      showToast(endedPhase === 'focus' ? strings.toasts.focusComplete : strings.toasts.breakOver);
+      showToast(endedPhase === 'focus' ? strings.toasts.focusComplete : strings.toasts.breakOver, 'info');
       return;
     }
     if (!isTauri()) deliverAlert(buildPhaseAlert(endedPhase, n));

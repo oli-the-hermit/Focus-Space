@@ -7,13 +7,10 @@ import { useUpdates } from '../../lib/updates';
 import { Button } from '../ui/Button';
 import { UpdateStatus } from './UpdateStatus';
 
-/** Whether Settings > Updates exists here: the desktop app, with a release source. */
-export const hasUpdateSettings = (): boolean => isTauri() && UPDATES_CONFIGURED;
-
 /** Settings > Updates (desktop app with a release source only). */
 export const UpdateSettings: React.FC = () => {
   const { state, notify, store } = useUpdates();
-  if (!hasUpdateSettings()) return null;
+  if (!isTauri() || !UPDATES_CONFIGURED) return null;
 
   const busy = state.phase === 'checking' || state.phase === 'downloading' || state.phase === 'restarting';
   const retry = state.phase === 'failed' && state.step === 'install';
