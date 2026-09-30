@@ -14,6 +14,10 @@ export default defineConfig({
   },
   // Keep Tauri's Rust compiler output visible in the same terminal.
   clearScreen: false,
+  test: {
+    // Vitest empties stylesheets by default; the accent palette test reads tokens.css (?raw).
+    css: { include: [/tokens\.css/] }
+  },
   server: {
     port: 3000,
     strictPort: true,

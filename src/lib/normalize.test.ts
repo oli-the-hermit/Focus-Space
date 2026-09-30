@@ -98,7 +98,14 @@ describe('normalizeState', () => {
     expect(s.sessions.length).toBeGreaterThan(0);
     expect(s.timer).toMatchObject({ phase: 'focus', status: 'idle' });
     expect(s.theme).toBe('system');
+    expect(s.accent).toBe('solar-lime');
     expect(s.tourSeen).toBe(false);
+  });
+
+  it('keeps a known accent and falls back to Solar Lime otherwise', () => {
+    expect(normalizeState({ accent: 'nebula-purple' }).accent).toBe('nebula-purple');
+    expect(normalizeState({ accent: 'hot-pink' }).accent).toBe('solar-lime');
+    expect(normalizeState({ accent: { id: 'sage' } }).accent).toBe('solar-lime');
   });
 
   it('gives the legacy global timer list to the active session only', () => {

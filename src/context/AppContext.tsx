@@ -20,6 +20,7 @@ import {
 import { AlertActionId, AlertPayload } from '../lib/notify';
 import { cssDurationMs } from '../lib/theme';
 import { TIMING } from '../constants/timing';
+import type { AccentId } from '../constants/accents';
 import { normalizeState } from '../lib/normalize';
 import { createSessionActions } from './actions/sessions';
 import { createListActions } from './actions/lists';
@@ -137,6 +138,7 @@ interface AppContextType {
 
   // Appearance
   updateTheme: (theme: ThemeMode) => void;
+  updateAccent: (accent: AccentId) => void;
 
   // Onboarding & help
   tourActive: boolean;
@@ -213,7 +215,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  useThemeSync(state.theme);
+  useThemeSync(state.theme, state.accent);
 
   const openModal = ((type: ModalType, payload?: unknown) => {
     setActiveModal({ type, payload } as ActiveModal);
@@ -225,6 +227,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateTheme = (theme: ThemeMode) => {
     setState(prev => ({ ...prev, theme }));
+  };
+
+  const updateAccent = (accent: AccentId) => {
+    setState(prev => ({ ...prev, accent }));
   };
 
   // ── Timer (hooks/useTimerEngine) ─────────────────────────────────────
@@ -347,6 +353,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteOwnProfile,
         changePassword,
         updateTheme,
+        updateAccent,
         tourActive,
         startTour,
         endTour,

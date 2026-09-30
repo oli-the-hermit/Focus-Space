@@ -21,6 +21,7 @@
     "tauri": "tauri",
     "desktop": "tauri dev",
     "desktop:build": "tauri build",
+    "accents": "node scripts/accents/generate.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",

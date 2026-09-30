@@ -286,6 +286,16 @@ export const IconSettings: React.FC<IconProps> = p => (
   </StrokeIcon>
 );
 
+export const IconPalette: React.FC<IconProps> = p => (
+  <StrokeIcon {...p}>
+    <path d="M12 3a9 9 0 0 0 0 18c1 0 1.6-.7 1.6-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4.1-4-7.5-9-7.5z" />
+    <circle cx="7.5" cy="11.5" r="1" />
+    <circle cx="10" cy="7.5" r="1" />
+    <circle cx="14.5" cy="7.5" r="1" />
+    <circle cx="17" cy="11" r="1" />
+  </StrokeIcon>
+);
+
 export const IconLogOut: React.FC<IconProps> = p => (
   <StrokeIcon {...p}>
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

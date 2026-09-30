@@ -100,6 +100,10 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Saved data couldn't be read or written | Error Recovery | Inline helper | Change not saved | We couldn't save that change. Your data is safe, so please try again. | Try again |
 | Unexpected problem on the app service | Error Recovery | Inline helper | Unexpected hiccup | Something unexpected happened on our side. Your data is safe, so please try again. | Try again |
 | Unknown address (desktop service) | Error Recovery | Inline helper | Not found | We couldn't find what you were looking for. | — |
+| Appearance: theme | Status | Segmented control | Theme | Light · Dark · System | Pick one |
+| Appearance: accent color | Status | Section description | Accent color | Colors buttons, highlights and the focus timer. | Pick a swatch |
+| Appearance: colors used before (this device, hidden until one is picked) | Status | Swatch row | Recent colors | Each swatch's name as its tooltip | Pick a swatch |
+| Appearance: the preset palette | Status | Swatch groups | Space colors | Vibrant · Calm · Muted; each swatch's tooltip is its name (Solar lime, Nebula purple, Slate…) | Pick a swatch |
 
 ## Timer, sessions & mini player
 
@@ -223,10 +227,10 @@ The single reference for every user-facing message in Focus Space: what the app 
 - **Numbers inside messages come from limits.** Username, password and display-name lengths, the profile limit, the lockout time and the photo size are in `shared/limits.json`, which both backends and the frontend read. Messages take them as `{min}`, `{max}`, `{seconds}` and `{mb}`, so never type the number into a string.
 - **Two backends, one voice.** A new server error needs a code in `server/errors.js` and `src-tauri/src/backend/errors.rs`, plus a message in `strings.errors.api`. `npm run audit:errors` checks all three; `npm run test:rust` runs the Rust tests.
 - **Delete dialogs share one template.** `sessions.deleteConfirmPrompt` is used for sessions, lists, tasks, events, goals and rewards, so keep it generic. `modals.confirmDeleteDefaultMsg` must contain the word `item` exactly once, because the list sidebar swaps it for the list name.
-- **Icons, not emoji.** The account menu uses `IconUser`, `IconSettings` and `IconLogOut`. Completion-log rows use `IconCheck`. Goal and landmark reward badges show that reward's own emoji.
+- **Icons, not emoji.** The account menu uses `IconUser`, `IconPalette`, `IconSettings` and `IconLogOut`. Completion-log rows use `IconCheck`. Goal and landmark reward badges show that reward's own emoji.
 - **To wire the *(needs wiring)* states:** add the strings to `strings.ts` first, then call them from:
   - the auto-save `catch` in `AppContext.tsx`, which today only logs to the console;
   - the bootstrap `catch`, which today falls back to the login screen silently;
   - the reward status change from `locked` to `ready`.
 - **Alerts.** Phase-end and calendar alerts are built in `src/lib/notify.ts` and shown by `AlertCard` (in-app and in the desktop popup) or as a browser notification with action buttons (`public/notify-sw.js`).
-- **Capitalization.** Sentence case for every string. Proper nouns (Focus Space, GitHub) keep their capitals; keyboard key names (Space, Shift) are shown as keys.
+- **Capitalization.** Sentence case for every string. Proper nouns (Focus Space, GitHub) keep their capitals; keyboard key names (Space, Shift) are shown as keys. Accent names follow the same rule: "Solar lime", "Red giant", but "Andromeda violet" and "Neptune azure" keep their proper nouns.

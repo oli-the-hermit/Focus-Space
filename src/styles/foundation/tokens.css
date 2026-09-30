@@ -29,7 +29,11 @@
   --text-2:           #A9ACA4;
   --text-3:           #6F736B;
 
-  /* ── Color: accent ── */
+  /* ── Color: accent ──
+     Solar lime, the default. The other presets (Appearance > Accent color)
+     replace these and the --break* tokens inline at runtime, from
+     src/constants/accentPalette.json. After changing any color here, run
+     npm run accents: the palette derives from these values and the surfaces. */
   --accent:           #D1DD23;
   --accent-hover:     #DDE84A;
   --on-accent:        #1A1D00;

@@ -3,6 +3,8 @@
 .section-title.danger-text,
 .danger-text { color: var(--danger); }
 .section-divider { height: 0; margin: var(--space-12) 0 !important; }
+/* A view that starts with an optional section (Settings > Updates) needs no gap above it. */
+.modal-body > .section-divider:first-child { display: none; }
 .settings-subtitle { font-size: var(--text-sm); color: var(--text-2); margin-top: var(--space-4) !important; }
 
 .theme-segmented {
@@ -22,6 +24,12 @@
 }
 .seg-option:hover { color: var(--text-1); background: var(--surface-3); }
 .seg-option.active { background: var(--accent); color: var(--on-accent); }
+
+/* ── Appearance: accent swatches ── */
+.swatch-section { display: flex; flex-direction: column; gap: var(--space-12); }
+.swatch-section-title { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.swatch-group { display: flex; flex-direction: column; gap: var(--space-8); }
+.swatch-group-label { font-size: var(--text-xs); color: var(--text-2); }
 
 .profile-list { display: flex; flex-direction: column; gap: var(--space-6); }
 .profile-row {

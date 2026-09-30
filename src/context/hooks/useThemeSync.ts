@@ -1,24 +1,26 @@
 import { useEffect } from 'react';
 import { ThemeMode } from '../../types';
-import { applyTheme, cacheTheme, cachedTheme } from '../../lib/theme';
+import type { AccentId } from '../../constants/accents';
+import { applyTheme, cacheAccent, cacheTheme, cachedAccent, cachedTheme } from '../../lib/theme';
 
-/** Applies the theme: the cached one on startup, then the saved one, and follows the OS in 'system'. */
-export function useThemeSync(theme: ThemeMode) {
+/** Applies the theme and accent: the cached ones on startup, then the saved ones, and follows the OS in 'system'. */
+export function useThemeSync(theme: ThemeMode, accent: AccentId) {
   useEffect(() => {
     const cached = cachedTheme();
-    if (cached) applyTheme(cached);
+    if (cached) applyTheme(cached, cachedAccent());
   }, []);
 
   useEffect(() => {
-    applyTheme(theme);
+    applyTheme(theme, accent);
     cacheTheme(theme);
-  }, [theme]);
+    cacheAccent(accent);
+  }, [theme, accent]);
 
   useEffect(() => {
     if (theme !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => applyTheme('system');
+    const handler = () => applyTheme('system', accent);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [theme]);
+  }, [theme, accent]);
 }

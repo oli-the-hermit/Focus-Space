@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { TabType } from '../../types';
 import { strings } from '../../constants/strings';
 import { UserBadge } from '../auth/UserBadge';
-import { UserMenuModal } from '../auth/UserMenuModal';
+import { UserMenuModal, type UserMenuView } from '../auth/UserMenuModal';
 import { IconCalendar, IconGift, IconLogo, IconStats, IconTarget, IconTasks, IconTimer } from '../ui/icons';
 import { isTauri } from '../../lib/desktop';
 
@@ -19,7 +19,7 @@ const NAV_ITEMS: { tab: TabType; label: string; icon: React.ReactNode }[] = [
 /** Material 3 navigation rail: brand mark, destinations, account at the bottom. */
 export const NavRail: React.FC = () => {
   const { activeTab, setActiveTab, state } = useApp();
-  const [menuView, setMenuView] = useState<'profile' | 'settings' | null>(null);
+  const [menuView, setMenuView] = useState<UserMenuView | null>(null);
   const readyRewardsCount = state.rewards.filter(r => r.status === 'ready').length;
 
   return (
@@ -59,11 +59,7 @@ export const NavRail: React.FC = () => {
       </div>
 
       <div className="nav-rail-footer">
-        <UserBadge
-          compact
-          onOpenProfile={() => setMenuView('profile')}
-          onOpenSettings={() => setMenuView('settings')}
-        />
+        <UserBadge compact onOpen={setMenuView} />
       </div>
 
       <UserMenuModal view={menuView} onClose={() => setMenuView(null)} />

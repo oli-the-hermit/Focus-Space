@@ -8,6 +8,7 @@
  */
 import { GOAL_FREQUENCIES, type AppState, type CalendarEvent, type Goal, type GoalFrequency, type Landmark, type NotificationSettings, type Reward, type Session, type Task, type TaskList } from '../types';
 import { strings } from '../constants/strings';
+import { DEFAULT_ACCENT, isAccentId } from '../constants/accents';
 import { DEFAULT_CALENDAR_EVENTS, DEFAULT_GOALS, DEFAULT_REWARDS, DEFAULT_REWARD_EMOJI, DEFAULT_SESSIONS, DEFAULT_TASK_LISTS } from '../constants/defaults';
 import { getTodayStr } from './dateUtils';
 import { DEFAULT_AUTO_DISMISS_SEC } from './notify';
@@ -143,6 +144,7 @@ export function normalizeState(raw: unknown): AppState {
     },
     sound: typeof r?.sound === 'boolean' ? r.sound : true,
     theme: (r?.theme === 'light' || r?.theme === 'dark' || r?.theme === 'system') ? r.theme : 'system',
+    accent: isAccentId(r?.accent) ? r.accent : DEFAULT_ACCENT,
     // Missing on data saved before the tour existed, so every profile sees it once.
     tourSeen: r?.tourSeen === true
   };

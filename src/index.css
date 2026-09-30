@@ -43,6 +43,7 @@
 @import url('./styles/components/form-actions.css') layer(app);
 @import url('./styles/components/toast.css') layer(app);
 @import url('./styles/components/segmented.css') layer(app);
+@import url('./styles/components/swatch.css') layer(app);
 @import url('./styles/components/collapsible.css') layer(app);
 @import url('./styles/components/switch.css') layer(app);
 @import url('./styles/components/icon-swap.css') layer(app);

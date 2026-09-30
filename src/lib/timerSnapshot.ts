@@ -1,5 +1,6 @@
 import { AppState, Session, TimerPhase, TimerStatus } from '../types';
 import { nextPhase, phaseMinutes } from './sessionTime';
+import type { AccentId } from '../constants/accents';
 
 /** Everything the player / mini player needs to render, detached from app state. */
 export interface TimerSnapshot {
@@ -18,6 +19,7 @@ export interface TimerSnapshot {
   tasks: SnapshotTask[];
   sound: boolean;
   theme: 'light' | 'dark';
+  accent: AccentId;
 }
 
 export function getActiveSession(state: AppState): Session | undefined {
@@ -79,6 +81,7 @@ export function buildTimerSnapshot(state: AppState, noSessionLabel: string): Tim
     completedToday: state.timer.sessionsCompletedToday,
     tasks: getSessionTasks(state, session),
     sound: state.sound,
-    theme
+    theme,
+    accent: state.accent
   };
 }

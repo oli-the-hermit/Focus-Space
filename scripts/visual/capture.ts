@@ -123,6 +123,15 @@ async function main() {
       await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
     };
 
+    const openAppearance = async () => {
+      await page.locator('.user-badge-btn').first().click();
+      await page.getByRole('menuitem', { name: strings.userMenu.appearance }).click();
+      await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
+    };
+    // A picked color also shows under Recent colors, so take the first match.
+    const pickAccent = (id: keyof typeof strings.appearance.colors) =>
+      page.getByRole('radio', { name: strings.appearance.colors[id], exact: true }).first().click();
+
     // ── Setup screen (both themes), then create the sandbox account ──
     // The first load waits for Vite to transform the app, which can take a while after edits.
     await page.goto(BASE, { timeout: 60_000 });
@@ -205,6 +214,16 @@ async function main() {
       await shot(theme, '41-modal-help', async () => { await page.locator('[data-tour="help-btn"]').click(); });
       await closeOverlays();
       await shot(theme, '42-user-menu', async () => { await page.locator('.user-badge-btn').first().click(); });
+      await closeOverlays();
+
+      // ── Appearance: the default accent, a vibrant and a muted one; back to Solar lime after ──
+      await shot(theme, '43-appearance', openAppearance);
+      await shot(theme, '44-appearance-vibrant', () => pickAccent('nebula-purple'));
+      await closeOverlays();
+      await shot(theme, '45-timer-vibrant');
+      await openAppearance();
+      await shot(theme, '46-appearance-muted', () => pickAccent('slate'));
+      await pickAccent('solar-lime');
       await closeOverlays();
     }
 
@@ -292,6 +311,26 @@ async function main() {
         failures.push(`${theme}/50-mini: ${(err as Error).message.split('\n')[0]}`);
       }
     }
+
+    await check('Picking an accent recolors the app and the open mini player', async () => {
+      const [pip] = await Promise.all([
+        context.waitForEvent('page', { timeout: 5000 }),
+        page.locator('[data-tour="mini-player-btn"]').click()
+      ]);
+      await pip.locator('.mini-player').waitFor({ timeout: 5000 });
+      await openAppearance();
+      await pickAccent('nebula-purple');
+      await settle(page, 300);
+      const accentOf = (p: Page) => p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim());
+      const resolved = await page.evaluate(() => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+      const expected = (JSON.parse(fs.readFileSync(path.join(ROOT, 'src/constants/accentPalette.json'), 'utf8')) as Record<string, Record<string, string[]>>)['nebula-purple'][resolved][0];
+      const [main, mini] = [await accentOf(page), await accentOf(pip)];
+      await pickAccent('solar-lime');
+      await closeOverlays();
+      await pip.close();
+      await settle(page);
+      return main === expected && mini === expected;
+    });
 
     // ── Behavior checks: the timer engine on a real clock. Runs last: it changes timer state. ──
     // The clock is frozen per context, so this uses a new one. Its storage state carries

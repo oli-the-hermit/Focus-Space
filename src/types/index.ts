@@ -1,4 +1,6 @@
-export type TabType = 'timer' | 'tasks' | 'calendar' | 'stats' | 'goals' | 'rewards';
+import type { AccentId } from '../constants/accents';
+
+export type TabType ='timer' | 'tasks' | 'calendar' | 'stats' | 'goals' | 'rewards';
 export type TimerPhase = 'focus' | 'break';
 export type TimerStatus = 'idle' | 'running' | 'paused';
 export type CalendarView = 'week' | 'day' | 'month';
@@ -159,6 +161,8 @@ export interface AppState {
   timer: TimerState;
   sound: boolean;
   theme: ThemeMode;
+  /** The accent preset (Appearance > Accent color). */
+  accent: AccentId;
   /** The onboarding tour was finished or closed on this profile. */
   tourSeen: boolean;
 }

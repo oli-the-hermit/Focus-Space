@@ -12,7 +12,7 @@ import {
   trackMiniPosition,
   trackMiniSize
 } from '../lib/desktop';
-import { applyTheme, cachedTheme } from '../lib/theme';
+import { applyTheme, cachedAccent, cachedTheme } from '../lib/theme';
 
 /**
  * Root of the Tauri mini-player window (`?view=mini`). It holds no app data:
@@ -24,8 +24,8 @@ export const MiniPlayerApp: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.classList.add('mini-root');
-    // Paint with the cached theme until the first snapshot arrives.
-    applyTheme(cachedTheme() ?? 'system');
+    // Paint with the cached theme and accent until the first snapshot arrives.
+    applyTheme(cachedTheme() ?? 'system', cachedAccent());
     let unlistenState: (() => void) | undefined;
     let unlistenMove: (() => void) | undefined;
     let unlistenSize: (() => void) | undefined;
@@ -56,9 +56,10 @@ export const MiniPlayerApp: React.FC = () => {
   }, []);
 
   const snapshotTheme = snapshot?.theme;
+  const snapshotAccent = snapshot?.accent;
   useEffect(() => {
-    if (snapshotTheme) applyTheme(snapshotTheme);
-  }, [snapshotTheme]);
+    if (snapshotTheme && snapshotAccent) applyTheme(snapshotTheme, snapshotAccent);
+  }, [snapshotTheme, snapshotAccent]);
 
   const onCommand = useCallback((cmd: MiniCommand) => {
     sendCommandToMain(cmd);

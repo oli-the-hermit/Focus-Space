@@ -5,6 +5,7 @@ import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
 import { Profile } from '../../types';
 import { SettingsView } from './SettingsView';
+import { AppearanceView } from './AppearanceView';
 import { FormActions } from '../ui/FormActions';
 import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
 import { Button } from '../ui/Button';
@@ -13,22 +14,29 @@ import { initials } from '../../lib/formatUtils';
 import { LIMITS } from '../../constants/limits';
 import { format } from '../../lib/i18n';
 
+export type UserMenuView = 'profile' | 'appearance' | 'settings';
+
 export interface UserMenuModalProps {
   /** Which view to show; null closes the modal (with its exit animation). */
-  view: 'profile' | 'settings' | null;
+  view: UserMenuView | null;
   onClose: () => void;
 }
 
+const VIEWS: Record<UserMenuView, { title: string; Body: React.FC }> = {
+  // A wrapper: ProfileView is declared further down this file.
+  profile: { title: strings.profile.title, Body: () => <ProfileView /> },
+  appearance: { title: strings.appearance.title, Body: AppearanceView },
+  settings: { title: strings.settings.title, Body: SettingsView }
+};
 
 export const UserMenuModal: React.FC<UserMenuModalProps> = ({ view, onClose }) => {
   // Remember the last view so the content stays put while the modal closes.
-  const lastView = useRef<'profile' | 'settings'>('profile');
+  const lastView = useRef<UserMenuView>('profile');
   if (view) lastView.current = view;
-  const shown = view ?? lastView.current;
-  const title = shown === 'profile' ? strings.profile.title : strings.settings.title;
+  const { title, Body } = VIEWS[view ?? lastView.current];
   return (
     <Modal isOpen={!!view} title={title} wide onClose={onClose}>
-      {shown === 'profile' ? <ProfileView /> : <SettingsView />}
+      <Body />
     </Modal>
   );
 };

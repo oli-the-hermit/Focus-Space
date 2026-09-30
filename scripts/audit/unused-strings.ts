@@ -50,10 +50,12 @@ function isUsed(leaf: string[]): boolean {
         if (rest.length === 0) return true;
         const restRe = [alias, ...rest].map(esc).join('\\.');
         if (new RegExp(`\\b${restRe}(?![\\w$])`).test(src)) return true;
-        // A parent reached through the alias and used whole, e.g. { ...s.player }
+        // A parent reached through the alias and used whole, e.g. { ...s.player },
+        // or indexed dynamically, e.g. s.colors[id]
         for (let j = 1; j < rest.length; j++) {
           const partial = [alias, ...rest.slice(0, j)].map(esc).join('\\.');
           if (new RegExp(`\\b${partial}(?![\\w$.\\[])`).test(src)) return true;
+          if (new RegExp(`\\b${partial}\\[`).test(src)) return true;
         }
         if (new RegExp(`\\b${esc(alias)}\\[`).test(src)) return true;
       }

@@ -1,0 +1,32 @@
+/* ── Color swatches (ColorSwatchGrid) ─────────────────────
+   --swatch and --on-swatch come from each option (inline), so the
+   grid shows any palette without new tokens. */
+.swatch-grid {
+  --swatch-size: 36px;
+  display: grid;
+  grid-template-columns: repeat(var(--swatch-columns, 8), var(--swatch-size));
+  gap: var(--space-10);
+}
+.swatch {
+  position: relative;
+  width: var(--swatch-size);
+  height: var(--swatch-size);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--swatch);
+  color: var(--on-swatch);
+  transition: transform var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);
+}
+.swatch:hover { transform: scale(1.08); }
+/* Selected: a ring in the swatch's own color, a small gap away from it. */
+.swatch.is-selected::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--ring-width-xl));
+  border-radius: var(--radius-round);
+  box-shadow: inset 0 0 0 var(--ring-width) var(--swatch);
+}
+/* The focus ring sits outside the selection ring. */
+.swatch:focus-visible { outline-offset: var(--ring-width-xl); }
+.swatch.is-selected svg { animation: pop-in var(--dur-2) var(--ease-decel); }

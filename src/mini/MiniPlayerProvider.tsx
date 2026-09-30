@@ -136,10 +136,10 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (mode === 'desktop' && isOpen) sendSnapshotToMini(snapshotRef.current).catch(() => {});
   }, [mode, isOpen, snapshotKey]);
 
-  // PiP: keep the theme in sync with the main document.
+  // PiP: keep the theme and accent in sync with the main document.
   useEffect(() => {
-    if (pipWindow) applyTheme(snapshot.theme, pipWindow.document);
-  }, [pipWindow, snapshot.theme]);
+    if (pipWindow) applyTheme(snapshot.theme, snapshot.accent, pipWindow.document);
+  }, [pipWindow, snapshot.theme, snapshot.accent]);
 
   const openPip = async () => {
     const pip = getDocumentPip();

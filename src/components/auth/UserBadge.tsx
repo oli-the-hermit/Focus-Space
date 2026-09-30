@@ -2,23 +2,32 @@ import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Popover } from '../ui/Popover';
-import { IconLogOut, IconSettings, IconUser } from '../ui/icons';
+import { IconLogOut, IconPalette, IconSettings, IconUser } from '../ui/icons';
 import { initials } from '../../lib/formatUtils';
+import { hasUpdateSettings } from '../updates/UpdateSettings';
+import type { UserMenuView } from './UserMenuModal';
 
 export interface UserBadgeProps {
-  onOpenProfile: () => void;
-  onOpenSettings: () => void;
+  onOpen: (view: UserMenuView) => void;
   /** Avatar only (for the navigation rail). */
   compact?: boolean;
 }
 
-export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSettings, compact = false }) => {
+const MENU_ITEMS: { view: UserMenuView; label: string; icon: React.ReactNode }[] = [
+  { view: 'profile', label: strings.userMenu.profile, icon: <IconUser /> },
+  { view: 'appearance', label: strings.userMenu.appearance, icon: <IconPalette /> },
+  { view: 'settings', label: strings.userMenu.settings, icon: <IconSettings /> }
+];
+
+export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false }) => {
   const { profile, logout } = useApp();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!profile) return null;
+  // Settings holds Updates (desktop) and the profile manager (main account); hide it when empty.
+  const items = MENU_ITEMS.filter(i => i.view !== 'settings' || profile.role === 'owner' || hasUpdateSettings());
 
   const handleExit = async () => {
     setBusy(true);
@@ -66,30 +75,21 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpenProfile, onOpenSetti
           <span className="user-menu-name">{profile.displayName}</span>
           <span className="user-menu-handle">@{profile.username}</span>
         </div>
-        <button
-          type="button"
-          className="menu-item"
-          role="menuitem"
-          onClick={() => {
-            setOpen(false);
-            onOpenProfile();
-          }}
-        >
-          <span className="menu-item-icon"><IconUser /></span>
-          {strings.userMenu.profile}
-        </button>
-        <button
-          type="button"
-          className="menu-item"
-          role="menuitem"
-          onClick={() => {
-            setOpen(false);
-            onOpenSettings();
-          }}
-        >
-          <span className="menu-item-icon"><IconSettings /></span>
-          {strings.userMenu.settings}
-        </button>
+        {items.map(item => (
+          <button
+            key={item.view}
+            type="button"
+            className="menu-item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onOpen(item.view);
+            }}
+          >
+            <span className="menu-item-icon">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
         <button
           type="button"
           className="menu-item is-danger"

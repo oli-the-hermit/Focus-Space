@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCard } from '../components/alerts/AlertCard';
 import type { AlertActionId, AlertPayload } from '../lib/notify';
 import { closeCurrentWindow, listenForAlertShow, sendAlertAction, takePendingAlert } from '../lib/desktop';
-import { applyTheme, cachedTheme } from '../lib/theme';
+import { applyTheme, cachedAccent, cachedTheme } from '../lib/theme';
 import { TIMING } from '../constants/timing';
 
 /**
@@ -15,7 +15,7 @@ export const IslandApp: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.classList.add('island-root');
-    applyTheme(cachedTheme() ?? 'system');
+    applyTheme(cachedTheme() ?? 'system', cachedAccent());
 
     const off = listenForAlertShow(setPayload);
     takePendingAlert()

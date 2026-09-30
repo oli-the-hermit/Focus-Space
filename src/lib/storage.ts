@@ -10,6 +10,10 @@ export const STORAGE_KEYS = {
   /** Pre-account data from the first version, migrated into the profile on sign-in. */
   legacyData: 'focusspace_v1',
   themeCache: 'focusspace_theme_cache',
+  /** The last accent, like the theme cache: other windows and the sign-in screen paint it first. */
+  accentCache: 'focusspace_accent_cache',
+  /** The last few accents picked on this device (Appearance > Recent colors). */
+  recentAccents: 'focusspace_recent_accents',
   authToken: 'focusspace_auth_token',
   authKey: 'focusspace_auth_key',
   timerRun: 'focusspace_timer_run',

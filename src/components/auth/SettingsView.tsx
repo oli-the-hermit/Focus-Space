@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { api } from '../../lib/api';
 import { strings } from '../../constants/strings';
-import { Profile, ThemeMode } from '../../types';
+import { Profile } from '../../types';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { IconPlus } from '../ui/icons';
@@ -13,15 +13,8 @@ import { UpdateSettings } from '../updates/UpdateSettings';
 
 const MAX_PROFILES = LIMITS.maxProfiles;
 
-
-const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: 'light', label: strings.settings.themeLight },
-  { value: 'dark', label: strings.settings.themeDark },
-  { value: 'system', label: strings.settings.themeSystem }
-];
-
 export const SettingsView: React.FC = () => {
-  const { state, updateTheme, profile, token, showToast } = useApp();
+  const { profile, token, showToast } = useApp();
   const isOwner = profile?.role === 'owner';
 
   // ── Owner: profiles manager ──────────────────────────────────────────
@@ -141,23 +134,6 @@ export const SettingsView: React.FC = () => {
 
   return (
     <>
-      {/* Appearance */}
-      <h4 className="section-title">{strings.settings.appearanceTitle}</h4>
-      <div className="theme-segmented" role="radiogroup" aria-label={strings.settings.appearanceTitle}>
-        {THEME_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            type="button"
-            role="radio"
-            aria-checked={state.theme === opt.value}
-            className={`seg-option ${state.theme === opt.value ? 'active' : ''}`}
-            onClick={() => updateTheme(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
       {/* Updates — desktop app only */}
       <UpdateSettings />
 
