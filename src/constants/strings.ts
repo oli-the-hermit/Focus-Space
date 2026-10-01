@@ -116,7 +116,8 @@ export const strings = {
     progress: 'Progress',
     upNext: 'Up next',
     doneToday: 'Done today',
-    noSessionTasks: 'No tasks for this session yet.'
+    noSessionLists: 'This session has no task lists yet. Add one in the app.',
+    addToList: 'Add to list'
   },
   tasks: {
     sidebarTitle: 'Lists',

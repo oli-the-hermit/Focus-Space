@@ -17,16 +17,15 @@ export function formatDuration(sec: number): string {
 }
 
 /**
- * Formats seconds as a clock: 75 -> "01:15", 3725 -> "1:02:05".
+ * Formats seconds as a minutes-and-seconds clock: 75 -> "01:15", 3600 -> "60:00".
+ * Minutes run past 59 (sessions are set in minutes), so an hour counts down
+ * 60:00 -> 59:59 instead of jumping from 1:00:00.
  */
 export function formatClock(sec: number): string {
   const safe = Math.max(0, Math.floor(sec || 0));
-  const h = Math.floor(safe / 3600);
-  const m = Math.floor((safe % 3600) / 60);
-  const s = safe % 60;
-  const mm = String(m).padStart(2, '0');
-  const ss = String(s).padStart(2, '0');
-  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  const mm = String(Math.floor(safe / 60)).padStart(2, '0');
+  const ss = String(safe % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
 }
 
 /**

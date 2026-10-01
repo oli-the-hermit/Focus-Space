@@ -126,6 +126,10 @@ The single reference for every user-facing message in Focus Space: what the app 
 | No sessions | Empty State | Inline | No sessions | No sessions yet. Create one above to get started. | + New session |
 | No task list attached to the session | Empty State | Inline | No task list | No task list for this session yet. Pick a list or create a new one. Lists are saved, so any session can reuse them. | Choose a task list… |
 | Mini player didn't open | Error Recovery | Toast (warning) | Mini player | The mini player didn't open this time. Try again, or keep going here. | Open mini player |
+| Mini player: delete a session task (large layout; inline, since the mini window has no dialogs) | Helpful Alert | Inline row | Delete task? | Delete "{name}"? This can’t be undone. | Delete / Cancel |
+| Mini player: rename a session task | Status | Inline field in the row | Rename | The task’s name, editable; Enter saves, Escape keeps the old name | Enter |
+| Mini player: add a task (large layout) | Status | Add field + list picker when the session has several lists | Add a task | Add a task and press Enter… · list picker: "Add to list" | Add |
+| Mini player: session without task lists | Empty State | Tile text | No task lists | This session has no task lists yet. Add one in the app. | Open app |
 | Update found on launch (desktop) | Helpful Alert | Card (bottom right) | Version {version} is ready | Update now and Focus Space reopens where you left off. Your data stays as it is. | Update and restart / Maybe later |
 | Update downloading | Status | Card and Settings | Downloading | Downloading the update… {percent}% | — |
 | Update installing | Status | Card and Settings | Installing | Installing. Focus Space will reopen in a moment. | — |

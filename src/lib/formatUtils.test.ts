@@ -31,8 +31,11 @@ describe('formatClock', () => {
     expect(formatClock(0)).toBe('00:00');
   });
 
-  it('adds hours only when needed', () => {
-    expect(formatClock(3725)).toBe('1:02:05');
+  it('keeps counting minutes past an hour', () => {
+    expect(formatClock(3600)).toBe('60:00');
+    expect(formatClock(3599)).toBe('59:59');
+    expect(formatClock(3725)).toBe('62:05');
+    expect(formatClock(7200)).toBe('120:00');
   });
 
   it('clamps invalid input to zero', () => {

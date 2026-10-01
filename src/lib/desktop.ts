@@ -33,8 +33,13 @@ export type MiniCommand =
   | 'focus-main'
   | 'request-state'
   | 'closed'
-  /** A task's checkbox in the mini player. */
-  | { type: 'toggle-task'; listId: string; taskId: string; checked: boolean };
+  /** The mini player's task rows: the same changes as the app's task list. */
+  | { type: 'add-task'; listId: string; text: string }
+  | { type: 'toggle-task'; listId: string; taskId: string; checked: boolean }
+  | { type: 'rename-task'; listId: string; taskId: string; text: string }
+  | { type: 'duplicate-task'; listId: string; taskId: string }
+  | { type: 'delete-task'; listId: string; taskId: string }
+  | { type: 'reorder-tasks'; listId: string; sourceId: string; targetId: string };
 
 export interface MiniPrefs {
   alwaysOnTop: boolean;

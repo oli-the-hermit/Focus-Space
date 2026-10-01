@@ -19,6 +19,7 @@ import { useContextMenuState } from '../components/ui/ContextMenu';
 import { MenuItem } from '../components/ui/Menu';
 import { Scrubber } from '../components/timer/Scrubber';
 import { TIMING } from '../constants/timing';
+import { MiniTaskList } from './MiniTaskList';
 
 export interface MiniWindowControls {
   pinned?: boolean;
@@ -224,24 +225,11 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
             </div>
             <div className="mini-tile mini-tile--tasks" {...drag}>
               <span className="mini-tile-label" {...drag}>{strings.timer.sessionTasksTitle}</span>
-              {snapshot.tasks?.length ? (
-                // Not a drag region: the checkboxes need their clicks.
-                <ul className="mini-task-list">
-                  {snapshot.tasks.map(t => (
-                    <li key={`${t.listId}:${t.taskId}`} className={t.done ? 'is-done' : undefined}>
-                      <label className="mini-task" title={t.text}>
-                        <input
-                          type="checkbox"
-                          checked={t.done}
-                          onChange={e => onCommand({ type: 'toggle-task', listId: t.listId, taskId: t.taskId, checked: e.target.checked })}
-                        />
-                        <span className="mini-task-text">{t.text}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
+              {snapshot.taskLists?.length ? (
+                // Not a drag region: the rows and the add field need their clicks and drags.
+                <MiniTaskList tasks={snapshot.tasks} lists={snapshot.taskLists} onCommand={onCommand} openMenu={menu.openMenu} />
               ) : (
-                <span className="mini-tile-meta" {...drag}>{strings.mini.noSessionTasks}</span>
+                <span className="mini-tile-meta" {...drag}>{strings.mini.noSessionLists}</span>
               )}
             </div>
           </div>

@@ -17,6 +17,8 @@ export interface TimerSnapshot {
   completedToday: number;
   /** Every task of the session's lists, in list order (large mini-player layout). */
   tasks: SnapshotTask[];
+  /** The session's lists, in order: where the mini player can add tasks. */
+  taskLists: SnapshotList[];
   sound: boolean;
   theme: 'light' | 'dark';
   accent: AccentId;
@@ -37,12 +39,28 @@ export function getCurrentTask(state: AppState, session: Session | undefined): s
   return null;
 }
 
-/** A task as the mini player shows it; the ids let it tick the task off. */
+/** A task as the mini player shows it; the ids let it change the task in the app. */
 export interface SnapshotTask {
   listId: string;
   taskId: string;
   text: string;
   done: boolean;
+  /** How long it took, for the time badge (as in the app's task rows). */
+  durationSeconds: number | null;
+}
+
+export interface SnapshotList {
+  id: string;
+  name: string;
+}
+
+/** The session's lists that still exist, in the session's order. */
+export function getSessionLists(state: AppState, session: Session | undefined): SnapshotList[] {
+  if (!session) return [];
+  return (session.taskListIds || [])
+    .map(id => state.taskLists.find(l => l.id === id))
+    .filter((l): l is NonNullable<typeof l> => !!l)
+    .map(l => ({ id: l.id, name: l.name }));
 }
 
 /** Every task across the session's lists, done or not, in the same order as the app. */
@@ -51,7 +69,9 @@ export function getSessionTasks(state: AppState, session: Session | undefined): 
   const tasks: SnapshotTask[] = [];
   for (const listId of session.taskListIds || []) {
     const list = state.taskLists.find(l => l.id === listId);
-    for (const t of list?.tasks || []) tasks.push({ listId, taskId: t.id, text: t.text, done: t.completed });
+    for (const t of list?.tasks || []) {
+      tasks.push({ listId, taskId: t.id, text: t.text, done: t.completed, durationSeconds: t.durationSeconds ?? null });
+    }
   }
   return tasks;
 }
@@ -80,6 +100,7 @@ export function buildTimerSnapshot(state: AppState, noSessionLabel: string): Tim
     nextPhaseSeconds: nextMins * 60,
     completedToday: state.timer.sessionsCompletedToday,
     tasks: getSessionTasks(state, session),
+    taskLists: getSessionLists(state, session),
     sound: state.sound,
     theme,
     accent: state.accent

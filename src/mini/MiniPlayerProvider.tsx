@@ -77,7 +77,26 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const handleCommand = useCallback((cmd: MiniCommand) => {
     const a = appRef.current;
     if (typeof cmd === 'object') {
-      if (cmd.type === 'toggle-task') a.toggleTask(cmd.listId, cmd.taskId, cmd.checked);
+      switch (cmd.type) {
+        case 'add-task':
+          a.addTask(cmd.listId, cmd.text);
+          break;
+        case 'toggle-task':
+          a.toggleTask(cmd.listId, cmd.taskId, cmd.checked);
+          break;
+        case 'rename-task':
+          a.renameTask(cmd.listId, cmd.taskId, cmd.text);
+          break;
+        case 'duplicate-task':
+          a.duplicateTask(cmd.listId, cmd.taskId);
+          break;
+        case 'delete-task':
+          a.deleteTask(cmd.listId, cmd.taskId);
+          break;
+        case 'reorder-tasks':
+          a.reorderTasks(cmd.listId, cmd.sourceId, cmd.targetId);
+          break;
+      }
       return;
     }
     switch (cmd) {

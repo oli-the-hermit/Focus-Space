@@ -88,6 +88,8 @@ async function main() {
         // Toasts and the bell's dot expire on timers, so they would make runs differ; hide
         // them, except in views taken with html.show-toasts (48-toast-success).
         await page.addStyleTag({ content: 'html:not(.show-toasts) .toast-container, html:not(.show-toasts) .bell-dot { visibility: hidden !important; }' });
+        // A profile's "created" date comes from the API's real clock (not the frozen one).
+        await page.addStyleTag({ content: '.profile-row-meta { visibility: hidden !important; }' });
         const dir = path.join(OUT_DIR, theme);
         fs.mkdirSync(dir, { recursive: true });
         await page.screenshot({ path: path.join(dir, `${name}.png`) });
@@ -351,6 +353,13 @@ async function main() {
           await pip.screenshot({ path: path.join(OUT_DIR, theme, `${name}.png`) });
           count++;
         }
+        // A hovered task row in the large layout: the app's grip and row actions.
+        await pip.setViewportSize(VIEWPORT);
+        await settle(pip, 700);
+        await pip.locator('.mini-task-list .task-row').nth(1).hover();
+        await settle(pip, 300);
+        await pip.screenshot({ path: path.join(OUT_DIR, theme, '53-mini-task-hover.png') });
+        count++;
         await pip.close();
         await settle(page);
       } catch (err) {
@@ -466,12 +475,49 @@ async function main() {
           live.locator('[data-tour="mini-player-btn"]').click()
         ]);
         await pip.setViewportSize(VIEWPORT); // the large layout shows the session tasks
-        await pip.locator('.mini-task input:not(:checked)').first().check();
+        await pip.locator('.mini-task-list .task-check:not(:checked)').first().check();
         await settle(live, 300);
         const after = await checkedInApp();
         await pip.close();
         await settle(live, 300);
         return after === before + 1;
+      });
+      await check('Adding, renaming, duplicating and deleting a task in the mini player changes it in the app', async () => {
+        const named = 'Renamed in the mini player';
+        const inApp = () => live.locator('#tab-timer .task-text', { hasText: named }).count();
+        const [pip] = await Promise.all([
+          liveContext.waitForEvent('page', { timeout: 5000 }),
+          live.locator('[data-tour="mini-player-btn"]').click()
+        ]);
+        await pip.setViewportSize(VIEWPORT);
+        // Add from the field above the rows (the session has one list, so no list picker).
+        const added = 'Added in the mini player';
+        await pip.locator('.mini-add-task input').fill(added);
+        await pip.locator('.mini-add-task input').press('Enter');
+        await settle(live, 300);
+        const addedInApp = await live.locator('#tab-timer .task-text', { hasText: added }).count();
+        const row = (i: number) => pip.locator('.mini-task-list .task-row').nth(i);
+        // Rename from the task's right-click menu, inline.
+        await row(1).click({ button: 'right' });
+        await pip.getByRole('menuitem', { name: strings.common.rename }).click();
+        await pip.locator('.mini-task-edit input').fill(named);
+        await pip.locator('.mini-task-edit input').press('Enter');
+        await settle(live, 300);
+        const renamed = await inApp();
+        // Duplicate with the row's hover action; the copy lands right below.
+        await row(1).hover();
+        await row(1).getByRole('button', { name: strings.common.duplicate }).click();
+        await settle(live, 300);
+        const duplicated = await inApp();
+        // Delete the copy, confirming inline.
+        await row(2).hover();
+        await row(2).getByRole('button', { name: strings.common.delete }).click();
+        await pip.locator('.mini-task-confirm').getByRole('button', { name: strings.common.delete, exact: true }).click();
+        await settle(live, 300);
+        const deleted = await inApp();
+        await pip.close();
+        await settle(live, 300);
+        return addedInApp === 1 && renamed === 1 && duplicated === 2 && deleted === 1;
       });
       await check('A large photo can be picked, is resized to a PNG and saved', async () => {
         // About 5 MB of noise: over the old 1 MB cap, and it doesn't compress away.

@@ -235,7 +235,9 @@ html.mini-root #root {
     min-height: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    /* Stats take a third (two thirds of an even split), session tasks the rest;
+       the stats never shrink below their three lines. */
+    grid-template-rows: minmax(84px, 1fr) minmax(0, 2fr);
     gap: var(--space-10);
   }
   .mini-tile {
@@ -271,21 +273,44 @@ html.mini-root #root {
     background: var(--phase);
     transition: width var(--dur-progress) linear, background var(--dur-3) var(--ease-standard);
   }
-  /* Every session task with its checkbox, like the app's list; scrolls when long. */
-  .mini-task-list {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    margin: var(--space-6) 0 0;
-    padding: 0;
-    list-style: none;
-    font-size: var(--text-xs);
-    overflow-y: auto;
+  /* The session's tasks as the app's own rows (MiniTaskList), a size smaller; scrolls when long. */
+  .mini-tile--tasks {
+    --row-hover: var(--surface-3);
+    --field-bg: var(--surface-1);
+    --field-hover: var(--surface-1);
   }
-  .mini-task { display: flex; align-items: center; gap: var(--space-8); min-width: 0; cursor: pointer; }
-  .mini-task-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mini-task-list .is-done .mini-task-text { color: var(--text-3); text-decoration: line-through; }
+  .mini-task-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .mini-task-list { min-height: 0; overflow-y: auto; }
+  /* The app's add-task form, a size smaller; the list picker shows with several lists. */
+  .mini-add-task { margin: var(--space-6) 0 var(--space-4); gap: var(--space-6); }
+  .mini-add-task .form-input,
+  .mini-add-task .select-trigger,
+  .mini-add-task .btn-action { height: 32px; font-size: var(--text-xs); }
+  .mini-add-task .form-input { user-select: text; -webkit-user-select: text; }
+  .mini-add-task .select { flex: 0 1 160px; min-width: 0; }
+  .mini-list-name {
+    padding: var(--space-6) var(--space-4) var(--space-2);
+    font-size: var(--text-3xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-2);
+  }
+  .mini-task-list .task-row {
+    min-height: 34px;
+    gap: var(--space-8);
+    padding: var(--space-2) var(--space-4) var(--space-2) var(--grip-edge);
+  }
+  .mini-task-list .task-text { font-size: var(--text-xs); }
+  .mini-task-edit { padding-left: var(--space-4); }
+  .mini-task-edit .form-input {
+    height: 30px;
+    padding: 0 var(--space-10);
+    font-size: var(--text-xs);
+    user-select: text;
+    -webkit-user-select: text;
+  }
+  .mini-task-confirm { flex-wrap: wrap; background: var(--danger-container); }
+  .mini-task-confirm:hover { background: var(--danger-container); }
+  .mini-task-confirm .task-text { flex-basis: 100%; color: var(--text-1); }
 
   .mini-ctrl { width: 40px; height: 40px; }
   .mini-ctrl--play { width: 52px; height: 52px; }
