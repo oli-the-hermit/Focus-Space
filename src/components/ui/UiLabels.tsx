@@ -27,7 +27,23 @@ export const defaultUiLabels = {
   chooseTime: 'Choose time',
   timePlaceholder: 'HH:MM',
   decrease: 'Decrease',
-  increase: 'Increase'
+  increase: 'Increase',
+  emojiSearch: 'Search emoji',
+  emojiLoading: 'Loading emoji…',
+  emojiNoResults: 'No emoji match that search.',
+  emojiNoRecent: 'Emoji you pick show up here.',
+  emojiResults: 'Search results',
+  emojiCategories: {
+    recent: 'Recent',
+    smileys: 'Smileys & people',
+    animals: 'Animals & nature',
+    food: 'Food & drink',
+    activities: 'Activities',
+    travel: 'Travel & places',
+    objects: 'Objects',
+    symbols: 'Symbols',
+    flags: 'Flags'
+  }
 };
 
 export type UiLabels = typeof defaultUiLabels;

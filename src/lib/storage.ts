@@ -14,6 +14,8 @@ export const STORAGE_KEYS = {
   accentCache: 'focusspace_accent_cache',
   /** The last few accents picked on this device (Appearance > Recent colors). */
   recentAccents: 'focusspace_recent_accents',
+  /** Emoji picked in the emoji picker on this device, newest first (its Recent tab). */
+  recentEmoji: 'focusspace_recent_emoji',
   authToken: 'focusspace_auth_token',
   authKey: 'focusspace_auth_key',
   timerRun: 'focusspace_timer_run',
@@ -78,3 +80,18 @@ export interface PersistedTimerRun {
 export const loadTimerRun = (): PersistedTimerRun | null => storage.getJSON<PersistedTimerRun>('timerRun');
 export const saveTimerRun = (run: PersistedTimerRun): void => storage.setJSON('timerRun', run);
 export const clearTimerRun = (): void => storage.remove('timerRun');
+
+/** How many emoji the picker's Recent tab keeps (three rows). */
+export const RECENT_EMOJI_MAX = 24;
+
+export function loadRecentEmoji(): string[] {
+  const v = storage.getJSON<unknown[]>('recentEmoji');
+  return Array.isArray(v) ? v.filter((e): e is string => typeof e === 'string' && e !== '') : [];
+}
+
+/** Remembers a picked emoji and returns the updated list. */
+export function pushRecentEmoji(emoji: string): string[] {
+  const next = [emoji, ...loadRecentEmoji().filter(e => e !== emoji)].slice(0, RECENT_EMOJI_MAX);
+  storage.setJSON('recentEmoji', next);
+  return next;
+}

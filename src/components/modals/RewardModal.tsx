@@ -9,6 +9,7 @@ import { Select } from '../ui/Select';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
 import { DEFAULT_BREAK_MINUTES, DEFAULT_FOCUS_MINUTES, DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
+import { EmojiField } from '../rewards/EmojiField';
 
 export interface RewardModalProps {
   reward?: Reward | null;
@@ -68,14 +69,8 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
       </Field>
 
       <div className="form-row form-group-spaced">
-        <Field label={strings.modals.emojiLabel}>
-          <TextInput
-            className="emoji-input"
-            value={emoji}
-            onChange={e => setEmoji(e.target.value)}
-            placeholder={DEFAULT_REWARD_EMOJI}
-            maxLength={4}
-          />
+        <Field label={strings.modals.emojiLabel} htmlFor="rewardEmoji">
+          <EmojiField id="rewardEmoji" value={emoji} onChange={setEmoji} />
         </Field>
         <Field label={strings.modals.frequencyPeriodLabel}>
           <Select

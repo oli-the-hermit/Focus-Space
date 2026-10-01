@@ -206,6 +206,12 @@ async function main() {
       await shot(theme, '37-modal-new-goal', fromGlobalMenu(cm.newGoal));
       await closeOverlays();
       await shot(theme, '38-modal-new-reward', fromGlobalMenu(cm.newReward));
+      // The picker loads its emoji catalog (a separate chunk) on first open.
+      await shot(theme, '39-emoji-picker', async () => {
+        await page.locator('.modal .emoji-field').click();
+        await page.locator('.emoji-picker .emoji-cell').first().waitFor({ timeout: 10_000 });
+      });
+      await page.keyboard.press('Escape');
       await closeOverlays();
 
       await page.locator('.nav-rail [data-tab="timer"]').click();
@@ -260,6 +266,17 @@ async function main() {
       const cleared = (await dot.count()) === 0;
       await closeOverlays();
       return lit && cleared;
+    });
+    await check('The emoji picker finds "coffee" and puts ☕ in the reward form', async () => {
+      await fromGlobalMenu(strings.actions.newReward)();
+      await page.locator('.modal .emoji-field').click();
+      await page.locator('.emoji-picker input').fill('coffee');
+      await page.locator('.emoji-picker').getByRole('button', { name: 'hot beverage', exact: true }).click();
+      // Picking closes the picker (after its exit animation).
+      await page.locator('.emoji-picker').waitFor({ state: 'detached', timeout: 2000 });
+      const shown = ((await page.locator('.modal .emoji-field').textContent()) ?? '').replace(/️/g, '');
+      await closeOverlays();
+      return shown === '☕';
     });
     await check('N is ignored while a menu is open', async () => {
       await openGlobalMenu();

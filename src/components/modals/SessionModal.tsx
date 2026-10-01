@@ -10,6 +10,7 @@ import { IconClose, IconList } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
 import { Field, TextArea, TextInput } from '../ui/Field';
 import { DEFAULT_BREAK_MINUTES, DEFAULT_FOCUS_MINUTES, DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
+import { EmojiField } from '../rewards/EmojiField';
 
 export interface SessionModalProps {
   session?: Session | null;
@@ -172,13 +173,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({ session, initialTask
               </TextButton>
             </div>
             <div className="form-row form-row--emoji">
-              <TextInput
-                className="emoji-input"
-                value={rewardDraft.emoji}
-                onChange={e => setRewardDraft({ ...rewardDraft, emoji: e.target.value })}
-                maxLength={4}
-                aria-label={strings.modals.emojiLabel}
-              />
+              <EmojiField value={rewardDraft.emoji} onChange={emoji => setRewardDraft({ ...rewardDraft, emoji })} />
               <TextInput
                 value={rewardDraft.name}
                 onChange={e => setRewardDraft({ ...rewardDraft, name: e.target.value })}

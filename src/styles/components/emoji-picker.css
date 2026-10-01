@@ -1,0 +1,60 @@
+/* ── Emoji picker (EmojiPicker, inside a Popover) ────────── */
+.emoji-picker {
+  --emoji-cell: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+}
+.emoji-picker .select-search { margin-bottom: 0; }
+
+.emoji-tabs { display: flex; gap: var(--space-2); }
+.emoji-tab {
+  flex: 1;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-size: var(--text-lg);
+  line-height: var(--leading-none);
+  transition: background var(--transition);
+}
+.emoji-tab:hover { background: var(--surface-4); }
+.emoji-tab.is-active { background: var(--accent-container); color: var(--on-accent-container); }
+
+.emoji-section-title {
+  padding: var(--space-4) var(--space-4) 0;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-2);
+}
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--emoji-columns, 8), var(--emoji-cell));
+  grid-auto-rows: var(--emoji-cell);
+  align-content: start;
+  gap: var(--space-2);
+  height: calc(var(--emoji-cell) * 6 + var(--space-2) * 5);
+  overflow-y: auto;
+}
+.emoji-cell {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-none);
+  transition: background var(--transition);
+}
+.emoji-cell:hover { background: var(--surface-4); }
+.emoji-empty {
+  grid-column: 1 / -1;
+  grid-row: span 2;
+  align-self: center;
+  font-size: var(--text-sm);
+  color: var(--text-2);
+  text-align: center;
+}
+
+/* The trigger: a field-sized button showing the chosen emoji (form.css .emoji-input). */
+.emoji-field { cursor: pointer; }

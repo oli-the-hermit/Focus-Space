@@ -10,7 +10,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | **Calm, never alarming** | No "Fatal", "Failed", "Invalid", "Error", "Danger". Say what happened in plain words and, when it matters, that their data is safe. |
 | **Always a way forward** | Every problem message ends with the next step: *try again*, *sign in*, *pick another date*, *remove one to add someone new*. |
 | **Short and human** | One idea per sentence. Contractions are fine. Toasts are a single line. |
-| **No decorative emoji** | UI glyphs come from the stroke icon set in `AppIcons.tsx`. Emoji appear only where the **user** picked them for a reward. |
+| **No decorative emoji** | UI glyphs come from the stroke icon set in `AppIcons.tsx`. Emoji appear only where the **user** picked them for a reward, and in the emoji picker itself (each category tab shows one of its own emoji). |
 | **Sentence case everywhere** | Buttons, labels, titles, menu items and tooltips capitalize only the first word and proper nouns: "Save changes", "Change password", "Notification settings", "Star on GitHub". Never Title Case. |
 
 **Word swaps**
@@ -197,6 +197,12 @@ The single reference for every user-facing message in Focus Space: what the app 
 
 | Feature Context / Trigger | Category | UI Component | Semantic Title | Message Body | Suggested Action / CTA |
 |---|---|---|---|---|---|
+| Reward emoji button | Status | Field-sized button + tooltip | Pick an emoji | Screen readers: "Emoji: {emoji}. Pick another" | Opens the emoji picker |
+| Emoji picker: search | Status | Search field (UiLabels) | Search emoji | Search emoji | Type; Enter picks the first match |
+| Emoji picker: tabs | Status | Icon tabs with tooltips (UiLabels) | Categories | Recent · Smileys & people · Animals & nature · Food & drink · Activities · Travel & places · Objects · Symbols · Flags (not on Windows, which has no flag emoji) | Pick a tab |
+| Emoji picker: loading the catalog (first open) | Status | Inline | Loading | Loading emoji… | — |
+| Emoji picker: nothing matches | Empty State | Inline | No results | No emoji match that search. | Try another word |
+| Emoji picker: Recent before any pick (this device) | Empty State | Inline | No recent emoji | Emoji you pick show up here. | Pick a tab |
 | Goal created | Success | Toast | Goal saved | Goal "{name}" is set. | — |
 | Goal updated / duplicated / deleted | Success | Toast | Goal saved | Goal updated. · Goal duplicated. · Goal deleted. | — |
 | Delete a goal | Helpful Alert | Modal | Delete goal? | Delete "{name}"? This can't be undone. | Delete / Cancel |

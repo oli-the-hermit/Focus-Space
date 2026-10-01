@@ -19,6 +19,11 @@ export function detectOs(userAgent: string): OsName | null {
   return null;
 }
 
+/** Windows has no flag emoji (Segoe UI Emoji shows two letters instead), in the app and in browsers. */
+export function hasFlagEmoji(userAgent: string = navigator.userAgent): boolean {
+  return detectOs(userAgent) !== 'Windows';
+}
+
 /** "Desktop (Windows)", or "Web (<user agent>)" in a browser. */
 export function platformLabel(userAgent: string = navigator.userAgent, desktop: boolean = isTauri()): string {
   const h = strings.help;

@@ -278,6 +278,8 @@ export const strings = {
     descriptionLabel: 'Description (optional)',
     descriptionPlaceholder: 'What is this reward?',
     emojiLabel: 'Emoji / icon',
+    emojiPick: 'Pick an emoji',
+    emojiButtonAria: 'Emoji: {emoji}. Pick another',
     frequencyPeriodLabel: 'Frequency / period',
     createRewardBtn: 'Create reward',
 
