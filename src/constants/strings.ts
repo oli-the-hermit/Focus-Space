@@ -491,14 +491,15 @@ export const strings = {
     starDesc: 'If Focus Space helps you, a star helps us.',
     shortcutsNote: 'Shortcuts pause while you’re typing or a dialog is open.',
     whatsNew: [
-      'A quick tour for new and returning users. Replay it from Help.',
-      'Right-click menus with the actions you need, wherever you click.',
-      'Alerts when a phase ends, with a button to start the next one.',
-      'A mini player you can resize into a tall or wide layout.',
-      'Smoother transitions between pages and timer states.',
-      'A tidier profile, with one place to save your changes.',
-      'Keyboard shortcuts.',
-      'Desktop: a custom window frame, and drag to reorder works again.'
+      'The first public version, an alpha. Your feedback shapes what comes next: Help → Report a problem.',
+      'Focus sessions with task lists, a calendar, stats, goals and rewards. Everything stays on your device, encrypted.',
+      'Pick your accent color from 32 Space colors in Appearance, in light or dark.',
+      'Notifications show what happened at a glance, with a color, an icon and a dot on the bell.',
+      'An emoji picker for rewards, with search and your recent picks.',
+      'A mini player you can resize, with your session tasks: add, tick, rename and reorder them there.',
+      'Clocks count in minutes, so an hour-long session starts at 60:00.',
+      'Alerts when a phase ends, keyboard shortcuts and a quick tour you can replay from Help.',
+      'Desktop: updates install themselves from now on. Turn the notices off in Settings → Updates.'
     ],
     versionLabel: 'Version {version}',
     /** About, while shared/release.json marks a test version (stage). */
