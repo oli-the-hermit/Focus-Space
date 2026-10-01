@@ -45,6 +45,17 @@ jobs:
       - run: npm run check
       - run: npm run test:rust
 
+      # The release text, with the alpha/beta note while shared/release.json marks a test version.
+      - name: Release notes
+        id: notes
+        shell: bash
+        run: |
+          {
+            echo 'body<<NOTES_END'
+            node scripts/release/notes.ts
+            echo 'NOTES_END'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build, sign and draft the release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -54,8 +65,10 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Focus Space ${{ github.ref_name }}
-          releaseBody: Download the setup file below to install Focus Space. Once installed, it updates itself.
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: true
+          # Never a GitHub pre-release, even for an alpha: the updater reads
+          # releases/latest, which skips pre-releases. The text says it's an alpha.
           prerelease: false
           includeUpdaterJson: true
           updaterJsonPreferNsis: true

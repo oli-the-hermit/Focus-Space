@@ -100,6 +100,8 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Saved data couldn't be read or written | Error Recovery | Inline helper | Change not saved | We couldn't save that change. Your data is safe, so please try again. | Try again |
 | Unexpected problem on the app service | Error Recovery | Inline helper | Unexpected hiccup | Something unexpected happened on our side. Your data is safe, so please try again. | Try again |
 | Unknown address (desktop service) | Error Recovery | Inline helper | Not found | We couldn't find what you were looking for. | — |
+| About: a test version (shared/release.json stage alpha/beta) | Helpful Alert | Badge + note | Alpha | This is an alpha: still in development, so features and data may change before the final version. Your feedback helps. | Report a problem |
+| GitHub release text (scripts/release/notes.ts) | Status | Release page | Release notes | Alpha note (test versions), then: Download the setup file below to install Focus Space. Once installed, it updates itself. Then: Found a problem or have an idea? Tell us in GitHub Issues: {url} | Download |
 | Settings: notification options (same form as the bell's dialog) | Status | Section | Notifications | The bell's settings: phase alerts, reminders, hide-after, chime, browser permission | Save |
 | Settings: profile list (the main account sees every profile; a regular profile sees its own) | Status | Badges | Main · Active | "Main" marks the main account, "Active" the profile signed in now | — |
 | Appearance: theme | Status | Segmented control | Theme | Light · Dark · System | Pick one |

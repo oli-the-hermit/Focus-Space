@@ -91,7 +91,20 @@
   color: var(--on-accent);
 }
 .about-name { font-size: var(--text-lg); font-weight: var(--weight-bold); }
-.about-version { font-size: var(--text-xs); color: var(--text-2); }
+.about-version { display: flex; align-items: center; gap: var(--space-6); font-size: var(--text-xs); color: var(--text-2); }
+/* A test version (shared/release.json stage): amber badge and note, never the accent. */
+.stage-badge { background: var(--warning-container); color: var(--warning); }
+.about-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding: var(--space-14) var(--space-16);
+  border-radius: var(--radius-lg);
+  background: var(--warning-container);
+  color: var(--text-1);
+  font-size: var(--text-sm);
+}
 .about-desc { color: var(--text-2); font-size: var(--text-md); }
 .about-privacy {
   display: flex;

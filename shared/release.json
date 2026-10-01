@@ -1,5 +1,6 @@
 {
-  "$comment": "Where releases live. Read by the app (Help links, Settings > Updates), the desktop updater (src-tauri/src/updates.rs) and docs/releasing.md. While either value is empty, the GitHub links stay hidden and the desktop app doesn't check for updates. githubRepo is 'owner/name' of a PUBLIC repo; updaterPubkey is the one-line contents of the .pub file from `npx tauri signer generate` (never the private key).",
+  "$comment": "Where releases live. Read by the app (Help links, Settings > Updates, the About badge), the desktop updater (src-tauri/src/updates.rs), the release workflow (scripts/release/notes.ts) and docs/releasing.md. While githubRepo or updaterPubkey is empty, the GitHub links stay hidden and the desktop app doesn't check for updates. githubRepo is 'owner/name' of a PUBLIC repo; updaterPubkey is the one-line contents of the .pub file from `npx tauri signer generate` (never the private key). stage is 'alpha' or 'beta' for a test version (About shows a badge and a note, and the GitHub release says so), or '' for a final version.",
   "githubRepo": "oli-the-hermit/Focus-Space",
-  "updaterPubkey": ""
+  "updaterPubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhGM0RCOUY5RTRERTYzNDcKUldSSFk5N2srYms5anhtVWUwOEtjOGI1UHRQQVJMRlk5VWs2ZlVSVWpHWk5qaGxjcG1WU1RtbEIK",
+  "stage": "alpha"
 }

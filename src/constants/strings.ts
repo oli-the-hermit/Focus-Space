@@ -315,6 +315,9 @@ export const strings = {
   },
   /** Desktop app updates: the launch card (shell/UpdateNotice) and Settings > Updates. */
   updates: {
+    /** The GitHub release's text (scripts/release/notes.ts); a test version adds help.stageNote above it. */
+    releaseBody: 'Download the setup file below to install Focus Space. Once installed, it updates itself.',
+    releaseFeedback: 'Found a problem or have an idea? Tell us in GitHub Issues: {url}',
     sectionTitle: 'Updates',
     notifyLabel: 'Tell me when an update is ready',
     notifyHint: 'Focus Space checks each time it opens.',
@@ -498,6 +501,12 @@ export const strings = {
       'Desktop: a custom window frame, and drag to reorder works again.'
     ],
     versionLabel: 'Version {version}',
+    /** About, while shared/release.json marks a test version (stage). */
+    stageBadge: { alpha: 'Alpha', beta: 'Beta' },
+    stageNote: {
+      alpha: 'This is an alpha: still in development, so features and data may change before the final version. Your feedback helps.',
+      beta: 'This is a beta: nearly finished, so a few things may still change before the final version. Your feedback helps.'
+    },
     privacyTitle: 'Your data stays here',
     privacyBody: 'Everything is stored on this device and encrypted with your password, and it never leaves it. The desktop app only goes online to see whether an update is out.',
     credits: 'Made by San Milano.',

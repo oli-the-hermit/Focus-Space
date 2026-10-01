@@ -221,6 +221,8 @@ async function main() {
       await shot(theme, '40-modal-notifications', async () => { await page.locator('[data-tour="alerts-btn"]').click(); });
       await closeOverlays();
       await shot(theme, '41-modal-help', async () => { await page.locator('[data-tour="help-btn"]').click(); });
+      // About: the version, with the alpha badge and note while release.json marks a test version.
+      await shot(theme, '49-help-about', async () => { await page.locator('.help-row', { hasText: strings.help.aboutDesc }).click(); });
       await closeOverlays();
       await shot(theme, '42-user-menu', async () => { await page.locator('.user-badge-btn').first().click(); });
       await closeOverlays();

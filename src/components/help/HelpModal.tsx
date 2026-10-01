@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
-import { GITHUB_URL, docsUrl, githubIssueUrl } from '../../constants/links';
+import { GITHUB_URL, RELEASE_STAGE, docsUrl, githubIssueUrl } from '../../constants/links';
 import { openExternal } from '../../lib/desktop';
 import { IconBook, IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
@@ -45,6 +45,7 @@ export const HelpModal: React.FC = () => {
 
   const close = () => setHelpOpen(false);
   const open = (url: string) => void openExternal(url).catch(() => {});
+  const reportProblem = () => open(githubIssueUrl(format(strings.help.reportBody, { version, platform: platformLabel() })));
 
   const titles: Record<HelpView, string> = {
     home: strings.help.title,
@@ -102,13 +103,7 @@ export const HelpModal: React.FC = () => {
                 title={strings.help.reportTitle}
                 desc={strings.help.reportDesc}
                 external
-                onClick={() =>
-                  open(
-                    githubIssueUrl(
-                      format(strings.help.reportBody, { version, platform: platformLabel() })
-                    )
-                  )
-                }
+                onClick={reportProblem}
               />
               <HelpRow
                 icon={<IconStar size={20} />}
@@ -159,9 +154,23 @@ export const HelpModal: React.FC = () => {
             </span>
             <div>
               <div className="about-name">{strings.app.title}</div>
-              <div className="about-version">{format(strings.help.versionLabel, { version })}</div>
+              <div className="about-version">
+                {format(strings.help.versionLabel, { version })}
+                {RELEASE_STAGE && <span className="role-badge stage-badge">{strings.help.stageBadge[RELEASE_STAGE]}</span>}
+              </div>
             </div>
           </div>
+          {RELEASE_STAGE && (
+            <div className="about-stage">
+              <p>{strings.help.stageNote[RELEASE_STAGE]}</p>
+              {GITHUB_URL && (
+                <TextButton className="about-github" onClick={reportProblem}>
+                  <IconBug size={15} />
+                  {strings.help.reportTitle}
+                </TextButton>
+              )}
+            </div>
+          )}
           <p className="about-desc">{strings.app.description}</p>
           <div className="about-privacy">
             <IconLock size={18} />

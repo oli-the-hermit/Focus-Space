@@ -13,5 +13,9 @@ export const docsUrl = () => `${GITHUB_URL}#readme`;
 export const githubIssueUrl = (body: string) =>
   `${GITHUB_URL}/issues/new?body=${encodeURIComponent(body)}`;
 
+/** 'alpha' or 'beta' while this is a test version (About shows a badge and a note), else null. */
+export const RELEASE_STAGE: 'alpha' | 'beta' | null =
+  release.stage === 'alpha' || release.stage === 'beta' ? release.stage : null;
+
 /** A release source is set up, so the desktop app can check for updates. */
 export const UPDATES_CONFIGURED = !!repo && !!release.updaterPubkey.trim();

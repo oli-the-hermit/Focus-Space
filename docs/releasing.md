@@ -7,10 +7,11 @@ Before a new version opens the data for the first time, the app saves a copy to 
 ## One-time setup
 
 1. **A public GitHub repository.** The app downloads updates without signing in, so the repository must be public. Its `owner/name` goes in [`shared/release.json`](../shared/release.json) as `githubRepo` (set: `oli-the-hermit/Focus-Space`). This also turns on the GitHub links in Help.
-2. **An update key.** Updates are signed, and the app refuses anything not signed with your key. Run this yourself; it asks you to choose a password:
-   ```bash
-   npx tauri signer generate -w "%USERPROFILE%\.tauri\focus-space.key"
+2. **An update key.** Updates are signed, and the app refuses anything not signed with your key. Run this yourself in PowerShell; it asks you to choose a password:
+   ```powershell
+   npx tauri signer generate -w "$env:USERPROFILE\.tauri\focus-space.key"
    ```
+   (In the older Command Prompt, write `%USERPROFILE%` instead of `$env:USERPROFILE`.)
    Keep `focus-space.key` and its password in your password manager. **If you lose either, installed apps can't update any more,** and everyone would have to reinstall by hand once.
 3. **The public half into the app.** Paste the one line inside `focus-space.key.pub` into `shared/release.json` as `updaterPubkey`. The `.pub` file is safe to share; the `.key` file never goes into the repository.
 4. **The private half into GitHub.** In the repository, open **Settings → Secrets and variables → Actions** and add:
@@ -19,6 +20,12 @@ Before a new version opens the data for the first time, the app saves a copy to 
 5. Commit and push.
 
 Builds made before `shared/release.json` was filled in can't update themselves, so anyone running one needs to install the next release by hand, once.
+
+## Test versions (alpha, beta)
+
+While `stage` in [`shared/release.json`](../shared/release.json) is `"alpha"` (or `"beta"`), Help → About shows a badge and a short note with a link to report a problem, and the GitHub release text starts with the same note (`scripts/release/notes.ts`). For the final version, set `stage` to `""`: the badge, the note and the release text change together.
+
+Publish test versions as **normal releases, not pre-releases**: installed apps look for GitHub's "latest release", which skips pre-releases, so they would never be offered the update. The workflow already creates them that way.
 
 ## Each release
 

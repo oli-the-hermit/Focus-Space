@@ -47,7 +47,8 @@ out/
 
 # Desktop App Build & Packaging Artifacts (Electron / Tauri)
 dist-electron/
-release/
+# Only a top-level build folder: scripts/release/ (the release workflow's scripts) is tracked.
+/release/
 src-tauri/target/
 *.exe
 *.msi
