@@ -9,6 +9,8 @@ import { AppearanceView } from './AppearanceView';
 import { FormActions } from '../ui/FormActions';
 import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
 import { Button } from '../ui/Button';
+import { ActionRow } from '../ui/ActionRow';
+import { Collapsible } from '../ui/Collapsible';
 import { Field, TextInput } from '../ui/Field';
 import { FormRow } from '../ui/FormLayout';
 import { initials } from '../../lib/formatUtils';
@@ -41,9 +43,6 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ view, onClose }) =
     </Modal>
   );
 };
-
-/** `inert` keeps collapsed fields out of the tab order (React 18 has no typed prop). */
-const inertUnless = (open: boolean) => (open ? {} : ({ inert: '' } as Record<string, string>));
 
 // ── PROFILE VIEW ─────────────────────────────────────────────────────────
 const ProfileView: React.FC = () => {
@@ -271,52 +270,50 @@ const ProfileView: React.FC = () => {
           )}
         </div>
 
-        <div className="collapsible" data-open={pwOpen}>
-          <div className="collapsible-inner" {...inertUnless(pwOpen)}>
-            <div className="password-fields">
-              <Field label={strings.profile.currentPasswordLabel} htmlFor="curPw">
+        <Collapsible open={pwOpen}>
+          <div className="password-fields">
+            <Field label={strings.profile.currentPasswordLabel} htmlFor="curPw">
+              <TextInput
+                ref={curPwRef}
+                id="curPw"
+                type="password"
+                value={curPw}
+                onChange={e => setCurPw(e.target.value)}
+                autoComplete="current-password"
+              />
+            </Field>
+            <FormRow>
+              <Field label={strings.profile.newPasswordLabel} htmlFor="newPw">
                 <TextInput
-                  ref={curPwRef}
-                  id="curPw"
+                  id="newPw"
                   type="password"
-                  value={curPw}
-                  onChange={e => setCurPw(e.target.value)}
-                  autoComplete="current-password"
+                  value={newPw}
+                  onChange={e => setNewPw(e.target.value)}
+                  autoComplete="new-password"
                 />
               </Field>
-              <FormRow>
-                <Field label={strings.profile.newPasswordLabel} htmlFor="newPw">
-                  <TextInput
-                    id="newPw"
-                    type="password"
-                    value={newPw}
-                    onChange={e => setNewPw(e.target.value)}
-                    autoComplete="new-password"
-                  />
-                </Field>
-                <Field label={strings.profile.confirmPasswordLabel} htmlFor="confirmPw">
-                  <TextInput
-                    id="confirmPw"
-                    type="password"
-                    value={confirmPw}
-                    onChange={e => setConfirmPw(e.target.value)}
-                    autoComplete="new-password"
-                  />
-                </Field>
-              </FormRow>
-              <ul className="pw-rules" aria-live="polite">
-                <li className={pwLongEnough ? 'is-met' : ''}>
-                  <IconCheck size={14} strokeWidth={2.6} />
-                  {format(strings.profile.ruleLength, { min: LIMITS.password.min })}
-                </li>
-                <li className={pwMatch ? 'is-met' : ''}>
-                  <IconCheck size={14} strokeWidth={2.6} />
-                  {strings.profile.ruleMatch}
-                </li>
-              </ul>
-            </div>
+              <Field label={strings.profile.confirmPasswordLabel} htmlFor="confirmPw">
+                <TextInput
+                  id="confirmPw"
+                  type="password"
+                  value={confirmPw}
+                  onChange={e => setConfirmPw(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </Field>
+            </FormRow>
+            <ul className="pw-rules" aria-live="polite">
+              <li className={pwLongEnough ? 'is-met' : ''}>
+                <IconCheck size={14} strokeWidth={2.6} />
+                {format(strings.profile.ruleLength, { min: LIMITS.password.min })}
+              </li>
+              <li className={pwMatch ? 'is-met' : ''}>
+                <IconCheck size={14} strokeWidth={2.6} />
+                {strings.profile.ruleMatch}
+              </li>
+            </ul>
           </div>
-        </div>
+        </Collapsible>
       </div>
 
       {/* Delete own profile (regular users only) */}
@@ -332,14 +329,14 @@ const ProfileView: React.FC = () => {
           {deleteStep === 'confirm' && (
             <div className="danger-panel">
               <p className="danger-panel-msg">{strings.profile.deleteOwnConfirmMsg}</p>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button onClick={() => setDeleteStep('none')}>
                   {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={() => setDeleteStep('password')}>
                   {strings.common.delete}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           )}
           {deleteStep === 'password' && (
@@ -353,7 +350,7 @@ const ProfileView: React.FC = () => {
                   autoComplete="current-password"
                 />
               </Field>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button
                   onClick={() => {
                     setDeleteStep('none');
@@ -365,7 +362,7 @@ const ProfileView: React.FC = () => {
                 <Button variant="danger" onClick={execDelete} disabled={saving}>
                   {strings.common.delete}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           )}
         </>

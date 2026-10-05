@@ -10,3 +10,16 @@
 @media (min-width: 1024px) {
   .app-shell:has(.nav-rail[data-variant='expanded']) { --drawer-width: var(--drawer-expanded); }
 }
+
+/* Bottom-right corner slot: the update card (desktop) */
+.corner-stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-8);
+  pointer-events: none;
+}

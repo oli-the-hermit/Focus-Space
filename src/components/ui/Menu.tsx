@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Popover } from './Popover';
 import { IconMore } from './icons';
 import { useUiLabels } from './UiLabels';
+import { cx } from '../../lib/cx';
 
 export interface MenuAction {
   key: string;
@@ -87,6 +88,10 @@ export interface MenuProps {
   trigger?: React.ReactNode;
   triggerClassName?: string;
   align?: 'start' | 'end';
+  /** Shown above the items, e.g. who's signed in. */
+  header?: React.ReactNode;
+  /** Extra class on the menu panel. */
+  menuClassName?: string;
 }
 
 /** Overflow menu: an icon button that opens a list of actions. */
@@ -95,7 +100,9 @@ export const Menu: React.FC<MenuProps> = ({
   ariaLabel,
   trigger,
   triggerClassName = 'icon-btn',
-  align = 'end'
+  align = 'end',
+  header,
+  menuClassName
 }) => {
   const labels = useUiLabels();
   const [open, setOpen] = useState(false);
@@ -128,9 +135,10 @@ export const Menu: React.FC<MenuProps> = ({
         }}
         align={align}
         matchWidth={false}
-        className="menu"
+        className={cx('menu', menuClassName)}
         role="menu"
       >
+        {header}
         <div onKeyDown={handleMenuKeyDown}>
           <MenuList items={items} onPicked={() => setOpen(false)} />
         </div>

@@ -8,6 +8,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 export const defaultUiLabels = {
   close: 'Close',
   cancel: 'Cancel',
+  delete: 'Delete',
   copy: 'Copy',
   actions: 'Actions',
   moreActions: 'More actions',

@@ -27,25 +27,17 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { MiniPlayerProvider } from './mini/MiniPlayerProvider';
 import { strings } from './constants/strings';
 import { formatDuration } from './lib/formatUtils';
-import { IconCheck, IconClock, IconClose, IconInfo, IconLogo, IconTimer, IconWarning } from './components/ui/icons';
-import type { ToastTone } from './types';
+import { IconCheck, IconClock, IconLogo, IconTimer } from './components/ui/icons';
 import { ContextMenuProvider } from './components/ui/ContextMenu';
 import { useGlobalMenuItems } from './components/shell/globalMenu';
 import { HelpModal } from './components/help/HelpModal';
 import { OnboardingTour } from './components/onboarding/OnboardingTour';
 import { AlertCard } from './components/alerts/AlertCard';
+import { ToastRegion } from './components/ui/Toast';
 import { UpdateNotice } from './components/updates/UpdateNotice';
 import { useShortcuts } from './hooks/useShortcuts';
 import { TIMING } from './constants/timing';
 import { DEFAULT_FOCUS_MINUTES } from './constants/defaults';
-
-/** Every toast tone has its own icon, so color is never the only signal. */
-const TOAST_ICONS: Record<ToastTone, React.ReactNode> = {
-  success: <IconCheck size={18} strokeWidth={2.4} />,
-  info: <IconInfo size={18} />,
-  warning: <IconWarning size={18} />,
-  error: <IconClose size={18} strokeWidth={2.4} />
-};
 
 export const AppContent: React.FC = () => {
   const { authStatus } = useApp();
@@ -177,14 +169,7 @@ const AppShell: React.FC = () => {
         <CelebrationOverlay />
 
         {/* Top right, under the bell: toasts. Errors interrupt (role="alert"); the rest wait politely. */}
-        <div className="toast-container" id="toastContainer" role="status" aria-live="polite">
-          {toasts.map(t => (
-            <div key={t.id} className={`toast is-${t.tone} ${t.leaving ? 'is-leaving' : ''}`} role={t.tone === 'error' ? 'alert' : undefined}>
-              <span className="toast-icon" aria-hidden="true">{TOAST_ICONS[t.tone]}</span>
-              <span className="toast-message">{t.message}</span>
-            </div>
-          ))}
-        </div>
+        <ToastRegion toasts={toasts} id="toastContainer" />
 
         {/* Bottom-right corner: the update card (desktop) */}
         <div className="corner-stack">

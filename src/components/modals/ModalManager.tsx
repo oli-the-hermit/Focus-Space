@@ -9,7 +9,7 @@ import { CalendarEventModal } from './CalendarEventModal';
 import { GoalModal } from './GoalModal';
 import { LandmarkModal } from './LandmarkModal';
 import { RewardModal } from './RewardModal';
-import { ConfirmModal } from './ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { NotificationModal } from './NotificationModal';
 import { strings } from '../../constants/strings';
 

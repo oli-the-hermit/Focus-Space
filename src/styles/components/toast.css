@@ -1,17 +1,4 @@
-/* ── Bottom-right corner: the update card (desktop) ─────── */
-.corner-stack {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: var(--z-toast);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-8);
-  pointer-events: none;
-}
-
-/* ── Toasts: top right, sliding in under the bell ────────── */
+/* ── Toasts (ui/Toast): top right, sliding in under the bell ── */
 .toast-container {
   position: fixed;
   top: calc(var(--topbar-height) + var(--space-4));

@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { Popover } from '../ui/Popover';
+import { Menu, type MenuItem } from '../ui/Menu';
 import { IconLogOut, IconPalette, IconSettings, IconUser } from '../ui/icons';
 import { initials } from '../../lib/formatUtils';
 import type { UserMenuView } from './UserMenuModal';
@@ -12,17 +12,16 @@ export interface UserBadgeProps {
   compact?: boolean;
 }
 
-const MENU_ITEMS: { view: UserMenuView; label: string; icon: React.ReactNode }[] = [
+const VIEW_ITEMS: { view: UserMenuView; label: string; icon: React.ReactNode }[] = [
   { view: 'profile', label: strings.userMenu.profile, icon: <IconUser /> },
   { view: 'appearance', label: strings.userMenu.appearance, icon: <IconPalette /> },
   { view: 'settings', label: strings.userMenu.settings, icon: <IconSettings /> }
 ];
 
+/** The signed-in profile: avatar (and name) that opens the account menu. */
 export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false }) => {
   const { profile, logout } = useApp();
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!profile) return null;
 
@@ -35,69 +34,41 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false })
     }
   };
 
+  const items: MenuItem[] = [
+    ...VIEW_ITEMS.map(item => ({ key: item.view, label: item.label, icon: item.icon, onSelect: () => onOpen(item.view) })),
+    { key: 'exit', label: strings.userMenu.exit, icon: <IconLogOut />, danger: true, disabled: busy, onSelect: handleExit }
+  ];
+
   return (
     <div className={`user-badge ${compact ? 'is-compact' : ''}`}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="user-badge-btn"
-        onClick={() => setOpen(o => !o)}
-        title={profile.displayName}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={profile.displayName}
-      >
-        <span className="user-avatar">
-          {profile.avatar ? (
-            <img src={profile.avatar} alt="" className="user-avatar-img" />
-          ) : (
-            <span className="user-avatar-initials">{initials(profile.displayName)}</span>
-          )}
-          {profile.role === 'owner' && (
-            <span className="user-role-dot" title={strings.auth.mainAccountTooltip} />
-          )}
-        </span>
-        {!compact && <span className="user-badge-name">{profile.displayName}</span>}
-      </button>
-
-      <Popover
-        open={open}
-        anchorRef={triggerRef}
-        onClose={() => setOpen(false)}
-        matchWidth={false}
-        className="menu user-menu"
-        role="menu"
-      >
-        <div className="user-menu-head">
-          <span className="user-menu-name">{profile.displayName}</span>
-          <span className="user-menu-handle">@{profile.username}</span>
-        </div>
-        {MENU_ITEMS.map(item => (
-          <button
-            key={item.view}
-            type="button"
-            className="menu-item"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              onOpen(item.view);
-            }}
-          >
-            <span className="menu-item-icon">{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
-        <button
-          type="button"
-          className="menu-item is-danger"
-          role="menuitem"
-          onClick={handleExit}
-          disabled={busy}
-        >
-          <span className="menu-item-icon"><IconLogOut /></span>
-          {strings.userMenu.exit}
-        </button>
-      </Popover>
+      <Menu
+        items={items}
+        ariaLabel={profile.displayName}
+        triggerClassName="user-badge-btn"
+        align="start"
+        menuClassName="user-menu"
+        header={
+          <div className="user-menu-head">
+            <span className="user-menu-name">{profile.displayName}</span>
+            <span className="user-menu-handle">@{profile.username}</span>
+          </div>
+        }
+        trigger={
+          <>
+            <span className="user-avatar">
+              {profile.avatar ? (
+                <img src={profile.avatar} alt="" className="user-avatar-img" />
+              ) : (
+                <span className="user-avatar-initials">{initials(profile.displayName)}</span>
+              )}
+              {profile.role === 'owner' && (
+                <span className="user-role-dot" title={strings.auth.mainAccountTooltip} />
+              )}
+            </span>
+            {!compact && <span className="user-badge-name">{profile.displayName}</span>}
+          </>
+        }
+      />
     </div>
   );
 };

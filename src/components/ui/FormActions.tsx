@@ -1,6 +1,7 @@
 import React from 'react';
 import { useUiLabels } from './UiLabels';
 import { Button } from './Button';
+import { ActionRow } from './ActionRow';
 
 export interface FormActionsProps {
   /** The form differs from what it opened with. */
@@ -32,7 +33,7 @@ export const FormActions: React.FC<FormActionsProps> = ({
 }) => {
   const labels = useUiLabels();
   return (
-    <div className="modal-actions form-actions">
+    <ActionRow className="form-actions">
       {leading && <div className="form-actions-leading">{leading}</div>}
       {dirty && (
         <Button className="form-actions-cancel" onClick={onCancel}>
@@ -47,6 +48,6 @@ export const FormActions: React.FC<FormActionsProps> = ({
       >
         {primaryLabel}
       </Button>
-    </div>
+    </ActionRow>
   );
 };

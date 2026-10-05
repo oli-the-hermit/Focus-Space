@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { strings } from '../../constants/strings';
 import { Profile } from '../../types';
 import { Button } from '../ui/Button';
+import { ActionRow } from '../ui/ActionRow';
 import { Field, TextInput } from '../ui/Field';
 import { FormRow } from '../ui/FormLayout';
 import { IconPlus } from '../ui/icons';
@@ -233,14 +234,14 @@ export const SettingsView: React.FC = () => {
                   <TextInput type="password" value={addConfirm} onChange={e => setAddConfirm(e.target.value)} autoComplete="new-password" />
                 </Field>
               </FormRow>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button onClick={() => setShowAddForm(false)}>
                   {strings.common.cancel}
                 </Button>
                 <Button variant="primary" onClick={addProfile} disabled={busy || profileCount >= MAX_PROFILES}>
                   {strings.settings.addProfileTitle}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           ) : (
             <Button
@@ -268,7 +269,7 @@ export const SettingsView: React.FC = () => {
             <div className="danger-panel">
               <p className="danger-panel-title">{strings.settings.resetConfirmTitle}</p>
               <p className="danger-panel-msg">{strings.settings.resetConfirmMsg}</p>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button onClick={() => setResetStep('none')}>
                   {strings.common.cancel}
                 </Button>
@@ -278,7 +279,7 @@ export const SettingsView: React.FC = () => {
                 >
                   {strings.common.delete}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           )}
 
@@ -298,7 +299,7 @@ export const SettingsView: React.FC = () => {
                   autoFocus
                 />
               </Field>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button
                   onClick={() => {
                     setResetStep('none');
@@ -310,7 +311,7 @@ export const SettingsView: React.FC = () => {
                 <Button variant="danger" onClick={execReset} disabled={busy}>
                   {strings.common.delete}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           )}
 
@@ -320,14 +321,14 @@ export const SettingsView: React.FC = () => {
                 {strings.common.delete} “{deleting.displayName}”
               </p>
               <p className="danger-panel-msg">{strings.settings.deleteProfileConfirmMsg}</p>
-              <div className="modal-actions">
+              <ActionRow>
                 <Button onClick={() => setDeleting(null)}>
                   {strings.common.cancel}
                 </Button>
                 <Button variant="danger" onClick={() => deleteProfile(deleting)} disabled={busy}>
                   {strings.common.delete}
                 </Button>
-              </div>
+              </ActionRow>
             </div>
           )}
         </>
