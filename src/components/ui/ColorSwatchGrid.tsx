@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { IconCheck } from './icons';
+import { radioKeyTarget } from '../../lib/radioKeys';
 
 export interface SwatchOption {
   value: string;
@@ -31,18 +32,10 @@ export const ColorSwatchGrid: React.FC<ColorSwatchGridProps> = ({ options, value
   const tabStop = selected >= 0 ? selected : 0;
 
   const onKeyDown = (e: React.KeyboardEvent, i: number) => {
-    const last = options.length - 1;
-    const target =
-      e.key === 'ArrowRight' ? i + 1
-      : e.key === 'ArrowLeft' ? i - 1
-      : e.key === 'ArrowDown' ? i + columns
-      : e.key === 'ArrowUp' ? i - columns
-      : e.key === 'Home' ? 0
-      : e.key === 'End' ? last
-      : null;
+    const target = radioKeyTarget(e.key, i, options.length, columns);
     if (target === null) return;
     e.preventDefault();
-    if (target < 0 || target > last) return;
+    if (target === i) return;
     refs.current[target]?.focus();
     onChange(options[target].value);
   };

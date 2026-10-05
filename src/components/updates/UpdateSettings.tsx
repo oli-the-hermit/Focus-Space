@@ -5,6 +5,7 @@ import { isTauri } from '../../lib/desktop';
 import { format } from '../../lib/i18n';
 import { useUpdates } from '../../lib/updates';
 import { Button } from '../ui/Button';
+import { Switch } from '../ui/Switch';
 import { UpdateStatus } from './UpdateStatus';
 
 /** Settings > Updates (desktop app with a release source only). */
@@ -18,13 +19,12 @@ export const UpdateSettings: React.FC = () => {
     <>
       <div className="section-divider" />
       <h4 className="section-title">{strings.updates.sectionTitle}</h4>
-      <label className="switch-row">
-        <span className="switch-row-text">
-          <span className="switch-row-title">{strings.updates.notifyLabel}</span>
-          <span className="switch-row-hint">{strings.updates.notifyHint}</span>
-        </span>
-        <input type="checkbox" className="switch" checked={notify} onChange={e => store.setNotify(e.target.checked)} />
-      </label>
+      <Switch
+        label={strings.updates.notifyLabel}
+        hint={strings.updates.notifyHint}
+        checked={notify}
+        onChange={checked => store.setNotify(checked)}
+      />
 
       {state.phase === 'available' && (
         <p className="update-settings-ready">{format(strings.updates.readyTitle, { version: state.version })}</p>

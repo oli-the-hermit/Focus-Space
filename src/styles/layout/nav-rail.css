@@ -65,7 +65,38 @@
   box-shadow: 0 0 0 var(--ring-width) var(--bg);
 }
 
-.nav-rail-footer { margin-top: auto; }
+.nav-rail-footer { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: var(--space-8); }
+.nav-rail-head { display: flex; align-items: center; gap: var(--space-12); }
+.nav-rail-toggle { color: var(--text-3); }
+
+/* ── Expanded drawer: labels beside the icons (lg and up) ── */
+.nav-rail[data-variant='expanded'] { align-items: stretch; padding-inline: var(--space-16); }
+.nav-rail[data-variant='expanded'] .nav-rail-brand-name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+  user-select: none;
+}
+.nav-rail[data-variant='expanded'] .nav-rail-item {
+  position: relative;
+  width: auto;
+  height: 48px;
+  flex-direction: row;
+  gap: var(--space-14);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  transition: background var(--transition), color var(--transition);
+}
+/* The row is the pill now: the indicator only places the icon (and the badge). */
+.nav-rail[data-variant='expanded'] .nav-rail-indicator { position: static; width: auto; height: auto; }
+.nav-rail[data-variant='expanded'] .nav-rail-item:hover { background: var(--surface-2); color: var(--text-1); }
+.nav-rail[data-variant='expanded'] .nav-rail-item:hover .nav-rail-indicator { background: transparent; }
+.nav-rail[data-variant='expanded'] .nav-rail-item.active { color: var(--on-accent); }
+.nav-rail[data-variant='expanded'] .nav-rail-label { position: relative; z-index: 1; }
+.nav-rail[data-variant='expanded'] .nav-badge { top: 50%; right: var(--space-12); transform: translateY(-50%); }
+.nav-rail[data-variant='expanded'] .nav-rail-footer { flex-direction: row; justify-content: space-between; }
+.nav-rail[data-variant='expanded'] .nav-rail-toggle { order: 1; }
 
 /* ── Nav rail: the active pill is its own layer ─────────── */
 .nav-rail-item.active .nav-rail-indicator { background: transparent; }

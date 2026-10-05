@@ -10,6 +10,7 @@ import { TimePicker } from '../ui/TimePicker';
 import { Stepper } from '../ui/Stepper';
 import { Button } from '../ui/Button';
 import { Field, TextArea, TextInput } from '../ui/Field';
+import { FormRow, ModalForm } from '../ui/FormLayout';
 import { DEFAULT_FOCUS_MINUTES } from '../../constants/defaults';
 import { format } from '../../lib/i18n';
 
@@ -80,7 +81,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   const dirty = useDirty([title, date, startTime, durationMins, sessionId, details]);
 
   return (
-    <form onSubmit={handleSubmit} className="modal-form">
+    <ModalForm onSubmit={handleSubmit}>
       <Field label={strings.modals.titleActivityLabel} htmlFor="eventTitle">
         <TextInput
           id="eventTitle"
@@ -91,16 +92,16 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         />
       </Field>
 
-      <div className="form-row">
+      <FormRow>
         <Field label={strings.modals.dateLabel} htmlFor="eventDate">
           <DatePicker id="eventDate" value={date} onChange={val => val && setDate(val)} ariaLabel={strings.modals.dateLabel} />
         </Field>
         <Field label={strings.modals.startTimeLabel} htmlFor="eventTime">
           <TimePicker id="eventTime" value={startTime} onChange={setStartTime} ariaLabel={strings.modals.startTimeLabel} />
         </Field>
-      </div>
+      </FormRow>
 
-      <div className="form-row">
+      <FormRow>
         <Field label={strings.modals.durationLabel} htmlFor="eventDuration">
           <Stepper
             id="eventDuration"
@@ -143,7 +144,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             }}
           />
         </Field>
-      </div>
+      </FormRow>
 
       <Field label={strings.modals.detailsLabel}>
         <TextArea
@@ -166,6 +167,6 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           )
         }
       />
-    </form>
+    </ModalForm>
   );
 };

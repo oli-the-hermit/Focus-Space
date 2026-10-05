@@ -6,6 +6,7 @@ import { TaskList } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Field, TextInput } from '../ui/Field';
+import { ModalForm } from '../ui/FormLayout';
 
 export interface ListModalProps {
   list?: TaskList | null;
@@ -49,7 +50,7 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
   const dirty = useDirty([name, sessionChoice]);
 
   return (
-    <form onSubmit={handleSubmit} className="modal-form">
+    <ModalForm onSubmit={handleSubmit}>
       <Field label={strings.modals.listNameLabel} htmlFor="listName">
         <TextInput
           id="listName"
@@ -91,6 +92,6 @@ export const ListModal: React.FC<ListModalProps> = ({ list, onClose }) => {
               : strings.modals.createListBtn
         }
       />
-    </form>
+    </ModalForm>
   );
 };

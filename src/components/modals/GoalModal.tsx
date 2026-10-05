@@ -6,7 +6,9 @@ import { Goal, GoalFrequency } from '../../types';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
-import { Field, TextInput } from '../ui/Field';
+import { Field, TextArea, TextInput } from '../ui/Field';
+import { LIMITS } from '../../constants/limits';
+import { ModalForm } from '../ui/FormLayout';
 import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
 
 export interface GoalModalProps {
@@ -19,6 +21,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
   const { state, addGoal, updateGoal } = useApp();
 
   const [name, setName] = useState(goal ? (goal.name || '') : '');
+  const [description, setDescription] = useState(goal?.description ?? '');
   const [type, setType] = useState<GoalFrequency>(goal ? (goal.frequency) : 'daily');
   const [startDate, setStartDate] = useState(goal?.startDate || '');
   const [dueDate, setDueDate] = useState(goal?.dueDate || '');
@@ -36,6 +39,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     if (goal) {
       updateGoal(goal.id, {
         name: finalName,
+        description: description.trim(),
         frequency: type,
         rewardId: finalReward,
         ...dates
@@ -43,6 +47,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     } else {
       addGoal({
         name: finalName,
+        description: description.trim(),
         frequency: type,
         rewardId: finalReward,
         landmarks: [],
@@ -52,10 +57,10 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
     onClose();
   };
 
-  const dirty = useDirty([name, type, startDate, dueDate, rewardId]);
+  const dirty = useDirty([name, description, type, startDate, dueDate, rewardId]);
 
   return (
-    <form onSubmit={handleSubmit} className="modal-form">
+    <ModalForm onSubmit={handleSubmit}>
       <Field label={strings.modals.goalNameLabel} htmlFor="goalName">
         <TextInput
           id="goalName"
@@ -63,6 +68,16 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
           onChange={e => setName(e.target.value)}
           placeholder={strings.modals.goalNamePlaceholder}
           autoFocus
+        />
+      </Field>
+
+      <Field label={strings.goals.descriptionLabel} labelHint={strings.modals.optionalHint}>
+        <TextArea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder={strings.goals.descriptionPlaceholder}
+          maxLength={LIMITS.goalDescription.max}
+          rows={2}
         />
       </Field>
 
@@ -106,6 +121,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({ goal, onClose }) => {
         primaryDisabled={datesInvalid}
         primaryLabel={goal ? strings.common.saveChanges : strings.modals.createGoalBtn}
       />
-    </form>
+    </ModalForm>
   );
 };

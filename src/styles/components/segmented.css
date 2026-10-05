@@ -1,13 +1,20 @@
-/* ── Filter tabs (segmented) ────────────────────────────── */
-.filter-tabs {
+/* ── Segmented control (ui/SegmentedControl) ─────────────── */
+.segmented {
+  --segmented-track: var(--surface-1);
+  --segmented-hover: var(--surface-2);
   display: inline-flex;
   gap: var(--space-2);
   padding: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--surface-1);
+  background: var(--segmented-track);
   flex-wrap: wrap;
 }
-.filter-tab {
+/* Sitting on surface 1 (a dialog): the track steps up with it. */
+.segmented--on-1 {
+  --segmented-track: var(--surface-2);
+  --segmented-hover: var(--surface-3);
+}
+.segmented-option {
   height: 32px;
   padding: 0 var(--space-16);
   border-radius: var(--radius-pill);
@@ -16,10 +23,15 @@
   font-weight: var(--weight-semibold);
   transition: background var(--transition), color var(--transition);
 }
-.filter-tab:hover { color: var(--text-1); background: var(--surface-2); }
-.filter-tab.active { background: var(--accent); color: var(--on-accent); }
+.segmented--lg .segmented-option {
+  height: 34px;
+  padding: 0 var(--space-18);
+  font-size: var(--text-sm);
+}
+.segmented-option:hover { color: var(--text-1); background: var(--segmented-hover); }
+.segmented-option.is-selected { background: var(--accent); color: var(--on-accent); }
 
+/* ── Filter grid (ui/FilterGridLayout) ───────────────────── */
 .filter-grid-layout { display: flex; flex-direction: column; gap: var(--space-20); }
 .filter-grid-topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); flex-wrap: wrap; }
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-16); }
 .filter-grid-body .empty-state { background: var(--surface-1); border-radius: var(--radius-3xl); }

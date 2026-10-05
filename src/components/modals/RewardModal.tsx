@@ -7,6 +7,7 @@ import { rewardLinks } from '../../lib/rewardLinks';
 import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { Field, TextArea, TextInput } from '../ui/Field';
+import { FormRow, ModalForm } from '../ui/FormLayout';
 import { FREQUENCY_OPTIONS } from '../../constants/frequencies';
 import { DEFAULT_BREAK_MINUTES, DEFAULT_FOCUS_MINUTES, DEFAULT_REWARD_EMOJI } from '../../constants/defaults';
 import { EmojiField } from '../rewards/EmojiField';
@@ -49,7 +50,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
   const dirty = useDirty([name, description, emoji, frequency, linkedSessionId, linkedGoalId]);
 
   return (
-    <form onSubmit={handleSubmit} className="modal-form">
+    <ModalForm onSubmit={handleSubmit}>
       <Field label={strings.modals.rewardNameLabel}>
         <TextInput
           value={name}
@@ -68,7 +69,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         />
       </Field>
 
-      <div className="form-row form-group-spaced">
+      <FormRow spaced>
         <Field label={strings.modals.emojiLabel} htmlFor="rewardEmoji">
           <EmojiField id="rewardEmoji" value={emoji} onChange={setEmoji} />
         </Field>
@@ -79,7 +80,7 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
             options={FREQUENCY_OPTIONS}
           />
         </Field>
-      </div>
+      </FormRow>
 
       <Field label={strings.rewards.linkSessionLabel} spaced>
         <Select
@@ -126,6 +127,6 @@ export const RewardModal: React.FC<RewardModalProps> = ({ reward, onClose }) => 
         onCancel={onClose}
         primaryLabel={reward ? strings.common.saveChanges : strings.modals.createRewardBtn}
       />
-    </form>
+    </ModalForm>
   );
 };

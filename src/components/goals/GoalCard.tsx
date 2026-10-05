@@ -1,25 +1,36 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconCheck, IconCopy, IconEdit, IconFlag, IconPlus, IconReset, IconTrash } from '../ui/icons';
+import { IconCheck, IconCopy, IconEdit, IconFlag, IconGrip, IconPlus, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { Menu, tidyMenuItems } from '../ui/Menu';
 import { ScheduleBadge } from './ScheduleBadge';
 import { IconButton } from '../ui/IconButton';
+import { Checkbox } from '../ui/Checkbox';
+import { Button } from '../ui/Button';
 import { ProgressBar } from '../ui/ProgressBar';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
+import { cx } from '../../lib/cx';
+import { InlineTextArea } from '../ui/InlineTextArea';
+import { LIMITS } from '../../constants/limits';
+import { TIMING } from '../../constants/timing';
+import type { DragItemProps } from '../../hooks/useDragReorder';
 
 export interface GoalCardProps {
   goal: Goal;
+  dragProps?: DragItemProps;
+  isDragging?: boolean;
+  isDragOver?: boolean;
 }
 
-export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
+export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging = false, isDragOver = false }) => {
   const {
     state,
     openModal,
     duplicateGoal,
+    updateGoal,
     deleteGoal,
     toggleGoal,
     toggleLandmark,
@@ -70,6 +81,17 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
 
   const cm = strings.actions;
 
+  // The description saves in place; a short "Saved" in the footer confirms it.
+  const [saved, setSaved] = useState(false);
+  const savedTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(savedTimer.current), []);
+  const saveDescription = (description: string) => {
+    updateGoal(goal.id, { description }, { silent: true });
+    setSaved(true);
+    window.clearTimeout(savedTimer.current);
+    savedTimer.current = window.setTimeout(() => setSaved(false), TIMING.savedNoteMs);
+  };
+
   // One list for the ⋮ button and the right-click menu.
   const goalMenuItems = tidyMenuItems([
       { key: 'edit', label: strings.common.edit, icon: <IconEdit size={15} />, onSelect: handleEditGoal },
@@ -104,93 +126,117 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
   };
 
   return (
-    <div className="goal-card" data-gid={goal.id} onContextMenu={openGoalMenu}>
-      <div className="goal-card-header">
-        <div className="goal-card-header-info">
-          <div className="goal-card-title">{goalName}</div>
-          <div className="goal-card-meta">
-            <span className={`goal-type-badge badge-${goalType}`}>
-              {frequencyLabel(goalType)}
-            </span>
-            {linkedReward && (
-              <span className="goal-reward-badge">{linkedReward.emoji} {linkedReward.name}</span>
-            )}
+    <div
+      className={cx('goal-card draggable-item', isDragging && 'dragging', isDragOver && 'drag-over')}
+      data-gid={goal.id}
+      onContextMenu={openGoalMenu}
+      {...dragProps}
+    >
+      <IconGrip title={strings.common.dragToReorder} className="drag-handle goal-grip" />
+      <div className="goal-card-body">
+        <div className="goal-card-header">
+          <Checkbox
+            checked={isComplete}
+            onChange={hasLandmarks ? () => {} : () => toggleGoal(goal.id)}
+            aria-label={goalName}
+            aria-disabled={hasLandmarks || undefined}
+            title={hasLandmarks ? strings.goals.completesWithLandmarks : undefined}
+          />
+          <div className="goal-card-header-info">
+            <div className="goal-card-title">{goalName}</div>
+            <div className="goal-card-meta">
+              <span className={`goal-type-badge badge-${goalType}`}>
+                {frequencyLabel(goalType)}
+              </span>
+              {linkedReward && (
+                <span className="goal-reward-badge">{linkedReward.emoji} {linkedReward.name}</span>
+              )}
+            </div>
+            <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
           </div>
-          <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
-        </div>
-        <div className="goal-card-actions">
-          <Menu items={goalMenuItems} triggerClassName="icon-btn sm" />
-        </div>
-      </div>
-
-      {hasLandmarks && (
-        <div className="goal-card-progress">
-          <div className="goal-progress-row">
-            <span>{landmarksLabel}</span>
-            <span>{pct}%</span>
+          <div className="goal-card-actions">
+            <Menu items={goalMenuItems} triggerClassName="icon-btn sm" />
           </div>
-          <ProgressBar value={pct} size="lg" complete={isComplete} label={landmarksLabel} />
         </div>
-      )}
 
-      {hasLandmarks && (
-        <div className="goal-landmarks">
-          <div className="landmarks-title">{strings.goals.landmarksTitle}</div>
-          {landmarks.map(lm => {
-            const lmName = lm.name;
-            const lmReward = lm.rewardId ? state.rewards.find(r => r.id === lm.rewardId) : null;
+        <InlineTextArea
+          className="goal-description"
+          value={goal.description ?? ''}
+          onSave={saveDescription}
+          placeholder={strings.goals.descriptionPlaceholder}
+          ariaLabel={strings.goals.descriptionLabel}
+          maxLength={LIMITS.goalDescription.max}
+        />
 
-            return (
-              <div
-                key={lm.id}
-                className={`landmark-item ${lm.completed ? 'landmark-done' : ''}`}
-                data-lmid={lm.id}
-                onContextMenu={e => openLandmarkMenu(e, lm)}
-              >
-                <input
-                  type="checkbox"
-                  className="landmark-check"
-                  checked={lm.completed}
-                  onChange={() => toggleLandmark(goal.id, lm.id)}
-                />
-                <span className="landmark-text">{lmName}</span>
-                <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
-                {lmReward && <span className="landmark-reward-tag">{lmReward.emoji} {lmReward.name}</span>}
-                <div className="landmark-actions">
-                  <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
-                    <IconEdit size={12} />
-                  </IconButton>
-                  <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateLandmark(goal.id, lm.id)}>
-                    <IconCopy size={12} />
-                  </IconButton>
-                  <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={() => handleDeleteLandmark(lm.id)}>
-                    <IconTrash size={12} />
-                  </IconButton>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="goal-card-footer">
-        {!hasLandmarks ? (
-          <label className="goal-complete-toggle">
-            <input
-              type="checkbox"
-              className="task-check goal-complete-checkbox"
-              checked={goal.completed}
-              onChange={() => toggleGoal(goal.id)}
-            />
-            {strings.common.markComplete}
-          </label>
-        ) : (
-          <div />
+        {hasLandmarks && (
+          <div className="goal-card-progress">
+            <div className="goal-progress-row">
+              <span>{landmarksLabel}</span>
+              <span>{pct}%</span>
+            </div>
+            <ProgressBar value={pct} size="lg" complete={isComplete} label={landmarksLabel} />
+          </div>
         )}
-        <button type="button" className="add-landmark-btn" onClick={handleAddLandmark}>
-          <IconPlus size={15} strokeWidth={2.4} />
-          {strings.actions.addLandmark}
-        </button>
+
+        {hasLandmarks && (
+          <div className="goal-landmarks">
+            <div className="landmarks-title">{strings.goals.landmarksTitle}</div>
+            {landmarks.map(lm => {
+              const lmName = lm.name;
+              const lmReward = lm.rewardId ? state.rewards.find(r => r.id === lm.rewardId) : null;
+
+              return (
+                <div
+                  key={lm.id}
+                  className={`landmark-item ${lm.completed ? 'landmark-done' : ''}`}
+                  data-lmid={lm.id}
+                  onContextMenu={e => openLandmarkMenu(e, lm)}
+                >
+                  <Checkbox
+                    checked={lm.completed}
+                    onChange={() => toggleLandmark(goal.id, lm.id)}
+                    aria-label={lmName}
+                  />
+                  <span className="landmark-text">{lmName}</span>
+                  <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
+                  {lmReward && <span className="landmark-reward-tag">{lmReward.emoji} {lmReward.name}</span>}
+                  <div className="landmark-actions">
+                    <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
+                      <IconEdit size={12} />
+                    </IconButton>
+                    <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateLandmark(goal.id, lm.id)}>
+                      <IconCopy size={12} />
+                    </IconButton>
+                    <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={() => handleDeleteLandmark(lm.id)}>
+                      <IconTrash size={12} />
+                    </IconButton>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="goal-card-footer">
+          <Button
+            size="xs"
+            collapsible
+            icon={<IconPlus size={14} strokeWidth={2.4} />}
+            aria-label={strings.actions.addLandmark}
+            title={strings.actions.addLandmark}
+            onClick={handleAddLandmark}
+          >
+            {strings.goals.landmarkBtn}
+          </Button>
+          <span className="goal-saved" role="status">
+            {saved && (
+              <>
+                <IconCheck size={14} strokeWidth={2.6} />
+                {strings.goals.descriptionSaved}
+              </>
+            )}
+          </span>
+        </div>
       </div>
     </div>
   );

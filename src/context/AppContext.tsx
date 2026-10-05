@@ -100,9 +100,10 @@ interface AppContextType {
 
   // Goals CRUD
   addGoal: (goal: Omit<Goal, 'id' | 'completed'>) => void;
-  updateGoal: (id: string, goal: Partial<Goal>) => void;
+  updateGoal: (id: string, goal: Partial<Goal>, options?: { silent?: boolean }) => void;
   duplicateGoal: (id: string) => void;
   deleteGoal: (id: string) => void;
+  reorderGoals: (sourceId: string, targetId: string) => void;
   toggleGoal: (id: string) => void;
   addLandmark: (goalId: string, landmark: Omit<Landmark, 'id'>) => void;
   updateLandmark: (goalId: string, landmarkId: string, landmark: Partial<Landmark>) => void;
@@ -245,7 +246,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { reorderSessions, setActiveSession, createSession, updateSession, duplicateSession, deleteSession, setSessionTaskLists } = createSessionActions({ setState, showToast, stopTicker });
   const { reorderTaskLists, reorderTasks, setActiveList, createList, renameList, duplicateList, deleteList, setSelectedListForTimer, addTask, toggleTask, renameTask, duplicateTask, deleteTask } = createListActions({ setState, showToast, stateRef });
   const { moveCalendarEvent, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, setCalendarView, setCalendarDate } = createCalendarActions({ setState, showToast, stateRef });
-  const { addGoal, updateGoal, duplicateGoal, deleteGoal, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark } = createGoalActions({ setState, showToast });
+  const { addGoal, updateGoal, duplicateGoal, deleteGoal, reorderGoals, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark } = createGoalActions({ setState, showToast });
   const { addReward, updateReward, duplicateReward, deleteReward, claimReward } = createRewardActions({ setState, showToast, stateRef, setActiveCelebrationReward });
 
   const setActiveSessionRef = useRef(setActiveSession);
@@ -319,6 +320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateGoal,
         duplicateGoal,
         deleteGoal,
+        reorderGoals,
         toggleGoal,
         addLandmark,
         updateLandmark,

@@ -67,7 +67,9 @@ export const strings = {
     stats: 'Stats',
     goals: 'Goals',
     rewards: 'Rewards',
-    navLabel: 'Main navigation'
+    navLabel: 'Main navigation',
+    expand: 'Expand menu',
+    collapse: 'Collapse menu'
   },
   tabs: {
     timer: 'Timer & sessions',
@@ -142,6 +144,7 @@ export const strings = {
     prevBtn: 'Previous',
     todayBtn: 'Today',
     nextBtn: 'Next',
+    viewLabel: 'Calendar view',
     views: {
       week: 'Week',
       day: 'Day',
@@ -162,6 +165,12 @@ export const strings = {
   goals: {
     deleteGoalTitle: 'Delete goal?',
     emptyGoals: 'No goals yet. Set your first one. Small steps count too.',
+    filterLabel: 'Show goals by frequency',
+    completesWithLandmarks: 'Completes when every landmark is done',
+    descriptionLabel: 'Goal description',
+    descriptionPlaceholder: 'Write a description',
+    descriptionSaved: 'Saved',
+    landmarkBtn: 'Landmark',
     landmarksTitle: 'Landmarks',
     untitledGoal: 'Untitled goal',
     untitledLandmark: 'Untitled landmark',
@@ -180,6 +189,7 @@ export const strings = {
     claimed: 'Claimed',
     deleteRewardTitle: 'Delete reward?',
     emptyReady: 'Finish a session, landmark or goal to unlock your first reward.',
+    filterLabel: 'Show rewards by frequency',
     linkSessionLabel: 'Link to focus session (optional)',
     noSessionLinked: '— No session linked —',
     linkGoalLabel: 'Link to goal (optional)',

@@ -9,6 +9,7 @@
     "sizePx": 512,
     "maxChars": 1500000
   },
+  "goalDescription": { "max": 500 },
   "maxProfiles": 6,
   "login": { "maxFailures": 5, "lockoutSeconds": 30, "failDelayMs": 250 },
   "sessionTtlDays": 30,

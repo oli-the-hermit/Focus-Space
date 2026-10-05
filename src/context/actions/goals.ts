@@ -4,6 +4,7 @@ import { strings } from '../../constants/strings';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
 import { unlockReward } from '../../lib/rewardLinks';
+import { moveById } from '../../lib/reorder';
 import { Goal, Landmark } from '../../types';
 
 export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'setState' | 'showToast'>) {
@@ -22,7 +23,8 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
     showToast(format(strings.toasts.goalCreated, { name: newGoal.name }));
   };
 
-  const updateGoal = (id: string, goal: Partial<Goal>) => {
+  /** `silent`: no toast, for edits that confirm themselves in place (the card's description). */
+  const updateGoal = (id: string, goal: Partial<Goal>, options: { silent?: boolean } = {}) => {
     setState(prev => {
       const updated = prev.goals.map(g =>
         g.id === id
@@ -37,7 +39,7 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
 
       return { ...prev, goals: updated };
     });
-    showToast(strings.toasts.goalUpdated);
+    if (!options.silent) showToast(strings.toasts.goalUpdated);
   };
 
   const duplicateGoal = (id: string) => {
@@ -58,6 +60,13 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
   const deleteGoal = (id: string) => {
     setState(prev => ({ ...prev, goals: prev.goals.filter(g => g.id !== id) }));
     showToast(strings.toasts.goalDeleted);
+  };
+
+  const reorderGoals = (sourceId: string, targetId: string) => {
+    setState(prev => {
+      const goals = moveById(prev.goals, sourceId, targetId);
+      return goals ? { ...prev, goals } : prev;
+    });
   };
 
   const toggleGoal = (id: string) => {
@@ -186,5 +195,5 @@ export function createGoalActions({ setState, showToast }: Pick<ActionDeps, 'set
     });
   };
 
-  return { addGoal, updateGoal, duplicateGoal, deleteGoal, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark };
+  return { addGoal, updateGoal, duplicateGoal, deleteGoal, reorderGoals, toggleGoal, addLandmark, updateLandmark, duplicateLandmark, deleteLandmark, toggleLandmark };
 }

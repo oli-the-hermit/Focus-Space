@@ -107,16 +107,12 @@ export const SessionTaskLists: React.FC = () => {
           ))}
 
           <Select
-            className="select--add"
+            variant="add"
             value=""
             onChange={val => val && attach(val)}
             ariaLabel={strings.timer.addAnotherList}
-            renderValue={() => (
-              <>
-                <span className="select-option-icon"><IconPlus size={16} strokeWidth={2.4} /></span>
-                <span className="select-value">{strings.timer.addAnotherList}</span>
-              </>
-            )}
+            icon={<IconPlus size={16} strokeWidth={2.4} />}
+            placeholder={strings.timer.addAnotherList}
             options={pickerOptions}
             createOption={{
               label: strings.modals.newTaskListOption,

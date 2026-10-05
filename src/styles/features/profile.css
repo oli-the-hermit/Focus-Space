@@ -5,24 +5,6 @@
 .section-divider { height: 0; margin: var(--space-12) 0 !important; }
 .settings-subtitle { font-size: var(--text-sm); color: var(--text-2); margin-top: var(--space-4) !important; }
 
-.theme-segmented {
-  display: inline-flex;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-}
-.seg-option {
-  height: 34px;
-  padding: 0 var(--space-18);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  color: var(--text-2);
-}
-.seg-option:hover { color: var(--text-1); background: var(--surface-3); }
-.seg-option.active { background: var(--accent); color: var(--on-accent); }
-
 /* ── Appearance: accent swatches ── */
 .swatch-section { display: flex; flex-direction: column; gap: var(--space-12); }
 .swatch-section-title { font-size: var(--text-sm); font-weight: var(--weight-semibold); }

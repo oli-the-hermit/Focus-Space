@@ -14,6 +14,8 @@ import {
 import { useDirty } from '../../hooks/useDirty';
 import { Button } from '../ui/Button';
 import { Field } from '../ui/Field';
+import { FormRow, ModalForm } from '../ui/FormLayout';
+import { Switch } from '../ui/Switch';
 import { plural } from '../../lib/i18n';
 
 export interface NotificationModalProps {
@@ -71,33 +73,17 @@ export const NotificationForm: React.FC<{ onDone: () => void }> = ({ onDone }) =
           : n.permDefaultMsg;
 
   return (
-    <div className="modal-form notif-form">
-      <label className="switch-row">
-        <span className="switch-row-text">
-          <span className="switch-row-title">{n.phaseAlertsLabel}</span>
-          <span className="switch-row-hint">{n.phaseAlertsHint}</span>
-        </span>
-        <input
-          type="checkbox"
-          className="switch"
-          checked={draft.phaseAlerts}
-          onChange={e => set({ phaseAlerts: e.target.checked })}
-        />
-      </label>
+    <ModalForm as="div" className="notif-form">
+      <Switch
+        label={n.phaseAlertsLabel}
+        hint={n.phaseAlertsHint}
+        checked={draft.phaseAlerts}
+        onChange={checked => set({ phaseAlerts: checked })}
+      />
 
-      <label className="switch-row">
-        <span className="switch-row-text">
-          <span className="switch-row-title">{n.enableLabel}</span>
-        </span>
-        <input
-          type="checkbox"
-          className="switch"
-          checked={draft.enabled}
-          onChange={e => set({ enabled: e.target.checked })}
-        />
-      </label>
+      <Switch label={n.enableLabel} checked={draft.enabled} onChange={checked => set({ enabled: checked })} />
 
-      <div className="form-row">
+      <FormRow>
         <Field label={n.leadTimeLabel}>
           <Select<number>
             value={draft.leadMinutes}
@@ -118,26 +104,16 @@ export const NotificationForm: React.FC<{ onDone: () => void }> = ({ onDone }) =
             options={AUTO_DISMISS_OPTIONS.map(v => ({ value: v, label: plural(v, n.autoDismissValue) }))}
           />
         </Field>
-      </div>
+      </FormRow>
 
-      <label className="switch-row">
-        <span className="switch-row-text">
-          <span className="switch-row-title">{n.soundLabel}</span>
-        </span>
-        <input
-          type="checkbox"
-          className="switch"
-          checked={draft.sound}
-          onChange={e => set({ sound: e.target.checked })}
-        />
-      </label>
+      <Switch label={n.soundLabel} checked={draft.sound} onChange={checked => set({ sound: checked })} />
 
       {/* Desktop alerts use their own window; only the browser needs permission. */}
       {!desktop && (
         <div className={`permission-row is-${permission}`}>
           <div className="permission-row-text">
-            <span className="switch-row-title">{n.browserPermLabel}</span>
-            <span className="switch-row-hint">{permissionMsg}</span>
+            <span className="permission-row-title">{n.browserPermLabel}</span>
+            <span className="permission-row-hint">{permissionMsg}</span>
           </div>
           {permission === 'default' && (
             <Button
@@ -152,6 +128,6 @@ export const NotificationForm: React.FC<{ onDone: () => void }> = ({ onDone }) =
       )}
 
       <FormActions dirty={dirty} onCancel={onDone} primaryLabel={strings.common.save} primaryDisabled={!dirty} onPrimary={save} />
-    </div>
+    </ModalForm>
   );
 };

@@ -1,5 +1,5 @@
-/* ── Checkboxes (all native checkboxes share this look) ─── */
-input[type="checkbox"] {
+/* ── Checkbox (ui/Checkbox) ──────────────────────────────── */
+.checkbox {
   appearance: none;
   -webkit-appearance: none;
   width: var(--checkbox-size);
@@ -13,13 +13,16 @@ input[type="checkbox"] {
   place-items: center;
   transition: background var(--transition), box-shadow var(--transition);
 }
-input[type="checkbox"]:hover { box-shadow: inset 0 0 0 var(--ring-width) var(--text-2); }
-input[type="checkbox"]:checked {
+.checkbox:hover { box-shadow: inset 0 0 0 var(--ring-width) var(--text-2); }
+/* Read-only (aria-disabled): its state comes from elsewhere; keeps its tooltip. */
+.checkbox[aria-disabled='true'] { cursor: default; }
+.checkbox[aria-disabled='true']:hover:not(:checked) { box-shadow: inset 0 0 0 var(--ring-width) var(--text-3); }
+.checkbox:checked {
   background-color: var(--accent);
   box-shadow: none;
 }
 /* The mark is painted with --on-accent through a mask, so it follows the theme. */
-input[type="checkbox"]:not(.switch):checked::after {
+.checkbox:checked::after {
   content: '';
   width: 14px;
   height: 14px;
@@ -28,7 +31,7 @@ input[type="checkbox"]:not(.switch):checked::after {
 }
 
 /* ── Checking things off ─────────────────────────────────── */
-input[type='checkbox']:not(.switch):checked { animation: check-pop var(--dur-3) var(--ease-emphasized); }
+.checkbox:checked { animation: check-pop var(--dur-3) var(--ease-emphasized); }
 @keyframes check-pop {
   0% { transform: scale(0.7); }
   60% { transform: scale(1.12); }

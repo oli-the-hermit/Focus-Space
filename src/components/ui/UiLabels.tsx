@@ -21,6 +21,7 @@ export const defaultUiLabels = {
   newItemName: 'Name',
   clearDate: 'Clear date',
   clear: 'Clear',
+  remove: 'Remove',
   today: 'Today',
   prevMonth: 'Previous month',
   nextMonth: 'Next month',

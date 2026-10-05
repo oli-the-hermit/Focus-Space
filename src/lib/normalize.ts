@@ -44,6 +44,7 @@ export function normalizeGoal(raw: Raw): Goal {
     ...(rest as unknown as Goal),
     name: firstText(rest.name, title) ?? strings.goals.untitledGoal,
     frequency: firstFrequency(rest.frequency, type) ?? 'daily',
+    description: typeof rest.description === 'string' ? rest.description : '',
     completed: rest.completed === true,
     landmarks: Array.isArray(rest.landmarks) ? (rest.landmarks as Raw[]).map(normalizeLandmark) : []
   };

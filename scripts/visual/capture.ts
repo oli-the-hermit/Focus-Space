@@ -256,6 +256,31 @@ async function main() {
       await closeOverlays();
     }
 
+    // ── Wide window: the 12-column grid, the expanded drawer, a goal description being edited ──
+    for (const theme of THEMES) {
+      await page.emulateMedia({ colorScheme: theme });
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.locator('.nav-rail [data-tab="goals"]').click();
+      await settle(page);
+      await page.mouse.move(0, 0);
+      await shot(theme, '54-goals-wide');
+      await shot(theme, '55-drawer-expanded', async () => {
+        await page.getByRole('button', { name: strings.rail.expand }).click();
+      });
+      // The drawer choice is stored per device: put the rail back for the views after this.
+      await page.getByRole('button', { name: strings.rail.collapse }).click();
+      await shot(theme, '56-goal-description', async () => {
+        await page.locator('#tab-goals .goal-card').first()
+          .getByRole('textbox', { name: strings.goals.descriptionLabel }).click();
+        await page.keyboard.type('Four focused sessions before lunch.');
+      });
+      // Escape puts the saved (empty) text back, so nothing is saved.
+      await page.keyboard.press('Escape');
+      await page.setViewportSize(VIEWPORT);
+      await page.locator('.nav-rail [data-tab="timer"]').click();
+      await settle(page);
+    }
+
     // ── Behavior checks: keyboard shortcuts pause while a menu is open ──
     const check = async (name: string, fn: () => Promise<boolean>) => {
       checks++;
@@ -477,7 +502,7 @@ async function main() {
           live.locator('[data-tour="mini-player-btn"]').click()
         ]);
         await pip.setViewportSize(VIEWPORT); // the large layout shows the session tasks
-        await pip.locator('.mini-task-list .task-check:not(:checked)').first().check();
+        await pip.locator('.mini-task-list .checkbox:not(:checked)').first().check();
         await settle(live, 300);
         const after = await checkedInApp();
         await pip.close();

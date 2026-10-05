@@ -26,6 +26,7 @@ export const RewardsGrid: React.FC = () => {
       tabs={FREQUENCY_FILTER_TABS}
       activeTab={filter}
       onTabChange={setFilter}
+      tabsLabel={strings.rewards.filterLabel}
       headerSlot={<RewardsStats />}
       actionButton={
         <Button variant="primary" id="addRewardBtn" icon={<IconPlus size={16} strokeWidth={2.4} />} onClick={handleAddReward}>

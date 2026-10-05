@@ -1,8 +1,12 @@
-/* App shell grid: navigation rail | column */
+/* App shell grid: navigation drawer | column */
 
 .app-shell {
   display: grid;
-  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  grid-template-columns: var(--drawer-width) minmax(0, 1fr);
   height: 100vh;
   background: var(--bg);
+}
+/* The expanded drawer only applies from lg up; below it the rail stays. */
+@media (min-width: 1024px) {
+  .app-shell:has(.nav-rail[data-variant='expanded']) { --drawer-width: var(--drawer-expanded); }
 }

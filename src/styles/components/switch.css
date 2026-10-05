@@ -1,4 +1,4 @@
-/* ── Switch (settings toggles) ──────────────────────────── */
+/* ── Switch (ui/Switch: a settings row with a toggle) ───── */
 .switch-row {
   display: flex;
   align-items: center;
@@ -12,17 +12,19 @@
 .switch-row-title { font-size: var(--text-md); font-weight: var(--weight-semibold); color: var(--text-1); }
 .switch-row-hint { font-size: var(--text-xs); color: var(--text-2); }
 
-input[type='checkbox'].switch {
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
   position: relative;
+  flex: none;
   width: 46px;
   height: 28px;
   border-radius: var(--radius-pill);
   background: var(--surface-4);
-  background-image: none;
-  box-shadow: none;
+  cursor: pointer;
   transition: background var(--dur-2) var(--ease-standard);
 }
-input[type='checkbox'].switch::before {
+.switch::before {
   content: '';
   position: absolute;
   top: 4px;
@@ -33,20 +35,5 @@ input[type='checkbox'].switch::before {
   background: var(--text-2);
   transition: transform var(--dur-2) var(--ease-emphasized), background var(--dur-2) var(--ease-standard);
 }
-input[type='checkbox'].switch:checked { background: var(--accent); background-image: none; }
-input[type='checkbox'].switch:checked::before { transform: translateX(18px); background: var(--on-accent); }
-input[type='checkbox'].switch:hover { box-shadow: none; }
-
-.permission-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-16);
-  padding: var(--space-12) var(--space-14);
-  border-radius: var(--radius-lg);
-  background: var(--surface-2);
-}
-.permission-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-.permission-row.is-granted { background: var(--success-container); }
-.permission-row.is-denied { background: var(--warning-container); }
-.notif-form { gap: var(--space-8); }
-.notif-form .form-row { margin: var(--space-8) 0; }
+.switch:checked { background: var(--accent); }
+.switch:checked::before { transform: translateX(18px); background: var(--on-accent); }

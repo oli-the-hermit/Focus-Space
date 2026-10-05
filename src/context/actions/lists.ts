@@ -5,34 +5,22 @@ import { getTodayStr } from '../../lib/dateUtils';
 import { formatDuration } from '../../lib/formatUtils';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
+import { moveById } from '../../lib/reorder';
 import { Task, TaskList } from '../../types';
 
 export function createListActions({ setState, showToast, stateRef }: Pick<ActionDeps, 'setState' | 'showToast' | 'stateRef'>) {
   const reorderTaskLists = (sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
     setState(prev => {
-      const fromIdx = prev.taskLists.findIndex(l => l.id === sourceId);
-      const toIdx = prev.taskLists.findIndex(l => l.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const updated = [...prev.taskLists];
-      const [moved] = updated.splice(fromIdx, 1);
-      updated.splice(toIdx, 0, moved);
-      return { ...prev, taskLists: updated };
+      const taskLists = moveById(prev.taskLists, sourceId, targetId);
+      return taskLists ? { ...prev, taskLists } : prev;
     });
   };
 
   const reorderTasks = (listId: string, sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
     setState(prev => {
       const targetList = prev.taskLists.find(l => l.id === listId);
-      if (!targetList) return prev;
-      const fromIdx = targetList.tasks.findIndex(t => t.id === sourceId);
-      const toIdx = targetList.tasks.findIndex(t => t.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const newTasks = [...targetList.tasks];
-      const [moved] = newTasks.splice(fromIdx, 1);
-      newTasks.splice(toIdx, 0, moved);
-
+      const newTasks = targetList && moveById(targetList.tasks, sourceId, targetId);
+      if (!newTasks) return prev;
       return {
         ...prev,
         taskLists: prev.taskLists.map(l => (l.id === listId ? { ...l, tasks: newTasks } : l))

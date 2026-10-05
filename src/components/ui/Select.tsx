@@ -31,13 +31,16 @@ export interface SelectProps<T = string> {
   name?: string;
   className?: string;
   ariaLabel?: string;
-  /** `field` for forms, `header` for a large title-style trigger. */
-  variant?: 'field' | 'header';
+  /**
+   * `field` for forms, `header` for a large title-style trigger, `add` for an
+   * "Add another…" row (accent text; give it an `icon` and a `placeholder`).
+   */
+  variant?: 'field' | 'header' | 'add';
+  /** Icon at the start of the trigger, shown instead of the selected option's own. */
+  icon?: React.ReactNode;
   createOption?: SelectCreateOption<T>;
   /** Defaults to on when there are more than 8 options. */
   searchable?: boolean;
-  /** Custom trigger content; falls back to the selected option's label. */
-  renderValue?: (option: SelectOption<T> | undefined) => React.ReactNode;
 }
 
 const SEARCH_THRESHOLD = 8;
@@ -58,9 +61,9 @@ export const Select = <T extends string | number>({
   className = '',
   ariaLabel,
   variant = 'field',
+  icon,
   createOption,
-  searchable,
-  renderValue
+  searchable
 }: SelectProps<T>): React.ReactElement => {
   const labels = useUiLabels();
   const [isOpen, setIsOpen] = useState(false);
@@ -196,9 +199,10 @@ export const Select = <T extends string | number>({
     }
   };
 
-  const triggerContent = renderValue ? renderValue(selectedOption) : (
+  const triggerIcon = icon ?? selectedOption?.icon;
+  const triggerContent = (
     <>
-      {selectedOption?.icon && <span className="select-option-icon">{selectedOption.icon}</span>}
+      {triggerIcon && <span className="select-option-icon">{triggerIcon}</span>}
       <span className={`select-value ${selectedOption ? '' : 'is-placeholder'}`}>
         {selectedOption ? selectedOption.label : placeholder ?? labels.selectPlaceholder}
       </span>

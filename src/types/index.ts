@@ -75,6 +75,8 @@ export interface Goal {
   id: string;
   name: string;
   frequency: GoalFrequency;
+  /** Free text under the title; '' when there's none. */
+  description?: string;
   target?: number;
   current?: number;
   completed: boolean;

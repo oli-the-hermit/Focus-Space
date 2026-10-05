@@ -1,5 +1,4 @@
 /* ── Rewards ────────────────────────────────────────────── */
-.reward-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-16); }
 .rstat {
   display: flex;
   flex-direction: column;
@@ -58,7 +57,3 @@
 }
 .claim-btn:hover { background: var(--accent-hover); }
 .reward-card.ready .claim-btn { background: var(--on-accent-container); color: var(--accent-container); }
-
-@media (max-width: 760px) {
-  .reward-stats { grid-template-columns: minmax(0, 1fr); }
-}

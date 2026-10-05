@@ -28,6 +28,16 @@
 .btn-action.danger:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
 
 .btn-action.sm { height: var(--button-height-sm); padding: 0 var(--space-14); font-size: var(--text-xs); gap: var(--space-6); }
+/* For compact cards: taller than a chip, smaller than a title. */
+.btn-action.xs { height: var(--button-height-xs); padding: 0 var(--space-12); font-size: var(--text-xs); gap: var(--space-6); }
+
+/* Collapsible buttons show only their icon on phones (the name and tooltip keep the full action). */
+@media (max-width: 600px) {
+  .btn-action.is-collapsible { padding: 0; min-width: var(--button-height); }
+  .btn-action.sm.is-collapsible { min-width: var(--button-height-sm); }
+  .btn-action.xs.is-collapsible { min-width: var(--button-height-xs); }
+  .btn-action.is-collapsible .btn-label { display: none; }
+}
 
 .btn-text {
   display: inline-flex;

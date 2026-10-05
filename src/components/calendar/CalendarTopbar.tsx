@@ -6,6 +6,9 @@ import { IconChevronLeft, IconChevronRight, IconPlus } from '../ui/icons';
 import { Button } from '../ui/Button';
 import { IconButton } from '../ui/IconButton';
 import { LOCALE } from '../../lib/i18n';
+import { SegmentedControl } from '../ui/SegmentedControl';
+
+const VIEW_OPTIONS = (['week', 'day', 'month'] as const).map(v => ({ value: v, label: strings.calendar.views[v] }));
 
 export const CalendarTopbar: React.FC = () => {
   const { state, setCalendarView, setCalendarDate, openModal } = useApp();
@@ -78,29 +81,13 @@ export const CalendarTopbar: React.FC = () => {
       </div>
 
       <div className="cal-right-tools">
-        <div className="filter-tabs" id="calViewTabs">
-          <button
-            className={`filter-tab ${view === 'week' ? 'active' : ''}`}
-            data-view="week"
-            onClick={() => setCalendarView('week')}
-          >
-            {strings.calendar.views.week}
-          </button>
-          <button
-            className={`filter-tab ${view === 'day' ? 'active' : ''}`}
-            data-view="day"
-            onClick={() => setCalendarView('day')}
-          >
-            {strings.calendar.views.day}
-          </button>
-          <button
-            className={`filter-tab ${view === 'month' ? 'active' : ''}`}
-            data-view="month"
-            onClick={() => setCalendarView('month')}
-          >
-            {strings.calendar.views.month}
-          </button>
-        </div>
+        <SegmentedControl
+          id="calViewTabs"
+          options={VIEW_OPTIONS}
+          value={view}
+          onChange={setCalendarView}
+          ariaLabel={strings.calendar.viewLabel}
+        />
         <Button variant="primary" id="addCalEventBtn" icon={<IconPlus size={16} strokeWidth={2.4} />} onClick={handleSchedule}>
           {strings.actions.scheduleSession}
         </Button>

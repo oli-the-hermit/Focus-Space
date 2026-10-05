@@ -5,6 +5,7 @@ import { strings } from '../../constants/strings';
 import { Profile } from '../../types';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
+import { FormRow } from '../ui/FormLayout';
 import { IconPlus } from '../ui/icons';
 import { format } from '../../lib/i18n';
 import { formatFullDate, initials } from '../../lib/formatUtils';
@@ -224,14 +225,14 @@ export const SettingsView: React.FC = () => {
               <Field label={strings.auth.usernameLabel}>
                 <TextInput value={addUsername} onChange={e => setAddUsername(e.target.value)} maxLength={LIMITS.username.max} />
               </Field>
-              <div className="form-row">
+              <FormRow>
                 <Field label={strings.auth.passwordLabel}>
                   <TextInput type="password" value={addPw} onChange={e => setAddPw(e.target.value)} autoComplete="new-password" />
                 </Field>
                 <Field label={strings.auth.confirmPasswordLabel}>
                   <TextInput type="password" value={addConfirm} onChange={e => setAddConfirm(e.target.value)} autoComplete="new-password" />
                 </Field>
-              </div>
+              </FormRow>
               <div className="modal-actions">
                 <Button onClick={() => setShowAddForm(false)}>
                   {strings.common.cancel}

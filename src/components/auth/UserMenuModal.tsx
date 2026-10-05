@@ -10,6 +10,7 @@ import { FormActions } from '../ui/FormActions';
 import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
+import { FormRow } from '../ui/FormLayout';
 import { initials } from '../../lib/formatUtils';
 import { LIMITS } from '../../constants/limits';
 import { format } from '../../lib/i18n';
@@ -283,7 +284,7 @@ const ProfileView: React.FC = () => {
                   autoComplete="current-password"
                 />
               </Field>
-              <div className="form-row">
+              <FormRow>
                 <Field label={strings.profile.newPasswordLabel} htmlFor="newPw">
                   <TextInput
                     id="newPw"
@@ -302,7 +303,7 @@ const ProfileView: React.FC = () => {
                     autoComplete="new-password"
                   />
                 </Field>
-              </div>
+              </FormRow>
               <ul className="pw-rules" aria-live="polite">
                 <li className={pwLongEnough ? 'is-met' : ''}>
                   <IconCheck size={14} strokeWidth={2.6} />

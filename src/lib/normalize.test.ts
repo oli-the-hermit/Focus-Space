@@ -4,6 +4,11 @@ import { strings } from '../constants/strings';
 import { DEFAULT_REWARD_EMOJI } from '../constants/defaults';
 
 describe('normalizeGoal', () => {
+  it('gives every goal a description, empty when it has none', () => {
+    expect(normalizeGoal({ id: 'g1', name: 'Read', landmarks: [] }).description).toBe('');
+    expect(normalizeGoal({ id: 'g2', name: 'Read', description: 'Ten pages a day', landmarks: [] }).description).toBe('Ten pages a day');
+    expect(normalizeGoal({ id: 'g3', name: 'Read', description: 42, landmarks: [] }).description).toBe('');
+  });
   it('reads the old title/type fields and drops them', () => {
     const g = normalizeGoal({ id: 'g1', title: 'Read more', type: 'weekly', completed: false, landmarks: [] });
     expect(g).toMatchObject({ name: 'Read more', frequency: 'weekly' });

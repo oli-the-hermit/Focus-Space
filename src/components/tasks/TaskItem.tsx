@@ -4,6 +4,7 @@ import { formatDuration } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconTrash, IconGrip } from '../ui/icons';
 import { IconButton } from '../ui/IconButton';
+import { Checkbox } from '../ui/Checkbox';
 
 export interface TaskItemProps {
   task: Task;
@@ -52,11 +53,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDrop={e => onDrop(e, task.id)}
     >
       <IconGrip title={strings.common.dragToReorder} />
-      <input
-        type="checkbox"
-        className="task-check"
+      <Checkbox
         checked={task.completed}
-        onChange={e => onToggle(listId, task.id, e.target.checked)}
+        onChange={checked => onToggle(listId, task.id, checked)}
+        aria-label={task.text}
       />
       <span className="task-text">{task.text}</span>
 

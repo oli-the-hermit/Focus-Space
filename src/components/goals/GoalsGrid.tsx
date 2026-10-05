@@ -6,11 +6,13 @@ import { FREQUENCY_FILTER_TABS } from '../../constants/frequencies';
 import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
 import { IconPlus } from '../ui/icons';
+import { useDragReorder } from '../../hooks/useDragReorder';
 
 
 export const GoalsGrid: React.FC = () => {
-  const { state, openModal } = useApp();
+  const { state, openModal, reorderGoals } = useApp();
   const [filter, setFilter] = useState<string>('all');
+  const drag = useDragReorder(reorderGoals);
 
   const handleAddGoal = () => {
     openModal('NEW_GOAL');
@@ -25,6 +27,7 @@ export const GoalsGrid: React.FC = () => {
       tabs={FREQUENCY_FILTER_TABS}
       activeTab={filter}
       onTabChange={setFilter}
+      tabsLabel={strings.goals.filterLabel}
       actionButton={
         <Button variant="primary" id="addGoalBtn" icon={<IconPlus size={16} strokeWidth={2.4} />} onClick={handleAddGoal}>
           {strings.actions.newGoal}
@@ -34,7 +37,13 @@ export const GoalsGrid: React.FC = () => {
       emptyMessage={strings.goals.emptyGoals}
     >
       {filteredGoals.map(goal => (
-        <GoalCard key={goal.id} goal={goal} />
+        <GoalCard
+          key={goal.id}
+          goal={goal}
+          dragProps={drag.itemProps(goal.id)}
+          isDragging={drag.isDragging(goal.id)}
+          isDragOver={drag.isDragOver(goal.id)}
+        />
       ))}
     </FilterGridLayout>
   );

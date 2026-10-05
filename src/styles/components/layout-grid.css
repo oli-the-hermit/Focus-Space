@@ -1,0 +1,34 @@
+/* ── Layout grid (ui/LayoutGrid) ─────────────────────────── */
+/* 12 columns with the app's gutter. Each item spans --span columns, overridden per
+   breakpoint by --span-md … --span-3xl; a missing one falls back to the one below. */
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gutter);
+  align-items: start;
+}
+.grid-item {
+  --span-now: var(--span, var(--grid-columns));
+  grid-column: span var(--span-now);
+  min-width: 0;
+}
+@media (min-width: 600px) {
+  .grid-item { --span-now: var(--span-md, var(--span, var(--grid-columns))); }
+}
+@media (min-width: 1024px) {
+  .grid-item { --span-now: var(--span-lg, var(--span-md, var(--span, var(--grid-columns)))); }
+}
+@media (min-width: 1440px) {
+  .grid-item { --span-now: var(--span-xl, var(--span-lg, var(--span-md, var(--span, var(--grid-columns))))); }
+}
+@media (min-width: 1920px) {
+  .grid-item { --span-now: var(--span-2xl, var(--span-xl, var(--span-lg, var(--span-md, var(--span, var(--grid-columns)))))); }
+}
+@media (min-width: 2560px) {
+  .grid-item { --span-now: var(--span-3xl, var(--span-2xl, var(--span-xl, var(--span-lg, var(--span-md, var(--span, var(--grid-columns))))))); }
+}
+/* Tiles sized in rows: --rows rows of --grid-row, plus the gutters between them. */
+.grid-item--rows {
+  grid-row: span var(--rows);
+  min-height: calc(var(--rows) * var(--grid-row) + (var(--rows) - 1) * var(--grid-gutter));
+}

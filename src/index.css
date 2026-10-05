@@ -43,6 +43,7 @@
 @import url('./styles/components/form-actions.css') layer(app);
 @import url('./styles/components/toast.css') layer(app);
 @import url('./styles/components/segmented.css') layer(app);
+@import url('./styles/components/layout-grid.css') layer(app);
 @import url('./styles/components/swatch.css') layer(app);
 @import url('./styles/components/emoji-picker.css') layer(app);
 @import url('./styles/components/collapsible.css') layer(app);
@@ -75,6 +76,7 @@
 @import url('./styles/features/help.css') layer(app);
 @import url('./styles/features/tour.css') layer(app);
 @import url('./styles/features/alerts.css') layer(app);
+@import url('./styles/features/notifications.css') layer(app);
 @import url('./styles/features/mini.css') layer(app);
 
 /* Cross-cutting motion: phase cross-fades, press feedback, page changes */

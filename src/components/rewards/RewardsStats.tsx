@@ -1,6 +1,9 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
+import { GridItem, LayoutGrid, type GridSpan } from '../ui/LayoutGrid';
+
+const STAT_SPAN: GridSpan = { base: 12, md: 4 };
 
 export const RewardsStats: React.FC = () => {
   const { state } = useApp();
@@ -10,19 +13,19 @@ export const RewardsStats: React.FC = () => {
   const claimedCount = state.rewards.filter(r => r.status === 'claimed').length;
 
   return (
-    <div className="reward-stats" id="rewardStatsContainer">
-      <div className="rstat">
+    <LayoutGrid id="rewardStatsContainer">
+      <GridItem span={STAT_SPAN} className="rstat">
         <span className="rstat-num" id="rstatReady">{readyCount}</span>
         <span className="rstat-lbl">{strings.rewards.readyToClaim}</span>
-      </div>
-      <div className="rstat">
+      </GridItem>
+      <GridItem span={STAT_SPAN} className="rstat">
         <span className="rstat-num" id="rstatLocked">{lockedCount}</span>
         <span className="rstat-lbl">{strings.rewards.inProgress}</span>
-      </div>
-      <div className="rstat">
+      </GridItem>
+      <GridItem span={STAT_SPAN} className="rstat">
         <span className="rstat-num" id="rstatClaimed">{claimedCount}</span>
         <span className="rstat-lbl">{strings.rewards.claimed}</span>
-      </div>
-    </div>
+      </GridItem>
+    </LayoutGrid>
   );
 };

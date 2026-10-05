@@ -5,6 +5,7 @@ import { ACCENT_GROUPS, ACCENT_PRESETS, type AccentId } from '../../constants/ac
 import type { ThemeMode } from '../../types';
 import { accentTokens, pushRecentAccent, recentAccents, resolveTheme, type ResolvedTheme } from '../../lib/theme';
 import { ColorSwatchGrid, type SwatchOption } from '../ui/ColorSwatchGrid';
+import { SegmentedControl } from '../ui/SegmentedControl';
 
 const s = strings.appearance;
 
@@ -40,20 +41,14 @@ export const AppearanceView: React.FC = () => {
   return (
     <>
       <h4 className="section-title">{s.themeTitle}</h4>
-      <div className="theme-segmented" role="radiogroup" aria-label={s.themeTitle}>
-        {THEME_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            type="button"
-            role="radio"
-            aria-checked={state.theme === opt.value}
-            className={`seg-option ${state.theme === opt.value ? 'active' : ''}`}
-            onClick={() => updateTheme(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        options={THEME_OPTIONS}
+        value={state.theme}
+        onChange={updateTheme}
+        ariaLabel={s.themeTitle}
+        size="lg"
+        surface={1}
+      />
 
       <div className="section-divider" />
       <h4 className="section-title">{s.accentTitle}</h4>

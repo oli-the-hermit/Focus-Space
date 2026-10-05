@@ -21,7 +21,9 @@ export const STORAGE_KEYS = {
   timerRun: 'focusspace_timer_run',
   miniPrefs: 'focusspace_mini_prefs',
   /** 'off' when the user turned off update notices (Settings > Updates). Per device. */
-  updateNotify: 'focusspace_update_notify'
+  updateNotify: 'focusspace_update_notify',
+  /** 'expanded' when the navigation drawer shows labels beside the icons; else the rail. Per device. */
+  drawer: 'focusspace_drawer'
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;

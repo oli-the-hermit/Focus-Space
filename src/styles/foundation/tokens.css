@@ -23,6 +23,8 @@
   --surface-2:        #1E2024;
   --surface-3:        #272A2F;
   --surface-4:        #31343A;
+  /* A panel sunk one small step into a surface-1 card, to group its content. */
+  --surface-inset:    #121417;
 
   /* ── Color: text ── */
   --text-1:           #F1F2EC;
@@ -142,6 +144,7 @@
   --field-height:     44px;      /* inputs, selects, pickers, steppers */
   --button-height:    40px;
   --button-height-sm: 34px;
+  --button-height-xs: 28px;
   --icon-button-size: 40px;
   --icon-button-size-sm: 32px;
   --icon-button-size-xs: 28px;
@@ -150,6 +153,7 @@
   --progress-height:  6px;
   --progress-height-lg: 8px;
   --grip-width:       8px;       /* the drag grip (IconGrip) */
+  --grip-height:      14px;
   --grip-edge:        10px;      /* card edge → grip */
   --grip-gap:         10px;      /* grip → the row's content */
 
@@ -190,6 +194,7 @@
   --surface-2:        #F3F4EE;
   --surface-3:        #E7E9E1;
   --surface-4:        #DADDD3;
+  --surface-inset:    #F8F9F5;
 
   --text-1:           #1A1C17;
   --text-2:           #50544A;
@@ -234,8 +239,19 @@
   --break-text:       #5EC8B8;      /* break used as text/icon colour */
 
   /* ── Layout ── */
-  --rail-width:       88px;
+  /* Shell: a left drawer (fixed widths) + 12 fluid columns; an app bar + 12 rows.
+     Breakpoints (media queries can't read custom properties, so they're written out):
+       sm < 600 · md ≥ 600 · lg ≥ 1024 · xl ≥ 1440 · 2xl ≥ 1920 · 3xl ≥ 2560.
+     Below lg the drawer is always the rail. */
+  --drawer-rail:      88px;
+  --drawer-expanded:  240px;
+  --drawer-width:     var(--drawer-rail);
   --topbar-height:    68px;
+  --grid-columns:     12;
+  --grid-gutter:      var(--space-16);
+  --grid-margin:      var(--space-16);
+  /* One of the 12 rows under the app bar, for tiles sized in rows (bento). */
+  --grid-row: calc((100dvh - var(--topbar-height) - var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
   --modal-max-width:      520px;
   --modal-max-width-wide: 620px;
 
@@ -244,6 +260,14 @@
   --dur-equalizer:    900ms;
   --dur-bell:         1s;
   --dur-art-ring:     1.2s;
+}
+
+/* Gutters and margins grow with the window (breakpoints: see Layout above). */
+@media (min-width: 1024px) {
+  :root { --grid-gutter: var(--space-20); --grid-margin: var(--space-20); }
+}
+@media (min-width: 1920px) {
+  :root { --grid-gutter: var(--space-24); --grid-margin: var(--space-24); }
 }
 
 [data-theme="light"] {

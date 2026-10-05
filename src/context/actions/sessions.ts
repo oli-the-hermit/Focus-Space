@@ -5,18 +5,13 @@ import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
 import { Session } from '../../types';
 import { idleTimer, phaseMinutes } from '../../lib/sessionTime';
+import { moveById } from '../../lib/reorder';
 
 export function createSessionActions({ setState, showToast, stopTicker }: Pick<ActionDeps, 'setState' | 'showToast' | 'stopTicker'>) {
   const reorderSessions = (sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
     setState(prev => {
-      const fromIdx = prev.sessions.findIndex(s => s.id === sourceId);
-      const toIdx = prev.sessions.findIndex(s => s.id === targetId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const updated = [...prev.sessions];
-      const [moved] = updated.splice(fromIdx, 1);
-      updated.splice(toIdx, 0, moved);
-      return { ...prev, sessions: updated };
+      const sessions = moveById(prev.sessions, sourceId, targetId);
+      return sessions ? { ...prev, sessions } : prev;
     });
   };
 

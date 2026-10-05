@@ -163,6 +163,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 
 | Feature Context / Trigger | Category | UI Component | Semantic Title | Message Body | Suggested Action / CTA |
 |---|---|---|---|---|---|
+| Calendar view switch | Status | Segmented control (screen readers name it) | Calendar view | Week · Day · Month | Pick one; arrow keys move between them |
 | Event scheduled | Success | Toast | Scheduled | "{title}" is on your calendar. | — |
 | Event moved by dragging | Success | Toast | Moved | Moved to {date} at {time}. | — |
 | Event updated / removed | Success | Toast | Event saved | Event updated. · Event removed. | — |
@@ -196,6 +197,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Right-click on the player | Status | Context menu | Actions | Start timer / Pause timer · Reset timer · Skip to break / Skip to focus · Turn sound on / off · Open mini player · Edit session | — |
 | Right-click on an item | Status | Context menu | Actions | The item's own actions, e.g. Start session · Edit · Duplicate · Delete, or Mark as complete / Mark as not done | — |
 | Desktop title bar | Status | Window buttons | Window | Minimize · Maximize / Restore · Close | — |
+| Navigation drawer toggle (windows 1024px and wider) | Status | Icon button with tooltip, above the account | Menu width | Expand menu (labels beside the icons) · Collapse menu (back to the rail). Remembered on this device | Click to switch |
 | Profile form edited | Status | Footer button | Discard changes | Discard changes (shown only after an edit) | Save changes |
 | Form edited (any other form modal) | Status | Footer button | Cancel | Cancel (shown only after an edit; the X closes an untouched form) | Primary action |
 
@@ -212,6 +214,11 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Goal created | Success | Toast | Goal saved | Goal "{name}" is set. | — |
 | Goal updated / duplicated / deleted | Success | Toast | Goal saved | Goal updated. · Goal duplicated. · Goal deleted. | — |
 | Delete a goal | Helpful Alert | Modal | Delete goal? | Delete "{name}"? This can't be undone. | Delete / Cancel |
+| Goals and rewards: frequency filter | Status | Segmented control (screen readers name it) | Show goals by frequency · Show rewards by frequency | All · Daily · Weekly · Monthly · Yearly · Custom | Pick one; arrow keys move between them |
+| Goal card | Status | Card laid out like a task row: drag grip (on hover), check box, title; secondary button in the footer | Goal actions | Grip tooltip: Drag to reorder. Check box named after the goal; on a goal with landmarks it's read-only, tooltip "Completes when every landmark is done". Footer: + Landmark (screen readers and tooltip: "Add landmark"; icon only on phones) | Tick the goal, or add a landmark |
+| Goal description (card) | Status | Text edited in place under the header | Goal description | Placeholder: Write a description. Saves when you leave the field; Escape puts back the saved text | Type, then click away |
+| Goal description saved | Success | Inline note in the card footer (status) | Saved | ✓ Saved (for a few seconds, right of + Landmark) | — |
+| Goal dialog: description | Status | Text area (optional) | Goal description | Placeholder: Write a description | — |
 | No goals | Empty State | Grid | No goals | No goals yet. Set your first one. Small steps count too. | + New goal |
 | Completion date before start date | Error Recovery | Inline helper | Date order | The completion date needs to be on or after the start date. | Pick another date |
 | Goal or landmark past its date | Status | Badge | Past due | {count} day{s} past due | — |

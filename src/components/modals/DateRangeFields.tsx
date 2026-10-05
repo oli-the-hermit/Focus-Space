@@ -2,6 +2,7 @@ import React from 'react';
 import { DatePicker } from '../ui/DatePicker';
 import { strings } from '../../constants/strings';
 import { Field } from '../ui/Field';
+import { FormError, FormRow } from '../ui/FormLayout';
 
 export interface DateRangeFieldsProps {
   idPrefix: string;
@@ -27,7 +28,7 @@ export const DateRangeFields: React.FC<DateRangeFieldsProps> = ({
   const invalid = isDateRangeInvalid(startDate, dueDate);
   return (
     <>
-      <div className="form-row">
+      <FormRow>
         <Field label={strings.modals.startDateLabel} labelHint={strings.modals.optionalHint} htmlFor={`${idPrefix}Start`}>
           <DatePicker
             id={`${idPrefix}Start`}
@@ -49,11 +50,9 @@ export const DateRangeFields: React.FC<DateRangeFieldsProps> = ({
             min={startDate || undefined}
           />
         </Field>
-      </div>
+      </FormRow>
       {invalid && (
-        <p className="form-error" role="alert">
-          {strings.modals.dateOrderError}
-        </p>
+        <FormError>{strings.modals.dateOrderError}</FormError>
       )}
     </>
   );

@@ -7,6 +7,7 @@ import { strings } from '../../constants/strings';
 import { Select } from '../ui/Select';
 import { DateRangeFields, isDateRangeInvalid } from './DateRangeFields';
 import { Field, TextInput } from '../ui/Field';
+import { ModalForm } from '../ui/FormLayout';
 
 export interface LandmarkModalProps {
   goalId: string;
@@ -50,7 +51,7 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
   const dirty = useDirty([name, rewardId, startDate, dueDate]);
 
   return (
-    <form onSubmit={handleSubmit} className="modal-form">
+    <ModalForm onSubmit={handleSubmit}>
       <Field label={strings.modals.landmarkNameLabel} htmlFor="landmarkName">
         <TextInput
           id="landmarkName"
@@ -92,6 +93,6 @@ export const LandmarkModal: React.FC<LandmarkModalProps> = ({ goalId, landmark, 
         primaryDisabled={datesInvalid}
         primaryLabel={landmark ? strings.common.save : strings.actions.addLandmark}
       />
-    </form>
+    </ModalForm>
   );
 };
