@@ -4,11 +4,12 @@
 .goal-card {
   --goal-inset: var(--space-12);
   /* The title's first line box: the menu centers on it. */
-  --goal-title-line: calc(var(--text-base) * var(--leading-snug));
+  --goal-title-line: calc(var(--text-2xl) * var(--leading-tight));
   align-self: start;
   display: flex;
   align-items: flex-start;
-  padding: var(--goal-inset);
+  /* The footer sits as far from the bottom edge as the content sits from the sides. */
+  padding: var(--goal-inset) var(--goal-inset) calc(var(--goal-inset) * 2);
   border-radius: var(--radius-3xl);
   background: var(--surface-1);
   --field-bg: var(--surface-2);
@@ -18,7 +19,8 @@
 .goal-card-body > :not(.goal-card-header, .goal-description) { padding-inline: var(--goal-inset); }
 .goal-card-header { display: flex; align-items: flex-start; gap: var(--space-10); padding: var(--goal-inset); }
 .goal-card-header-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-8); }
-.goal-card-title { font-size: var(--text-base); font-weight: var(--weight-bold); line-height: var(--leading-snug); word-break: break-word; }
+/* The same size as a card title (e.g. the session's task card). */
+.goal-card-title { font-size: var(--text-2xl); font-weight: var(--weight-bold); line-height: var(--leading-tight); word-break: break-word; }
 .goal-card-meta { display: flex; flex-wrap: wrap; gap: var(--space-6); }
 .goal-card-actions { flex: none; margin-top: calc((var(--goal-title-line) - var(--icon-button-size-sm)) / 2); }
 /* Its text lines up with the header's content; the field's own padding sits outside that line. */

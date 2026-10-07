@@ -211,7 +211,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
 
         <div className="goal-card-footer">
           <Button
-            size="xs"
+            size="sm"
             collapsible
             icon={<IconPlus size={14} strokeWidth={2.4} />}
             aria-label={strings.actions.addLandmark}
@@ -231,7 +231,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
           {/* Reads Complete, then Done; a goal with landmarks completes on its own. */}
           <Button
             variant="primary"
-            size="xs"
+            size="sm"
             className="goal-complete-btn"
             icon={<IconCheck size={14} strokeWidth={2.6} />}
             aria-pressed={isComplete}
