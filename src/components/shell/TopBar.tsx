@@ -10,6 +10,7 @@ import { IconSwap } from '../ui/IconSwap';
 import { WindowControls } from './WindowControls';
 import { IconButton } from '../ui/IconButton';
 import { cx } from '../../lib/cx';
+import { StatusChip, type StatusTone } from '../ui/StatusChip';
 
 const PAGE_TITLES: Record<TabType, string> = {
   timer: strings.tabs.timer,
@@ -40,7 +41,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
   const isRunning = state.timer.status === 'running';
   const isPaused = state.timer.status === 'paused';
 
-  let statusClass = 'idle';
+  let statusClass: StatusTone = 'idle';
   let statusText: string = strings.status.ready;
   if (isRunning) {
     statusClass = isBreak ? 'break' : 'running';
@@ -56,29 +57,24 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications }) => {
     <header className={`top-bar ${desktop ? 'has-window-controls' : ''}`} {...drag}>
       <h1 className="top-bar-title" {...drag}>{PAGE_TITLES[activeTab]}</h1>
 
-      <div className={`status-chip is-${statusClass}`} id="headerStatus" data-tour="status-chip">
-        <button
-          type="button"
-          className="status-chip-main"
-          onClick={() => setActiveTab('timer')}
-          title={strings.tabs.timer}
-        >
-          <span className={`status-dot ${statusClass}`} id="statusDot" />
-          <span id="statusText">{statusText}</span>
-          {showCountdown && <span className="status-chip-time">{formatClock(state.timer.remaining)}</span>}
-        </button>
-        {showCountdown && (
-          <button
-            type="button"
-            className="status-chip-action"
-            onClick={toggleTimer}
-            aria-label={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
-            title={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
-          >
-            <IconSwap on={isRunning} onIcon={<IconPause size={14} />} offIcon={<IconPlay size={14} />} />
-          </button>
-        )}
-      </div>
+      <StatusChip
+        id="headerStatus"
+        data-tour="status-chip"
+        tone={statusClass}
+        label={statusText}
+        value={showCountdown ? formatClock(state.timer.remaining) : undefined}
+        onOpen={() => setActiveTab('timer')}
+        openTitle={strings.tabs.timer}
+        action={
+          showCountdown
+            ? {
+                label: isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip,
+                icon: <IconSwap on={isRunning} onIcon={<IconPause size={14} />} offIcon={<IconPlay size={14} />} />,
+                onClick: toggleTimer
+              }
+            : undefined
+        }
+      />
 
       <div className="top-bar-spacer" {...drag} />
 

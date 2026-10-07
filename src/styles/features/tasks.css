@@ -1,35 +1,3 @@
 /* ── Tasks tab ──────────────────────────────────────────── */
-.tasks-sidebar { padding: var(--space-20) var(--space-12) var(--space-12); }
 .tasks-content { --row-hover: var(--surface-2); }
 
-.list-nav { display: flex; flex-direction: column; gap: var(--space-4); }
-.list-nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--grip-gap);
-  min-height: 46px;
-  padding: var(--space-6) var(--space-6) var(--space-6) var(--grip-edge);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  color: var(--text-1);
-  transition: background var(--transition), color var(--transition);
-}
-.list-nav-item:hover { background: var(--surface-2); }
-.list-nav-item-name {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.list-nav-count { flex: none; font-size: var(--text-2xs); color: var(--text-2); font-variant-numeric: tabular-nums; }
-.list-nav-item-del { visibility: hidden; }
-.list-nav-item:hover .list-nav-item-del,
-.list-nav-item:focus-within .list-nav-item-del { visibility: visible; }
-.list-nav-item.active { background: var(--accent); color: var(--on-accent); }
-.list-nav-item.active .list-nav-count,
-.list-nav-item.active .drag-handle,
-.list-nav-item.active .icon-btn { color: var(--on-accent-2); }
-.list-nav-item.active .icon-btn.xs:hover:not(:disabled) { background: var(--on-accent); color: var(--accent); }

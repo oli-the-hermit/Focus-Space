@@ -8,6 +8,10 @@
   user-select: none;
   visibility: hidden;
 }
+.drag-handle:active { cursor: grabbing; }
+/* A card dragged by its whole surface (no grip): the grab hand over its free area. */
+.drag-surface { cursor: grab; }
+.drag-surface:active { cursor: grabbing; }
 .draggable-item:hover .drag-handle,
 .draggable-item:focus-within .drag-handle { visibility: visible; }
 .draggable-item.dragging { background: var(--surface-3) !important; color: var(--text-3) !important; }

@@ -19,10 +19,7 @@
 }
 .player-art { transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard), transform var(--dur-3) var(--ease-emphasized); }
 .player-art-foot { transition: color var(--dur-3) var(--ease-standard); }
-.ctrl-btn { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard); }
 .phase-chip { transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard); }
-.status-dot { transition: background var(--dur-3) var(--ease-standard); }
-.status-chip-time { transition: color var(--dur-3) var(--ease-standard); }
 
 /* Starting the timer gives the art tile a small "breath". */
 .player-card.is-running .player-art { animation: art-start var(--dur-4) var(--ease-emphasized); }
@@ -57,20 +54,13 @@
 
 /* ── Press feedback ──────────────────────────────────────── */
 .btn-action,
-.icon-btn,
-.mini-win-btn,
-.window-btn,
-.status-chip-action,
-.help-row {
+.icon-btn {
   transition-property: background, color, transform;
   transition-duration: var(--dur-2), var(--dur-2), var(--dur-1);
   transition-timing-function: var(--ease-standard);
 }
 .btn-action:active:not(:disabled),
-.icon-btn:active:not(:disabled),
-.status-chip-action:active,
-.window-btn:active { transform: scale(0.95); }
-.help-row:active { transform: scale(0.99); }
+.icon-btn:active:not(:disabled) { transform: scale(0.95); }
 
 /* ── Page changes ────────────────────────────────────────── */
 /* With View Transitions (Chromium/WebView2) the page area cross-fades and
@@ -108,8 +98,6 @@ html:not(.has-vt) .nav-rail-pill { animation: pill-in var(--dur-3) var(--ease-em
   from { opacity: 0; transform: translateY(-6px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
-.session-item,
-.list-nav-item { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard); }
 
 .task-text,
 .landmark-text { transition: color var(--dur-3) var(--ease-standard); }

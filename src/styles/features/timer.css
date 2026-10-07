@@ -155,26 +155,6 @@
 /* Transport controls */
 .player-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-2); }
 
-.ctrl-btn {
-  width: 50px;
-  height: 50px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-round);
-  background: var(--surface-2);
-  color: var(--text-1);
-  transition: background var(--transition), color var(--transition), transform var(--transition);
-}
-.ctrl-btn:hover:not(:disabled) { background: var(--surface-3); }
-.ctrl-btn:active:not(:disabled) { transform: scale(0.94); }
-.ctrl-btn:disabled { color: var(--text-3); cursor: not-allowed; }
-.ctrl-btn.ghost { width: 44px; height: 44px; background: transparent; color: var(--text-2); }
-.ctrl-btn.ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text-1); }
-.ctrl-btn.ghost.is-on { color: var(--phase-text); }
-.ctrl-btn.primary { width: 76px; height: 76px; background: var(--phase); color: var(--on-phase); }
-.ctrl-btn.primary:hover:not(:disabled) { background: var(--phase-hover); }
-.ctrl-btn.primary svg { margin-left: 0; }
 
 /* Up next / reward */
 .player-foot {

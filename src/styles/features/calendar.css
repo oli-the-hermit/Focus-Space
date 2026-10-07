@@ -9,7 +9,6 @@
 }
 .cal-nav-group { display: flex; align-items: center; gap: var(--space-10); min-width: 0; }
 .cal-step-group { display: flex; gap: var(--space-2); }
-.cal-step-group .icon-btn:hover:not(:disabled) { background: var(--surface-1); }
 .cal-title-date { font-size: var(--text-xl); font-weight: var(--weight-bold); white-space: nowrap; }
 .cal-right-tools { display: flex; align-items: center; gap: var(--space-12); }
 
@@ -109,7 +108,6 @@
   background: var(--accent-container);
   color: var(--on-accent-container);
   overflow: hidden;
-  cursor: grab;
   box-shadow: 0 0 0 var(--ring-width) var(--surface-1);
   /* The card's height is its duration; the layout follows it (see @container below). */
   container: event / size;
@@ -169,8 +167,9 @@
 }
 .cal-event-card:hover .cal-event-actions,
 .cal-event-card:focus-within .cal-event-actions { visibility: visible; }
+/* Exception (sizes): event cards are short, so their tools are smaller than xs and take the event's text color. */
 .cal-event-card .icon-btn.xs { width: var(--event-action-size); height: var(--event-action-size); color: inherit; border-radius: var(--radius-sm); }
-.cal-event-card .icon-btn.xs:hover:not(:disabled) { background: var(--surface-1); color: var(--text-1); }
+.cal-event-card .icon-btn.xs:hover:not(:disabled) { color: var(--text-1); }
 
 .cal-now-line {
   position: absolute;
@@ -253,19 +252,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: grab;
 }
 .cal-month-event-time { font-weight: var(--weight-heavy); font-variant-numeric: tabular-nums; }
-.cal-month-more {
-  flex: none;
-  padding: var(--space-1) var(--space-6);
-  border-radius: var(--radius-xs);
-  text-align: left;
-  font-size: var(--text-2xs);
-  font-weight: var(--weight-bold);
-  color: var(--text-2);
-}
-.cal-month-more:hover { background: var(--surface-4); color: var(--text-1); }
+/* Placement only; the look is TextButton xs. */
+.cal-month-more { flex: none; }
 
 @media (max-height: 640px) {
   .calendar-container { overflow-y: auto; }

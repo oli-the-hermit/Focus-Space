@@ -5,6 +5,7 @@ import { strings } from '../../constants/strings';
 import { Button } from '../ui/Button';
 import { Field, TextInput } from '../ui/Field';
 import { IconLogo } from '../ui/icons';
+import { TextButton } from '../ui/TextButton';
 import { LIMITS } from '../../constants/limits';
 import { format } from '../../lib/i18n';
 import { TIMING } from '../../constants/timing';
@@ -165,9 +166,9 @@ export const LoginScreen: React.FC = () => {
         </form>
 
         {serverUp && (
-          <button type="button" className="auth-switch" onClick={switchMode}>
+          <TextButton accent className="auth-switch" onClick={switchMode}>
             {mode === 'login' ? strings.auth.switchToSetup : strings.auth.switchToLogin}
-          </button>
+          </TextButton>
         )}
       </div>
     </div>

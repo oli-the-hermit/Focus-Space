@@ -315,11 +315,11 @@ export const OnboardingTour: React.FC = () => {
           )}
           <div className="tour-actions">
             {step.kind === 'welcome' ? (
-              <Button onClick={finish}>
+              <Button surface={3} onClick={finish}>
                 {strings.onboarding.laterBtn}
               </Button>
             ) : (
-              <Button onClick={() => go(-1)}>
+              <Button surface={3} onClick={() => go(-1)}>
                 <IconChevronLeft size={16} />
                 {strings.onboarding.backBtn}
               </Button>

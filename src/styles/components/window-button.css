@@ -1,0 +1,26 @@
+/* ── Window buttons (ui/WindowButton): title bar and mini window chrome ── */
+.window-btn {
+  width: 40px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  transition-property: background, color, transform;
+  transition-duration: var(--dur-2), var(--dur-2), var(--dur-1);
+  transition-timing-function: var(--ease-standard);
+}
+.window-btn:hover { background: var(--surface-1); color: var(--text-1); }
+.window-btn:active { transform: scale(0.95); }
+.window-btn.is-close:hover { background: var(--danger); color: var(--on-danger); }
+
+/* Mini player window (sm) */
+.window-btn--sm {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--text-3);
+}
+.window-btn--sm:hover { background: var(--surface-2); color: var(--text-1); }
+.window-btn--sm:active { transform: none; }
+.window-btn--sm.is-on { background: var(--accent-container); color: var(--on-accent-container); }

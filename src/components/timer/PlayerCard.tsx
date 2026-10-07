@@ -19,6 +19,7 @@ import { IconSwap } from '../ui/IconSwap';
 import { useContextMenu } from '../ui/ContextMenu';
 import { MenuItem } from '../ui/Menu';
 import { Card } from '../ui/Card';
+import { PlayerControl } from '../ui/PlayerControl';
 import { Scrubber } from './Scrubber';
 import { cx } from '../../lib/cx';
 import { format, plural } from '../../lib/i18n';
@@ -121,57 +122,38 @@ export const PlayerCard: React.FC = () => {
       </div>
 
       <div className="player-controls" data-tour="player-controls">
-        <button
-          type="button"
-          className={`ctrl-btn ghost ${state.sound ? 'is-on' : ''}`}
+        <PlayerControl
+          variant="ghost"
+          pressed={state.sound}
           onClick={toggleSound}
+          label={strings.header.soundToggleTooltip}
           title={state.sound ? strings.timer.soundOnTooltip : strings.timer.soundOffTooltip}
-          aria-label={strings.header.soundToggleTooltip}
-          aria-pressed={state.sound}
         >
           <IconSwap on={state.sound} onIcon={<IconSoundOn size={19} />} offIcon={<IconSoundOff size={19} />} />
-        </button>
-        <button
-          type="button"
-          className="ctrl-btn secondary"
-          id="resetBtn"
-          onClick={resetTimer}
-          title={strings.actions.resetTimer}
-          aria-label={strings.actions.resetTimer}
-        >
+        </PlayerControl>
+        <PlayerControl id="resetBtn" onClick={resetTimer} label={strings.actions.resetTimer}>
           <IconReset size={20} />
-        </button>
-        <button
-          type="button"
-          className="ctrl-btn primary"
+        </PlayerControl>
+        <PlayerControl
+          variant="primary"
           id="playPauseBtn"
           onClick={toggleTimer}
-          title={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
-          aria-label={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
+          label={isRunning ? strings.timer.pauseTooltip : strings.timer.playTooltip}
         >
           <IconSwap on={isRunning} onIcon={<IconPause size={28} />} offIcon={<IconPlay size={28} />} />
-        </button>
-        <button
-          type="button"
-          className="ctrl-btn secondary"
-          id="skipBtn"
-          onClick={skipPhase}
-          title={strings.timer.skipTooltip}
-          aria-label={strings.timer.skipTooltip}
-        >
+        </PlayerControl>
+        <PlayerControl id="skipBtn" onClick={skipPhase} label={strings.timer.skipTooltip}>
           <IconSkip size={20} />
-        </button>
-        <button
-          type="button"
-          className={`ctrl-btn ghost ${mini.isOpen ? 'is-on' : ''}`}
+        </PlayerControl>
+        <PlayerControl
+          variant="ghost"
+          pressed={mini.isOpen}
           onClick={mini.toggle}
           disabled={!mini.supported}
-          title={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
-          aria-label={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
-          aria-pressed={mini.isOpen}
+          label={mini.isOpen ? strings.actions.closeMini : strings.actions.openMini}
         >
           <IconMiniPlayer size={19} />
-        </button>
+        </PlayerControl>
       </div>
 
       <div className="player-foot">

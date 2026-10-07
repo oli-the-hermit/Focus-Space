@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { strings } from '../../constants/strings';
 import { closeCurrentWindow, minimizeWindow, toggleMaximizeWindow, watchMaximized } from '../../lib/desktop';
 import { IconClose, IconMaximize, IconMinimize, IconRestore } from '../ui/icons';
+import { WindowButton } from '../ui/WindowButton';
 
 /**
  * Minimize / maximize / close for the frameless desktop window. Rendered only
@@ -26,33 +27,18 @@ export const WindowControls: React.FC = () => {
 
   return (
     <div className="window-controls" role="group">
-      <button
-        type="button"
-        className="window-btn"
-        onClick={run(minimizeWindow)}
-        title={strings.windowControls.minimize}
-        aria-label={strings.windowControls.minimize}
-      >
+      <WindowButton onClick={run(minimizeWindow)} label={strings.windowControls.minimize}>
         <IconMinimize size={16} />
-      </button>
-      <button
-        type="button"
-        className="window-btn"
+      </WindowButton>
+      <WindowButton
         onClick={run(toggleMaximizeWindow)}
-        title={maximized ? strings.windowControls.restore : strings.windowControls.maximize}
-        aria-label={maximized ? strings.windowControls.restore : strings.windowControls.maximize}
+        label={maximized ? strings.windowControls.restore : strings.windowControls.maximize}
       >
         {maximized ? <IconRestore size={15} /> : <IconMaximize size={14} />}
-      </button>
-      <button
-        type="button"
-        className="window-btn is-close"
-        onClick={run(closeCurrentWindow)}
-        title={strings.common.close}
-        aria-label={strings.common.close}
-      >
+      </WindowButton>
+      <WindowButton danger onClick={run(closeCurrentWindow)} label={strings.common.close}>
         <IconClose size={17} />
-      </button>
+      </WindowButton>
     </div>
   );
 };

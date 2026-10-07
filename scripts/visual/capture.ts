@@ -176,7 +176,7 @@ async function main() {
       await settle(page);
 
       // ── Hover state: the drag grip only shows on a hovered row ──
-      await shot(theme, '17-grip-hover', async () => { await page.locator('.session-item').nth(1).hover(); });
+      await shot(theme, '17-grip-hover', async () => { await page.locator('#sessionsList .queue-item').nth(1).hover(); });
       // A hovered task row: its actions take room only now, pushing any time badge left.
       await shot(theme, '18-task-row-hover', async () => { await page.locator('#tab-timer .task-row').first().hover(); });
       await page.mouse.move(0, 0);
@@ -222,7 +222,7 @@ async function main() {
       await closeOverlays();
       await shot(theme, '41-modal-help', async () => { await page.locator('[data-tour="help-btn"]').click(); });
       // About: the version, with the alpha badge and note while release.json marks a test version.
-      await shot(theme, '49-help-about', async () => { await page.locator('.help-row', { hasText: strings.help.aboutDesc }).click(); });
+      await shot(theme, '49-help-about', async () => { await page.locator('.list-row', { hasText: strings.help.aboutDesc }).click(); });
       await closeOverlays();
       await shot(theme, '42-user-menu', async () => { await page.locator('.user-badge-btn').first().click(); });
       await closeOverlays();
@@ -446,7 +446,7 @@ async function main() {
         await focusMain();
         await live.keyboard.press(' ');
         await settle(live, 300);
-        return (await live.locator('#statusText').textContent())?.trim() === strings.status.paused;
+        return (await live.locator('#headerStatus .status-chip-label').textContent())?.trim() === strings.status.paused;
       });
       await check('S skips to the break', async () => {
         await focusMain();
@@ -460,7 +460,7 @@ async function main() {
         await settle(live, 300);
         const phase = (await live.locator('.phase-chip').getAttribute('class'))?.split(' ') ?? [];
         return !phase.includes('is-break')
-          && (await live.locator('#statusText').textContent())?.trim() === strings.status.ready
+          && (await live.locator('#headerStatus .status-chip-label').textContent())?.trim() === strings.status.ready
           && (await time.textContent())?.trim() === before;
       });
       const isRunning = async () => (await status.getAttribute('class'))?.split(' ').includes('is-running') ?? false;
@@ -556,7 +556,7 @@ async function main() {
           await live.locator('.user-badge-btn').first().click();
           await live.getByRole('menuitem', { name: strings.userMenu.profile }).click();
           await live.locator('.modal input[type="file"]').setInputFiles(file);
-          const preview = live.locator('.profile-photo-img img');
+          const preview = live.locator('.avatar-picker-img img');
           await preview.waitFor({ timeout: 5000 });
           const isPng = ((await preview.getAttribute('src')) ?? '').startsWith('data:image/png;base64,');
           await live.locator('.modal').getByRole('button', { name: strings.common.saveChanges, exact: true }).click();

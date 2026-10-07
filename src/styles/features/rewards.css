@@ -25,7 +25,6 @@
 .reward-card.ready .reward-trigger-badge,
 .reward-card.ready .goal-type-badge { background: var(--on-accent-container); color: var(--accent-container); }
 .reward-card.ready .reward-card-desc { color: var(--on-accent-container); }
-.reward-card.ready .icon-btn { color: var(--on-accent-container); }
 .reward-card.claimed .reward-card-name { color: var(--text-3); text-decoration: line-through; }
 
 .reward-card-header { display: flex; align-items: center; gap: var(--space-12); }
@@ -45,15 +44,3 @@
 .reward-card-actions { flex: none; align-self: flex-start; }
 .reward-card-desc { font-size: var(--text-sm); color: var(--text-2); }
 
-.claim-btn {
-  width: 100%;
-  height: 44px;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: var(--text-md);
-  font-weight: var(--weight-bold);
-  transition: background var(--transition);
-}
-.claim-btn:hover { background: var(--accent-hover); }
-.reward-card.ready .claim-btn { background: var(--on-accent-container); color: var(--accent-container); }

@@ -44,6 +44,13 @@
 @import url('./styles/components/toast.css') layer(app);
 @import url('./styles/components/segmented.css') layer(app);
 @import url('./styles/components/layout-grid.css') layer(app);
+@import url('./styles/components/player-control.css') layer(app);
+@import url('./styles/components/window-button.css') layer(app);
+@import url('./styles/components/status-chip.css') layer(app);
+@import url('./styles/components/nav-rail.css') layer(app);
+@import url('./styles/components/avatar-picker.css') layer(app);
+@import url('./styles/components/list-row.css') layer(app);
+@import url('./styles/components/queue.css') layer(app);
 @import url('./styles/components/swatch.css') layer(app);
 @import url('./styles/components/emoji-picker.css') layer(app);
 @import url('./styles/components/collapsible.css') layer(app);
@@ -52,7 +59,6 @@
 
 /* Layout: the app shell */
 @import url('./styles/layout/app-shell.css') layer(app);
-@import url('./styles/layout/nav-rail.css') layer(app);
 @import url('./styles/layout/user-badge.css') layer(app);
 @import url('./styles/layout/app-column.css') layer(app);
 @import url('./styles/layout/title-bar.css') layer(app);

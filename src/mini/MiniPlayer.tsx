@@ -14,6 +14,8 @@ import {
   IconSkip
 } from '../components/ui/icons';
 import { IconSwap } from '../components/ui/IconSwap';
+import { PlayerControl } from '../components/ui/PlayerControl';
+import { WindowButton } from '../components/ui/WindowButton';
 import { ProgressRing } from '../components/ui/ProgressRing';
 import { useContextMenuState } from '../components/ui/ContextMenu';
 import { MenuItem } from '../components/ui/Menu';
@@ -116,9 +118,9 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
       <div className="mini-shell" onContextMenu={onContextMenu}>
         <div className="mini-player is-waiting" ref={rootRef} {...drag}>
           <span className="mini-waiting" {...drag}>{strings.mini.waiting}</span>
-          <button type="button" className="mini-win-btn mini-close-solo" onClick={controls.onClose} aria-label={strings.mini.close} title={strings.mini.close}>
+          <WindowButton size="sm" className="mini-close-solo" onClick={controls.onClose} label={strings.mini.close}>
             <IconClose size={14} strokeWidth={2.4} />
-          </button>
+          </WindowButton>
         </div>
         {menu.element}
       </div>
@@ -158,49 +160,33 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
             </div>
             <div className="mini-window-controls">
               {controls.onTogglePin && (
-                <button
-                  type="button"
-                  className={`mini-win-btn ${controls.pinned ? 'is-on' : ''}`}
+                <WindowButton
+                  size="sm"
+                  pressed={!!controls.pinned}
                   onClick={controls.onTogglePin}
-                  aria-pressed={!!controls.pinned}
-                  aria-label={controls.pinned ? strings.mini.unpin : strings.mini.pin}
-                  title={controls.pinned ? strings.mini.unpin : strings.mini.pin}
+                  label={controls.pinned ? strings.mini.unpin : strings.mini.pin}
                 >
                   <IconPin size={14} />
-                </button>
+                </WindowButton>
               )}
               {controls.onToggleAlwaysOnTop && (
-                <button
-                  type="button"
-                  className={`mini-win-btn ${controls.alwaysOnTop ? 'is-on' : ''}`}
+                <WindowButton
+                  size="sm"
+                  pressed={!!controls.alwaysOnTop}
                   onClick={controls.onToggleAlwaysOnTop}
-                  aria-pressed={!!controls.alwaysOnTop}
-                  aria-label={controls.alwaysOnTop ? strings.mini.alwaysOnTopOn : strings.mini.alwaysOnTopOff}
-                  title={controls.alwaysOnTop ? strings.mini.alwaysOnTopOn : strings.mini.alwaysOnTopOff}
+                  label={controls.alwaysOnTop ? strings.mini.alwaysOnTopOn : strings.mini.alwaysOnTopOff}
                 >
                   <IconLayers size={14} />
-                </button>
+                </WindowButton>
               )}
               {controls.onExpand && (
-                <button
-                  type="button"
-                  className="mini-win-btn"
-                  onClick={controls.onExpand}
-                  aria-label={strings.actions.openApp}
-                  title={strings.actions.openApp}
-                >
+                <WindowButton size="sm" onClick={controls.onExpand} label={strings.actions.openApp}>
                   <IconExpand size={13} />
-                </button>
+                </WindowButton>
               )}
-              <button
-                type="button"
-                className="mini-win-btn"
-                onClick={controls.onClose}
-                aria-label={strings.mini.close}
-                title={strings.mini.close}
-              >
+              <WindowButton size="sm" onClick={controls.onClose} label={strings.mini.close}>
                 <IconClose size={14} strokeWidth={2.4} />
-              </button>
+              </WindowButton>
             </div>
           </div>
 
@@ -241,21 +227,20 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ snapshot, onCommand, con
           <div className="mini-bottom" {...drag}>
             <span className="mini-time-small" {...drag}>{formatClock(total - remaining)}</span>
             <div className="mini-controls">
-              <button type="button" className="mini-ctrl" onClick={() => onCommand('reset')} aria-label={strings.actions.resetTimer} title={strings.actions.resetTimer}>
+              <PlayerControl size="sm" onClick={() => onCommand('reset')} label={strings.actions.resetTimer}>
                 <IconReset size={16} />
-              </button>
-              <button
-                type="button"
-                className="mini-ctrl mini-ctrl--play"
+              </PlayerControl>
+              <PlayerControl
+                size="sm"
+                variant="primary"
                 onClick={() => onCommand('toggle')}
-                aria-label={running ? strings.timer.pauseTooltip : strings.timer.playTooltip}
-                title={running ? strings.timer.pauseTooltip : strings.timer.playTooltip}
+                label={running ? strings.timer.pauseTooltip : strings.timer.playTooltip}
               >
                 <IconSwap on={running} onIcon={<IconPause size={16} />} offIcon={<IconPlay size={16} />} />
-              </button>
-              <button type="button" className="mini-ctrl" onClick={() => onCommand('skip')} aria-label={strings.timer.skipTooltip} title={strings.timer.skipTooltip}>
+              </PlayerControl>
+              <PlayerControl size="sm" onClick={() => onCommand('skip')} label={strings.timer.skipTooltip}>
                 <IconSkip size={15} />
-              </button>
+              </PlayerControl>
             </div>
             <span className="mini-time-small" {...drag}>{formatClock(total)}</span>
           </div>

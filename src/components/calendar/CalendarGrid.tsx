@@ -8,6 +8,7 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { isDragLeavingElement } from '../../lib/dnd';
 import { IconButton } from '../ui/IconButton';
 import { Card } from '../ui/Card';
+import { TextButton } from '../ui/TextButton';
 import { format, weekdayNames } from '../../lib/i18n';
 import { layoutDayEvents } from '../../lib/calendarLayout';
 
@@ -175,7 +176,7 @@ export const CalendarGrid: React.FC = () => {
                   {visibleEvents.map(ev => (
                     <div
                       key={ev.id}
-                      className="cal-month-event-pill"
+                      className="cal-month-event-pill drag-surface"
                       draggable={true}
                       title={`${ev.startTime} ${ev.title}`}
                       onDragStart={e => handleDragStart(e, ev.id)}
@@ -189,8 +190,9 @@ export const CalendarGrid: React.FC = () => {
                     </div>
                   ))}
                   {hiddenCount > 0 && (
-                    <button
-                      type="button"
+                    <TextButton
+                      size="xs"
+                      surface={3}
                       className="cal-month-more"
                       onClick={e => {
                         e.stopPropagation();
@@ -198,7 +200,7 @@ export const CalendarGrid: React.FC = () => {
                       }}
                     >
                       {format(strings.calendar.moreEvents, { count: hiddenCount })}
-                    </button>
+                    </TextButton>
                   )}
                 </div>
               </div>
@@ -294,7 +296,7 @@ export const CalendarGrid: React.FC = () => {
                 return (
                   <div
                     key={ev.id}
-                    className={`cal-event-card draggable-item ${isDragging ? 'dragging' : ''} ${session ? 'is-session' : ''}`}
+                    className={`cal-event-card draggable-item drag-surface ${isDragging ? 'dragging' : ''} ${session ? 'is-session' : ''}`}
                     draggable={true}
                     data-eid={ev.id}
                     style={{
@@ -324,6 +326,7 @@ export const CalendarGrid: React.FC = () => {
                       <IconButton
                         label={strings.common.duplicate}
                         size="xs"
+                        surface={0}
                         onClick={e => {
                           e.stopPropagation();
                           openModal('DUPLICATE_EVENT', { event: ev });
@@ -334,6 +337,7 @@ export const CalendarGrid: React.FC = () => {
                       <IconButton
                         label={strings.common.delete}
                         size="xs"
+                        surface={0}
                         tone="danger"
                         onClick={e => {
                           e.stopPropagation();

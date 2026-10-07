@@ -142,6 +142,7 @@
 
   /* ── Component sizes ── */
   --field-height:     44px;      /* inputs, selects, pickers, steppers */
+  --button-height-lg: 44px;
   --button-height:    40px;
   --button-height-sm: 34px;
   --button-height-xs: 28px;
@@ -153,7 +154,6 @@
   --progress-height:  6px;
   --progress-height-lg: 8px;
   --grip-width:       8px;       /* the drag grip (IconGrip) */
-  --grip-height:      14px;
   --grip-edge:        10px;      /* card edge → grip */
   --grip-gap:         10px;      /* grip → the row's content */
 

@@ -3,6 +3,8 @@ import { Popover } from './Popover';
 import { IconMore } from './icons';
 import { useUiLabels } from './UiLabels';
 import { cx } from '../../lib/cx';
+import { iconButtonClass, type IconButtonLook } from './IconButton';
+import type { Surface } from './surface';
 
 export interface MenuAction {
   key: string;
@@ -86,7 +88,10 @@ export interface MenuProps {
   ariaLabel?: string;
   /** Custom trigger content; defaults to a vertical "more" glyph. */
   trigger?: React.ReactNode;
+  /** Classes for a custom trigger; the default icon trigger uses triggerSize / triggerSurface. */
   triggerClassName?: string;
+  triggerSize?: IconButtonLook['size'];
+  triggerSurface?: Surface;
   align?: 'start' | 'end';
   /** Shown above the items, e.g. who's signed in. */
   header?: React.ReactNode;
@@ -99,7 +104,9 @@ export const Menu: React.FC<MenuProps> = ({
   items,
   ariaLabel,
   trigger,
-  triggerClassName = 'icon-btn',
+  triggerClassName,
+  triggerSize,
+  triggerSurface,
   align = 'end',
   header,
   menuClassName
@@ -113,7 +120,7 @@ export const Menu: React.FC<MenuProps> = ({
       <button
         ref={triggerRef}
         type="button"
-        className={`${triggerClassName} ${open ? 'is-active' : ''}`}
+        className={cx(triggerClassName ?? iconButtonClass({ size: triggerSize, surface: triggerSurface }), open && 'is-active')}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={ariaLabel ?? labels.moreActions}

@@ -30,6 +30,7 @@ export const CelebrationOverlay: React.FC = () => {
         </p>
         <Button
           variant="primary"
+          surface="accent"
           className="celebration-confirm-btn"
           id="closeCelebrationBtn"
           onClick={dismissCelebration}

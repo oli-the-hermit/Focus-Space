@@ -4,8 +4,9 @@ import { Modal } from '../ui/Modal';
 import { strings } from '../../constants/strings';
 import { GITHUB_URL, RELEASE_STAGE, docsUrl, githubIssueUrl } from '../../constants/links';
 import { openExternal } from '../../lib/desktop';
-import { IconBook, IconBug, IconChevronLeft, IconChevronRight, IconExternal, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
+import { IconBook, IconBug, IconChevronLeft, IconGithub, IconInfo, IconKeyboard, IconLock, IconLogo, IconSparkle, IconStar, IconTimer } from '../ui/icons';
 import { TextButton } from '../ui/TextButton';
+import { ListRow } from '../ui/ListRow';
 import { format } from '../../lib/i18n';
 import { platformLabel } from '../../lib/platform';
 import { SHORTCUTS } from '../../constants/shortcuts';
@@ -13,25 +14,6 @@ import { SHORTCUTS } from '../../constants/shortcuts';
 type HelpView = 'home' | 'shortcuts' | 'whatsNew' | 'about';
 
 const version = __APP_VERSION__;
-
-interface RowProps {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  external?: boolean;
-  onClick: () => void;
-}
-
-const HelpRow: React.FC<RowProps> = ({ icon, title, desc, external, onClick }) => (
-  <button type="button" className="help-row" onClick={onClick}>
-    <span className="help-row-icon">{icon}</span>
-    <span className="help-row-text">
-      <span className="help-row-title">{title}</span>
-      <span className="help-row-desc">{desc}</span>
-    </span>
-    <span className="help-row-trail">{external ? <IconExternal size={16} /> : <IconChevronRight size={18} />}</span>
-  </button>
-);
 
 /** Help hub: tour, shortcuts, what's new, about and GitHub links. */
 export const HelpModal: React.FC = () => {
@@ -65,50 +47,50 @@ export const HelpModal: React.FC = () => {
 
       {view === 'home' && (
         <div className="help-list" key="home">
-          <HelpRow
+          <ListRow
             icon={<IconTimer size={20} />}
             title={strings.help.tourTitle}
-            desc={strings.help.tourDesc}
+            description={strings.help.tourDesc}
             onClick={startTour}
           />
-          <HelpRow
+          <ListRow
             icon={<IconKeyboard size={20} />}
             title={strings.help.shortcutsTitle}
-            desc={strings.help.shortcutsDesc}
+            description={strings.help.shortcutsDesc}
             onClick={() => setView('shortcuts')}
           />
-          <HelpRow
+          <ListRow
             icon={<IconSparkle size={20} />}
             title={strings.help.whatsNewTitle}
-            desc={format(strings.help.whatsNewDesc, { version })}
+            description={format(strings.help.whatsNewDesc, { version })}
             onClick={() => setView('whatsNew')}
           />
-          <HelpRow
+          <ListRow
             icon={<IconInfo size={20} />}
             title={strings.help.aboutTitle}
-            desc={strings.help.aboutDesc}
+            description={strings.help.aboutDesc}
             onClick={() => setView('about')}
           />
           {GITHUB_URL && (
             <>
-              <HelpRow
+              <ListRow
                 icon={<IconBook size={20} />}
                 title={strings.help.docsTitle}
-                desc={strings.help.docsDesc}
+                description={strings.help.docsDesc}
                 external
                 onClick={() => open(docsUrl())}
               />
-              <HelpRow
+              <ListRow
                 icon={<IconBug size={20} />}
                 title={strings.help.reportTitle}
-                desc={strings.help.reportDesc}
+                description={strings.help.reportDesc}
                 external
                 onClick={reportProblem}
               />
-              <HelpRow
+              <ListRow
                 icon={<IconStar size={20} />}
                 title={strings.help.starTitle}
-                desc={strings.help.starDesc}
+                description={strings.help.starDesc}
                 external
                 onClick={() => open(GITHUB_URL)}
               />

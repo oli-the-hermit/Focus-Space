@@ -7,10 +7,11 @@ import { Profile } from '../../types';
 import { SettingsView } from './SettingsView';
 import { AppearanceView } from './AppearanceView';
 import { FormActions } from '../ui/FormActions';
-import { IconCheck, IconEdit, IconLock, IconTrash } from '../ui/icons';
+import { IconCheck, IconLock } from '../ui/icons';
 import { Button } from '../ui/Button';
 import { ActionRow } from '../ui/ActionRow';
 import { Collapsible } from '../ui/Collapsible';
+import { AvatarPicker } from '../ui/AvatarPicker';
 import { Field, TextInput } from '../ui/Field';
 import { FormRow } from '../ui/FormLayout';
 import { initials } from '../../lib/formatUtils';
@@ -60,7 +61,6 @@ const ProfileView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleteStep, setDeleteStep] = useState<'none' | 'confirm' | 'password'>('none');
   const [deletePw, setDeletePw] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
   const curPwRef = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
@@ -186,44 +186,17 @@ const ProfileView: React.FC = () => {
     <>
       {/* Identity: photo on the left, name and username on the right */}
       <div className="profile-identity">
-        <div className={`profile-photo ${avatar ? 'has-photo' : ''}`}>
-          <span className="profile-photo-img" aria-hidden="true">
-            {avatar ? <img src={avatar} alt="" /> : initials(displayName || username)}
-          </span>
-          <button
-            type="button"
-            className="profile-photo-edit"
-            onClick={() => fileRef.current?.click()}
-            aria-label={strings.profile.changePhotoBtn}
-            title={strings.profile.changePhotoBtn}
-          >
-            <IconEdit size={18} />
-          </button>
-          {avatar && (
-            <button
-              type="button"
-              className="profile-photo-remove"
-              onClick={() => {
-                setAvatar('');
-                setPhotoError('');
-              }}
-              aria-label={strings.profile.removePhotoBtn}
-              title={strings.profile.removePhotoBtn}
-            >
-              <IconTrash size={14} />
-            </button>
-          )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={e => {
-              pickAvatar(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
-        </div>
+        <AvatarPicker
+          src={avatar || undefined}
+          fallback={initials(displayName || username)}
+          onPick={pickAvatar}
+          onRemove={() => {
+            setAvatar('');
+            setPhotoError('');
+          }}
+          editLabel={strings.profile.changePhotoBtn}
+          removeLabel={strings.profile.removePhotoBtn}
+        />
 
         <div className="profile-fields">
           <Field label={strings.profile.nameLabel} htmlFor="profileName">
@@ -260,7 +233,7 @@ const ProfileView: React.FC = () => {
             <span className="password-row-hint">{format(strings.profile.passwordHint, { min: LIMITS.password.min })}</span>
           </div>
           {pwOpen ? (
-            <Button size="sm" onClick={closePassword}>
+            <Button size="sm" surface={2} onClick={closePassword}>
               {strings.profile.keepPasswordBtn}
             </Button>
           ) : (

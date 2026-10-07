@@ -190,13 +190,15 @@ export const SettingsView: React.FC = () => {
                       maxLength={LIMITS.displayName.max}
                       autoFocus
                     />
-                    <Button variant="primary" onClick={() => renameProfile(p.id)} disabled={busy}>
+                    <Button variant="primary" size="sm" surface={2} onClick={() => renameProfile(p.id)} disabled={busy}>
                       {strings.common.rename}
                     </Button>
                   </div>
                 ) : (
                   <>
                     <Button
+                      size="sm"
+                      surface={2}
                       onClick={() => {
                         setRenamingId(p.id);
                         setRenameVal(p.displayName);
@@ -204,7 +206,7 @@ export const SettingsView: React.FC = () => {
                     >
                       {strings.common.rename}
                     </Button>
-                    <Button variant="danger" onClick={() => setDeleting(p)} disabled={busy}>
+                    <Button variant="danger" size="sm" surface={2} onClick={() => setDeleting(p)} disabled={busy}>
                       {strings.common.delete}
                     </Button>
                   </>

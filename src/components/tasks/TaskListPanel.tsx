@@ -86,6 +86,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
         <IconButton
           label={collapsed ? strings.timer.expandList : strings.timer.collapseList}
           size="sm"
+          surface={2}
           className="list-panel-collapse"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
@@ -120,7 +121,7 @@ export const TaskListPanel: React.FC<TaskListPanelProps> = ({
           {format(strings.tasks.tasksLeft, { count: remaining })}
         </Chip>
 
-        <Menu ariaLabel={strings.timer.moreListActions} items={menuItems} />
+        <Menu ariaLabel={strings.timer.moreListActions} items={menuItems} triggerSurface={2} />
       </header>
 
       {!collapsed && <TaskListBody list={list} />}

@@ -70,6 +70,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <IconButton
           label={strings.common.rename}
           size="xs"
+          surface={3}
           onClick={() => onRename(listId, task)}
         >
           <IconEdit size={12} />
@@ -77,6 +78,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <IconButton
           label={strings.common.duplicate}
           size="xs"
+          surface={3}
           onClick={() => onDuplicate(listId, task.id)}
         >
           <IconCopy size={12} />
@@ -84,6 +86,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <IconButton
           label={strings.common.delete}
           size="xs"
+          surface={3}
           tone="danger"
           onClick={() => onDelete(listId, task)}
         >

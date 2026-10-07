@@ -1,5 +1,10 @@
 /* ── Buttons ────────────────────────────────────────────── */
+/* Surfaces: a button's fill (and an icon button's hover) sits one step above the surface
+   it's on. The default assumes surface 1 (a card); the surface prop adds on-0, on-2, on-3,
+   on-accent or on-accent-container. */
 .btn-action {
+  --btn-fill: var(--surface-2);
+  --btn-fill-hover: var(--surface-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7,14 +12,14 @@
   height: var(--button-height);
   padding: 0 var(--space-20);
   border-radius: var(--radius-pill);
-  background: var(--surface-2);
+  background: var(--btn-fill);
   color: var(--text-1);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   white-space: nowrap;
   transition: background var(--transition), color var(--transition);
 }
-.btn-action:hover:not(:disabled) { background: var(--surface-3); }
+.btn-action:hover:not(:disabled) { background: var(--btn-fill-hover); }
 .btn-action:disabled { color: var(--text-3); }
 
 .btn-action.primary { background: var(--accent); color: var(--on-accent); }
@@ -27,7 +32,20 @@
 .btn-action.danger { background: var(--danger-container); color: var(--danger); }
 .btn-action.danger:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
 
+.btn-action.on-0 { --btn-fill: var(--surface-1); --btn-fill-hover: var(--surface-2); }
+.btn-action.on-2 { --btn-fill: var(--surface-3); --btn-fill-hover: var(--surface-4); }
+/* Surface 4 is the top step, so the hover steps back down. */
+.btn-action.on-3 { --btn-fill: var(--surface-4); --btn-fill-hover: var(--surface-3); }
+/* A primary action on an accent surface inverts. */
+.btn-action.primary.on-accent { background: var(--on-accent); color: var(--accent); }
+.btn-action.primary.on-accent:hover:not(:disabled) { background: var(--on-accent-2); }
+.btn-action.primary.on-accent-container,
+.btn-action.primary.on-accent-container:hover:not(:disabled) { background: var(--on-accent-container); color: var(--accent-container); }
+
 .btn-action.sm { height: var(--button-height-sm); padding: 0 var(--space-14); font-size: var(--text-xs); gap: var(--space-6); }
+/* The one call to action on a card (e.g. Claim reward). */
+.btn-action.lg { height: var(--button-height-lg); padding: 0 var(--space-24); font-weight: var(--weight-bold); }
+.btn-action.block { width: 100%; }
 /* For compact cards: taller than a chip, smaller than a title. */
 .btn-action.xs { height: var(--button-height-xs); padding: 0 var(--space-12); font-size: var(--text-xs); gap: var(--space-6); }
 
@@ -40,6 +58,7 @@
 }
 
 .btn-text {
+  --text-btn-hover: var(--surface-3);
   display: inline-flex;
   align-items: center;
   gap: var(--space-6);
@@ -50,11 +69,15 @@
   font-weight: var(--weight-semibold);
   transition: background var(--transition), color var(--transition);
 }
-.btn-text:hover { background: var(--surface-3); color: var(--text-1); }
+.btn-text:hover { background: var(--text-btn-hover); color: var(--text-1); }
+.btn-text.on-3 { --text-btn-hover: var(--surface-4); }
+/* Tiny inline link inside dense grids (e.g. "+3 more" in a month cell). */
+.btn-text.xs { padding: var(--space-1) var(--space-6); border-radius: var(--radius-xs); font-size: var(--text-2xs); font-weight: var(--weight-bold); }
 .btn-text.accent { color: var(--accent-text); }
 .btn-text.accent:hover { background: var(--accent-container); color: var(--on-accent-container); }
 
 .icon-btn {
+  --icon-btn-hover: var(--surface-2);
   width: var(--icon-button-size);
   height: var(--icon-button-size);
   flex: none;
@@ -64,8 +87,15 @@
   color: var(--text-2);
   transition: background var(--transition), color var(--transition);
 }
-.icon-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text-1); }
+.icon-btn:hover:not(:disabled) { background: var(--icon-btn-hover); color: var(--text-1); }
 .icon-btn.sm { width: var(--icon-button-size-sm); height: var(--icon-button-size-sm); }
 .icon-btn.xs { width: var(--icon-button-size-xs); height: var(--icon-button-size-xs); border-radius: var(--radius-md); }
 .icon-btn.danger:hover:not(:disabled) { background: var(--danger-container); color: var(--danger); }
 .icon-btn.is-active { background: var(--accent-container); color: var(--on-accent-container); }
+
+.icon-btn.on-0 { --icon-btn-hover: var(--surface-1); }
+.icon-btn.on-2 { --icon-btn-hover: var(--surface-3); }
+.icon-btn.on-3 { --icon-btn-hover: var(--surface-4); }
+.icon-btn.on-accent { color: var(--on-accent-2); }
+.icon-btn.on-accent:hover:not(:disabled) { background: var(--on-accent); color: var(--accent); }
+.icon-btn.on-accent-container { color: var(--on-accent-container); }

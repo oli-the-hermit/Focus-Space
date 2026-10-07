@@ -1,0 +1,69 @@
+/* ── Queue panel and rows (ui/QueuePanel, ui/QueueItem): sessions, task lists ── */
+.queue-panel { padding: var(--space-20) var(--space-14) var(--space-14); }
+.queue-list { display: flex; flex-direction: column; gap: var(--space-8); }
+
+.queue-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-12) var(--space-8) calc(var(--grip-edge) + var(--grip-width) + var(--grip-gap));
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);
+}
+.queue-item:hover { background: var(--surface-3); }
+.queue-item:focus-visible { outline-offset: 1px; }
+/* One row (no meta): the same height top and bottom. */
+.queue-item--single { padding-block: var(--space-14); }
+
+.queue-item-grip { position: absolute; left: var(--grip-edge); top: 50%; transform: translateY(-50%); }
+
+.queue-item-name-row { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
+.queue-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.queue-item-trailing { flex: none; font-size: var(--text-2xs); color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+.queue-item-meta-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); min-height: 28px; }
+.queue-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  font-size: var(--text-2xs);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.queue-item-meta-item { display: inline-flex; align-items: center; gap: var(--space-4); }
+
+.queue-item-actions { display: flex; gap: var(--space-1); flex: none; visibility: hidden; }
+.queue-item:hover .queue-item-actions,
+.queue-item:focus-within .queue-item-actions { visibility: visible; }
+/* Without a meta row the tools float over the row's end, on the row's hover color. */
+.queue-item-actions.is-floating {
+  position: absolute;
+  top: 50%;
+  right: var(--space-8);
+  transform: translateY(-50%);
+  padding-left: var(--space-8);
+  border-radius: var(--radius-md);
+  background: var(--surface-3);
+}
+
+.queue-item.active { background: var(--accent); color: var(--on-accent); }
+.queue-item.active:hover { background: var(--accent-hover); }
+.queue-item.active .queue-item-meta,
+.queue-item.active .queue-item-trailing,
+.queue-item.active .drag-handle { color: var(--on-accent-2); }
+.queue-item.active .queue-item-actions.is-floating { background: var(--accent-hover); }

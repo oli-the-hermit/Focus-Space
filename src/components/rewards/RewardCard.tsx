@@ -5,6 +5,7 @@ import { strings } from '../../constants/strings';
 import { IconEdit, IconCopy, IconGift, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { Menu, tidyMenuItems } from '../ui/Menu';
+import { Button } from '../ui/Button';
 import { format } from '../../lib/i18n';
 import { frequencyLabel } from '../../constants/frequencies';
 import { isManualReward, rewardLinks } from '../../lib/rewardLinks';
@@ -62,7 +63,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
         <div className="reward-card-emoji">{reward.emoji}</div>
         <div className="reward-card-name">{reward.name}</div>
         <div className="reward-card-actions">
-          <Menu items={rewardMenuItems} triggerClassName="icon-btn sm" />
+          <Menu items={rewardMenuItems} triggerSize="sm" triggerSurface={reward.status === 'ready' ? 'accent-container' : undefined} />
         </div>
       </div>
 
@@ -90,9 +91,9 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, showClaim, isCla
 
       {ready && !claimed && (
         <div className="reward-claim-container">
-          <button className="claim-btn" onClick={() => claimReward(reward.id)}>
+          <Button variant="primary" size="lg" block surface="accent-container" onClick={() => claimReward(reward.id)}>
             {strings.actions.claimReward}
-          </button>
+          </Button>
         </div>
       )}
     </div>

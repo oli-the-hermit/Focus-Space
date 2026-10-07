@@ -152,6 +152,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | List created | Success | Toast | List saved | List "{name}" is ready. | — |
 | List renamed / duplicated / deleted | Success | Toast | List saved | List renamed. · List duplicated. · List deleted. | — |
 | Task updated | Success | Toast | Task saved | Task updated. | — |
+| Tasks panel (Tasks tab) | Status | Side panel, rows like Sessions without the details line | Tasks | Each row: list name and done/total; on hover Rename list · Duplicate list · Delete list. Grip tooltip: Drag to reorder | + New list |
 | No lists | Empty State | Sidebar | No lists | No lists yet. Create one to get started. | + New list |
 | No list selected | Empty State | Panel | Pick a list | Pick or create a list in the sidebar to start tracking tasks. | + New list |
 | No tasks in list | Empty State | List body | No tasks | No tasks yet. Add your first one above. | Add |
@@ -215,9 +216,9 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Goal updated / duplicated / deleted | Success | Toast | Goal saved | Goal updated. · Goal duplicated. · Goal deleted. | — |
 | Delete a goal | Helpful Alert | Modal | Delete goal? | Delete "{name}"? This can't be undone. | Delete / Cancel |
 | Goals and rewards: frequency filter | Status | Segmented control (screen readers name it) | Show goals by frequency · Show rewards by frequency | All · Daily · Weekly · Monthly · Yearly · Custom | Pick one; arrow keys move between them |
-| Goal card | Status | Card laid out like a task row: drag grip (on hover), check box, title; secondary button in the footer | Goal actions | Grip tooltip: Drag to reorder. Check box named after the goal; on a goal with landmarks it's read-only, tooltip "Completes when every landmark is done". Footer: + Landmark (screen readers and tooltip: "Add landmark"; icon only on phones) | Tick the goal, or add a landmark |
+| Goal card | Status | Card with an open header (title and badges like a reward card, menu at the top right); the whole card drags (grab cursor, no grip); footer row: secondary button at the start, primary button at the end | Goal actions | Primary button ✓ Complete, reading ✓ Done once ticked (screen readers: "Complete: {name}" / "Done: {name}", pressed state); on a goal with landmarks it's read-only, tooltip "Completes when every landmark is done". Footer: + Landmark (screen readers and tooltip: "Add landmark"; icon only on phones) | Complete the goal, or add a landmark |
 | Goal description (card) | Status | Text edited in place under the header | Goal description | Placeholder: Write a description. Saves when you leave the field; Escape puts back the saved text | Type, then click away |
-| Goal description saved | Success | Inline note in the card footer (status) | Saved | ✓ Saved (for a few seconds, right of + Landmark) | — |
+| Goal description saved | Success | Inline note in the card footer (status) | Saved | ✓ Saved (for a few seconds, right of + Landmark; Complete stays at the row's end) | — |
 | Goal dialog: description | Status | Text area (optional) | Goal description | Placeholder: Write a description | — |
 | No goals | Empty State | Grid | No goals | No goals yet. Set your first one. Small steps count too. | + New goal |
 | Completion date before start date | Error Recovery | Inline helper | Date order | The completion date needs to be on or after the start date. | Pick another date |

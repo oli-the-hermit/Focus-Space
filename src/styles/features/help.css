@@ -1,33 +1,5 @@
 /* ── Help ───────────────────────────────────────────────── */
 .help-list { display: flex; flex-direction: column; gap: var(--space-6); }
-.help-row {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--space-14);
-  padding: var(--space-12) var(--space-14);
-  border-radius: var(--radius-lg);
-  background: var(--surface-2);
-  text-align: left;
-  transition: background var(--dur-2) var(--ease-standard);
-}
-.help-row:hover { background: var(--surface-3); }
-.help-row-icon {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-md);
-  background: var(--accent-container);
-  color: var(--on-accent-container);
-}
-.help-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-.help-row-title { font-size: var(--text-md); font-weight: var(--weight-semibold); color: var(--text-1); }
-.help-row-desc { font-size: var(--text-xs); color: var(--text-2); }
-.help-row-trail { flex: none; color: var(--text-3); display: grid; place-items: center; }
-.help-row:hover .help-row-trail { color: var(--text-1); }
-
 .help-back { margin-left: calc(-1 * var(--space-6)); color: var(--text-2); font-size: var(--text-sm); font-weight: var(--weight-semibold); padding: var(--space-4) var(--space-6); border-radius: var(--radius-md); }
 .help-back:hover { color: var(--text-1); background: var(--surface-2); }
 .help-sub { display: flex; flex-direction: column; gap: var(--space-16); }

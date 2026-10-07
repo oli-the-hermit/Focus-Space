@@ -19,7 +19,6 @@
 .list-panel-collapse:hover:not(:disabled) { background: var(--surface-3); }
 .list-panel-collapse svg { transition: transform var(--transition-md); }
 .list-panel.is-collapsed .list-panel-collapse svg { transform: rotate(-90deg); }
-.list-panel-header .icon-btn:hover:not(:disabled) { background: var(--surface-3); }
 .list-panel-count { flex: none; }
 .list-panel .task-list-body { padding-left: var(--space-6); }
 

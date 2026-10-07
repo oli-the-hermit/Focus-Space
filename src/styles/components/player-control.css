@@ -1,0 +1,35 @@
+/* ── Player controls (ui/PlayerControl): round transport buttons ── */
+.player-ctrl {
+  --pc-size: 50px;
+  width: var(--pc-size);
+  height: var(--pc-size);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--surface-2);
+  color: var(--text-1);
+  transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard);
+}
+.player-ctrl:hover:not(:disabled) { background: var(--surface-3); }
+.player-ctrl:active:not(:disabled) { transform: scale(0.94); }
+.player-ctrl:disabled { color: var(--text-3); cursor: not-allowed; }
+
+/* Main player (md) */
+.player-ctrl:not(.player-ctrl--sm) { flex: none; }
+.player-ctrl--ghost { --pc-size: 44px; background: transparent; color: var(--text-2); }
+.player-ctrl--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text-1); }
+.player-ctrl--ghost.is-on { color: var(--phase-text); }
+.player-ctrl--primary { --pc-size: 76px; background: var(--phase); color: var(--on-phase); }
+.player-ctrl--primary:hover:not(:disabled) { background: var(--phase-hover); }
+
+/* Mini player (sm): its window resizes them through --player-ctrl-sm(-primary). */
+.player-ctrl--sm {
+  --pc-size: var(--player-ctrl-sm, 34px);
+  transition: background var(--transition), transform var(--dur-1) var(--ease-standard);
+}
+.player-ctrl--sm:active:not(:disabled) { transform: scale(0.92); }
+.player-ctrl--sm.player-ctrl--primary {
+  --pc-size: var(--player-ctrl-sm-primary, 42px);
+  transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard), transform var(--dur-1) var(--ease-standard);
+}
+.player-ctrl--sm.player-ctrl--primary:hover:not(:disabled) { background: var(--phase); filter: brightness(1.08); }

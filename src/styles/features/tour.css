@@ -99,7 +99,6 @@
 .tour-card.is-center .tour-footer { justify-content: flex-end; }
 .tour-actions { display: flex; gap: var(--space-8); margin-left: auto; }
 .tour-actions .btn-action { height: 38px; padding: 0 var(--space-16); }
-.tour-actions .btn-action:not(.primary) { background: var(--surface-4); }
 .tour-dots { display: flex; gap: var(--space-4); }
 .tour-dot {
   width: 6px;

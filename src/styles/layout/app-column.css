@@ -23,8 +23,6 @@
   text-overflow: ellipsis;
 }
 .top-bar-tools { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); }
-.top-bar-tools .icon-btn:hover:not(:disabled) { background: var(--surface-1); }
-.top-bar-tools .icon-btn.is-active { background: var(--accent-container); }
 
 /* The bell's dot: the most important unseen toast (see useToasts). */
 .bell-btn { position: relative; }
@@ -42,59 +40,6 @@
 .bell-dot.is-info { background: var(--accent-text); }
 .bell-dot.is-warning { background: var(--warning); }
 .bell-dot.is-error { background: var(--danger); }
-
-/* Status chip */
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  height: 36px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--surface-1);
-  flex: none;
-}
-.status-chip-main {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  height: 28px;
-  padding: 0 var(--space-10);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  color: var(--text-1);
-}
-.status-chip-main:hover { background: var(--surface-2); }
-.status-chip-time { font-variant-numeric: tabular-nums; color: var(--accent-text); font-weight: var(--weight-bold); }
-.status-chip.is-break .status-chip-time { color: var(--break-text); }
-.status-chip-action {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-round);
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.status-chip-action:hover { background: var(--accent-hover); }
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  border-radius: var(--radius-round);
-  background: var(--text-3);
-  transition: background var(--transition);
-}
-.status-dot.running { background: var(--accent); animation: dot-pulse var(--dur-pulse) ease-in-out infinite; }
-.status-dot.break { background: var(--break); animation: dot-pulse var(--dur-pulse) ease-in-out infinite; }
-.status-dot.paused { background: var(--warning); }
-
-@keyframes dot-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.45); }
-}
 
 .app-main {
   flex: 1;

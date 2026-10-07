@@ -122,7 +122,7 @@ export const strings = {
     addToList: 'Add to list'
   },
   tasks: {
-    sidebarTitle: 'Lists',
+    sidebarTitle: 'Tasks',
     newListBtn: 'New list',
     selectListPrompt: 'Pick or create a list to get started.',
     addTaskPlaceholder: 'Add a task and press Enter…',
@@ -167,6 +167,10 @@ export const strings = {
     emptyGoals: 'No goals yet. Set your first one. Small steps count too.',
     filterLabel: 'Show goals by frequency',
     completesWithLandmarks: 'Completes when every landmark is done',
+    completeBtn: 'Complete',
+    doneBtn: 'Done',
+    completeLabel: 'Complete: {name}',
+    doneLabel: 'Done: {name}',
     descriptionLabel: 'Goal description',
     descriptionPlaceholder: 'Write a description',
     descriptionSaved: 'Saved',

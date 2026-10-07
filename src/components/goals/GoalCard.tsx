@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Goal, Landmark } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
-import { IconCheck, IconCopy, IconEdit, IconFlag, IconGrip, IconPlus, IconReset, IconTrash } from '../ui/icons';
+import { IconCheck, IconCopy, IconEdit, IconFlag, IconPlus, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
 import { Menu, tidyMenuItems } from '../ui/Menu';
 import { ScheduleBadge } from './ScheduleBadge';
@@ -127,21 +127,13 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
 
   return (
     <div
-      className={cx('goal-card draggable-item', isDragging && 'dragging', isDragOver && 'drag-over')}
+      className={cx('goal-card draggable-item drag-surface', isDragging && 'dragging', isDragOver && 'drag-over')}
       data-gid={goal.id}
       onContextMenu={openGoalMenu}
       {...dragProps}
     >
-      <IconGrip title={strings.common.dragToReorder} className="drag-handle goal-grip" />
       <div className="goal-card-body">
         <div className="goal-card-header">
-          <Checkbox
-            checked={isComplete}
-            onChange={hasLandmarks ? () => {} : () => toggleGoal(goal.id)}
-            aria-label={goalName}
-            aria-disabled={hasLandmarks || undefined}
-            title={hasLandmarks ? strings.goals.completesWithLandmarks : undefined}
-          />
           <div className="goal-card-header-info">
             <div className="goal-card-title">{goalName}</div>
             <div className="goal-card-meta">
@@ -155,7 +147,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
             <ScheduleBadge startDate={goal.startDate} dueDate={goal.dueDate} completed={isComplete} />
           </div>
           <div className="goal-card-actions">
-            <Menu items={goalMenuItems} triggerClassName="icon-btn sm" />
+            <Menu items={goalMenuItems} triggerSize="sm" />
           </div>
         </div>
 
@@ -201,13 +193,13 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
                   <ScheduleBadge startDate={lm.startDate} dueDate={lm.dueDate} completed={lm.completed} compact />
                   {lmReward && <span className="landmark-reward-tag">{lmReward.emoji} {lmReward.name}</span>}
                   <div className="landmark-actions">
-                    <IconButton label={strings.common.edit} size="xs" onClick={() => handleEditLandmark(lm)}>
+                    <IconButton label={strings.common.edit} size="xs" surface={2} onClick={() => handleEditLandmark(lm)}>
                       <IconEdit size={12} />
                     </IconButton>
-                    <IconButton label={strings.common.duplicate} size="xs" onClick={() => duplicateLandmark(goal.id, lm.id)}>
+                    <IconButton label={strings.common.duplicate} size="xs" surface={2} onClick={() => duplicateLandmark(goal.id, lm.id)}>
                       <IconCopy size={12} />
                     </IconButton>
-                    <IconButton label={strings.common.delete} size="xs" tone="danger" onClick={() => handleDeleteLandmark(lm.id)}>
+                    <IconButton label={strings.common.delete} size="xs" tone="danger" surface={2} onClick={() => handleDeleteLandmark(lm.id)}>
                       <IconTrash size={12} />
                     </IconButton>
                   </div>
@@ -236,6 +228,20 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, dragProps, isDragging 
               </>
             )}
           </span>
+          {/* Reads Complete, then Done; a goal with landmarks completes on its own. */}
+          <Button
+            variant="primary"
+            size="xs"
+            className="goal-complete-btn"
+            icon={<IconCheck size={14} strokeWidth={2.6} />}
+            aria-pressed={isComplete}
+            aria-label={format(isComplete ? strings.goals.doneLabel : strings.goals.completeLabel, { name: goalName })}
+            aria-disabled={hasLandmarks || undefined}
+            title={hasLandmarks ? strings.goals.completesWithLandmarks : undefined}
+            onClick={hasLandmarks ? undefined : () => toggleGoal(goal.id)}
+          >
+            {isComplete ? strings.goals.doneBtn : strings.goals.completeBtn}
+          </Button>
         </div>
       </div>
     </div>

@@ -3,6 +3,8 @@ import { strings } from '../../constants/strings';
 import type { AlertActionId, AlertPayload } from '../../lib/notify';
 import { IconBell, IconCalendar, IconClose } from '../ui/icons';
 import { ProgressRing } from '../ui/ProgressRing';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 export interface AlertCardProps {
   payload: AlertPayload;
@@ -64,26 +66,15 @@ export const AlertCard: React.FC<AlertCardProps> = ({ payload, onAction, onDismi
       </div>
       <div className="alert-actions">
         {payload.actions.map(a => (
-          <button
-            key={a.id}
-            type="button"
-            className={`alert-btn ${a.primary ? 'is-primary' : ''}`}
-            onClick={() => onAction(a.id)}
-          >
+          <Button key={a.id} variant={a.primary ? 'primary' : 'secondary'} size="sm" surface={3} onClick={() => onAction(a.id)}>
             {a.label}
-          </button>
+          </Button>
         ))}
       </div>
-      <button
-        type="button"
-        className="alert-dismiss"
-        onClick={onDismiss}
-        aria-label={strings.alerts.dismiss}
-        title={strings.alerts.dismiss}
-      >
+      <IconButton label={strings.alerts.dismiss} surface={3} className="alert-dismiss" onClick={onDismiss}>
         <ProgressRing className="alert-ring" value={left / total} box={40} radius={17} />
         <IconClose size={14} strokeWidth={2.4} />
-      </button>
+      </IconButton>
     </div>
   );
 };

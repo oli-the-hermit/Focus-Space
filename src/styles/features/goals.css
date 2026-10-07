@@ -1,34 +1,24 @@
 /* ── Goals ──────────────────────────────────────────────── */
-/* Laid out like a task row in card form: grip, then the content, with the header
-   (check box, title, badges, menu) grouped on a sunken panel. */
+/* The header (title, badges, menu) sits open on the card, like a reward card; Complete sits
+   at the footer's end. The whole card drags to reorder (pattern: docs/patterns.md, drag-surface). */
 .goal-card {
   --goal-inset: var(--space-12);
-  /* The title's first line box: the check box, grip and menu center on it. */
-  --goal-title-line: calc(var(--text-lg) * var(--leading-snug));
+  /* The title's first line box: the menu centers on it. */
+  --goal-title-line: calc(var(--text-base) * var(--leading-snug));
   align-self: start;
   display: flex;
   align-items: flex-start;
-  gap: var(--grip-gap);
-  padding: var(--goal-inset) var(--goal-inset) var(--goal-inset) var(--grip-edge);
+  padding: var(--goal-inset);
   border-radius: var(--radius-3xl);
   background: var(--surface-1);
   --field-bg: var(--surface-2);
 }
-.goal-grip { margin-top: calc(var(--goal-inset) + (var(--goal-title-line) - var(--grip-height)) / 2); }
 .goal-card-body { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; gap: var(--space-14); }
 /* Everything under the header lines up with the header's content. */
 .goal-card-body > :not(.goal-card-header, .goal-description) { padding-inline: var(--goal-inset); }
-.goal-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-10);
-  padding: var(--goal-inset);
-  border-radius: var(--radius-2xl);
-  background: var(--surface-inset);
-}
-.goal-card-header > .checkbox { margin-top: calc((var(--goal-title-line) - var(--checkbox-size)) / 2); }
+.goal-card-header { display: flex; align-items: flex-start; gap: var(--space-10); padding: var(--goal-inset); }
 .goal-card-header-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-8); }
-.goal-card-title { font-size: var(--text-lg); font-weight: var(--weight-bold); line-height: var(--leading-snug); word-break: break-word; }
+.goal-card-title { font-size: var(--text-base); font-weight: var(--weight-bold); line-height: var(--leading-snug); word-break: break-word; }
 .goal-card-meta { display: flex; flex-wrap: wrap; gap: var(--space-6); }
 .goal-card-actions { flex: none; margin-top: calc((var(--goal-title-line) - var(--icon-button-size-sm)) / 2); }
 /* Its text lines up with the header's content; the field's own padding sits outside that line. */
@@ -97,12 +87,13 @@
 }
 .landmark-item:hover .landmark-actions,
 .landmark-item:focus-within .landmark-actions { visibility: visible; }
-.landmark-item .icon-btn.xs:hover:not(:disabled) { background: var(--surface-3); }
 .landmark-reward-tag { background: var(--surface-3); }
 
-/* Twice the card's gap above the footer; the button hugs its label, at the start. */
-.goal-card-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); margin-top: auto; padding-top: var(--space-14); }
+/* Twice the card's gap above the footer: + Landmark and the Saved note at the start, Complete
+   at the end. */
+.goal-card-footer { display: flex; align-items: center; gap: var(--space-8); margin-top: auto; padding-top: var(--space-14); }
 .goal-saved { display: inline-flex; align-items: center; gap: var(--space-4); font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--text-2); }
+.goal-card-footer .goal-complete-btn { margin-left: auto; }
 .goal-saved > * { animation: pop-in var(--dur-2) var(--ease-decel); }
 
 .schedule-badge {

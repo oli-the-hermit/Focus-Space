@@ -68,10 +68,10 @@ export const CalendarTopbar: React.FC = () => {
       <div className="cal-nav-group">
         <Button variant="tonal" id="calTodayBtn" onClick={handleToday}>{strings.calendar.todayBtn}</Button>
         <div className="cal-step-group">
-          <IconButton label={strings.calendar.prevBtn} id="calPrevBtn" onClick={handlePrev}>
+          <IconButton label={strings.calendar.prevBtn} id="calPrevBtn" surface={0} onClick={handlePrev}>
             <IconChevronLeft size={20} />
           </IconButton>
-          <IconButton label={strings.calendar.nextBtn} id="calNextBtn" onClick={handleNext}>
+          <IconButton label={strings.calendar.nextBtn} id="calNextBtn" surface={0} onClick={handleNext}>
             <IconChevronRight size={20} />
           </IconButton>
         </div>

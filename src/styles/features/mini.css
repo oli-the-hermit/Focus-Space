@@ -108,17 +108,6 @@ html.mini-root #root {
 }
 
 .mini-window-controls { display: flex; gap: var(--space-1); flex: none; }
-.mini-win-btn {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  color: var(--text-3);
-  transition: background var(--transition), color var(--transition);
-}
-.mini-win-btn:hover { background: var(--surface-2); color: var(--text-1); }
-.mini-win-btn.is-on { background: var(--accent-container); color: var(--on-accent-container); }
 
 .mini-cards { display: none; }
 
@@ -129,26 +118,6 @@ html.mini-root #root {
 .mini-time-small { font-size: var(--text-3xs); color: var(--text-3); font-variant-numeric: tabular-nums; min-width: 38px; }
 .mini-time-small:last-child { text-align: right; }
 .mini-controls { display: flex; align-items: center; gap: var(--space-8); }
-.mini-ctrl {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-round);
-  background: var(--surface-2);
-  color: var(--text-1);
-  transition: background var(--transition), transform var(--dur-1) var(--ease-standard);
-}
-.mini-ctrl:hover { background: var(--surface-3); }
-.mini-ctrl:active { transform: scale(0.92); }
-.mini-ctrl--play {
-  width: 42px;
-  height: 42px;
-  background: var(--phase);
-  color: var(--on-phase);
-  transition: background var(--dur-3) var(--ease-standard), color var(--dur-3) var(--ease-standard), transform var(--dur-1) var(--ease-standard);
-}
-.mini-ctrl--play:hover { background: var(--phase); filter: brightness(1.08); }
 
 .mini-player.is-waiting { display: flex; align-items: center; justify-content: center; }
 .mini-waiting { font-size: var(--text-sm); color: var(--text-2); }
@@ -205,9 +174,7 @@ html.mini-root #root {
   .mini-scrubber { display: none; }
   .mini-bottom { grid-area: bottom; justify-content: center; }
   .mini-time-small { display: none; }
-  .mini-controls { gap: var(--space-18); }
-  .mini-ctrl { width: 44px; height: 44px; }
-  .mini-ctrl--play { width: 60px; height: 60px; }
+  .mini-controls { gap: var(--space-18); --player-ctrl-sm: 44px; --player-ctrl-sm-primary: 60px; }
 }
 
 /* ── Large: the space above the timeline becomes tiles ── */
@@ -312,8 +279,7 @@ html.mini-root #root {
   .mini-task-confirm:hover { background: var(--danger-container); }
   .mini-task-confirm .task-text { flex-basis: 100%; color: var(--text-1); }
 
-  .mini-ctrl { width: 40px; height: 40px; }
-  .mini-ctrl--play { width: 52px; height: 52px; }
+  .mini-controls { --player-ctrl-sm: 40px; --player-ctrl-sm-primary: 52px; }
 }
 
 /* Large but short: keep one row of tiles. */

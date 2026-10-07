@@ -48,6 +48,18 @@
 .nav-rail-item.active .nav-rail-indicator { background: var(--accent); color: var(--on-accent); }
 .nav-rail-label { line-height: var(--leading-tight); }
 
+/* Collapsed (rail): icons only. Labels stay for screen readers; each icon has a tooltip. */
+.nav-rail[data-variant='rail'] .nav-rail-items { gap: var(--space-12); }
+.nav-rail[data-variant='rail'] .nav-rail-item { gap: 0; }
+.nav-rail[data-variant='rail'] .nav-rail-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .nav-badge {
   position: absolute;
   top: -3px;

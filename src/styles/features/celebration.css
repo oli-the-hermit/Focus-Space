@@ -25,12 +25,7 @@
 .celebration-emoji { font-size: var(--text-6xl); line-height: var(--leading-none); animation: celebrate var(--dur-celebrate) var(--ease-emphasized); }
 .celebration-title { font-size: var(--text-3xl); font-weight: var(--weight-heavy); }
 .celebration-desc { color: var(--on-accent-2); }
-.celebration-confirm-btn.btn-action.primary {
-  margin-top: var(--space-14);
-  background: var(--on-accent);
-  color: var(--accent);
-}
-.celebration-confirm-btn.btn-action.primary:hover:not(:disabled) { background: var(--on-accent-2); }
+.celebration-confirm-btn { margin-top: var(--space-14); }
 
 @keyframes celebrate {
   0% { transform: scale(0.4) rotate(-12deg); }
