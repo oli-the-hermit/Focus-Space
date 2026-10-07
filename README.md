@@ -137,7 +137,7 @@ The second was to learn. This is my first app built to a professional standard, 
 
 ### Made for people, by people
 
-AI did a large share of the work, but I reviewed every step, always with the person using the app in mind. The first version was built with Gemini 3.8 Flash; Claude Opus 5.5 later expanded and finished it.
+AI did a large share of the work, but I reviewed every step, always with the person using the app in mind. A first prototype started with Gemini 3.8 Flash; since then, the app has been built with Claude Opus 5.5, which writes the code and the commits, while I plan the features, design the interface and test every build before it ships.
 
 ### Your experience comes first
 
