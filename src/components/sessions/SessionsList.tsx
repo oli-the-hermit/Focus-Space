@@ -7,7 +7,7 @@ import { useContextMenu } from '../ui/ContextMenu';
 import { getTodayStr } from '../../lib/dateUtils';
 import { Button } from '../ui/Button';
 import { QueuePanel } from '../ui/QueuePanel';
-import { QueueItem } from '../ui/QueueItem';
+import { QueueItem, QueueMetaItem } from '../ui/QueueItem';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { format } from '../../lib/i18n';
 
@@ -66,18 +66,18 @@ export const SessionsList: React.FC = () => {
     const listCount = (session.taskListIds || []).filter(id => state.taskLists.some(l => l.id === id)).length;
     return (
       <>
-        <span className="queue-item-meta-item">
+        <QueueMetaItem>
           {session.focusMinutes}′ {strings.timer.focusPhase.toLowerCase()} · {session.breakMinutes}′ {strings.timer.breakPhase.toLowerCase()}
-        </span>
+        </QueueMetaItem>
         {listCount > 0 && (
-          <span className="queue-item-meta-item" title={`${listCount} ${strings.modals.taskListsLabel.toLowerCase()}`}>
+          <QueueMetaItem title={`${listCount} ${strings.modals.taskListsLabel.toLowerCase()}`}>
             <IconList size={13} /> {listCount}
-          </span>
+          </QueueMetaItem>
         )}
         {reward && (
-          <span className="queue-item-meta-item" title={reward.name}>
+          <QueueMetaItem title={reward.name}>
             <IconGift size={13} />
-          </span>
+          </QueueMetaItem>
         )}
       </>
     );

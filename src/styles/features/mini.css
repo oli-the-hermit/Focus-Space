@@ -248,7 +248,8 @@ html.mini-root #root {
   }
   .mini-task-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .mini-task-list { min-height: 0; overflow-y: auto; }
-  /* The app's add-task form, a size smaller; the list picker shows with several lists. */
+  /* Exception (sizes): the app's add-task form, a size smaller than sm (32px) to fit the mini
+     player; the list picker shows with several lists. */
   .mini-add-task { margin: var(--space-6) 0 var(--space-4); gap: var(--space-6); }
   .mini-add-task .form-input,
   .mini-add-task .select-trigger,
@@ -268,6 +269,7 @@ html.mini-root #root {
   }
   .mini-task-list .task-text { font-size: var(--text-xs); }
   .mini-task-edit { padding-left: var(--space-4); }
+  /* Exception (sizes): editing a task in place keeps the mini row's height (30px). */
   .mini-task-edit .form-input {
     height: 30px;
     padding: 0 var(--space-10);

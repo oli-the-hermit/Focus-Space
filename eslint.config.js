@@ -5,6 +5,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
+import noComponentClass from './scripts/lint/no-component-class.js';
 
 /** User-facing text belongs in src/constants/strings.ts. */
 const NO_HARDCODED_TEXT = [
@@ -24,6 +25,14 @@ const NO_HARDCODED_TEXT = [
   {
     selector: 'JSXAttribute[name.name=/^(placeholder|title|alt|aria-label|label)$/] TemplateLiteral > TemplateElement[value.raw=/[A-Za-z]{2,}/]',
     message: 'Build user-facing text with format() from lib/i18n and a template in strings.ts.'
+  }
+];
+
+/** Interactive elements come from the ui primitives (Button, IconButton, Field, Checkbox...). */
+const NO_RAW_CONTROLS = [
+  {
+    selector: 'JSXOpeningElement[name.name=/^(button|input|select|textarea)$/]',
+    message: 'Use the ui component (Button, IconButton, TextButton, Field, Checkbox, Switch, Select...) instead of a raw element.'
   }
 ];
 
@@ -48,9 +57,11 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
-    plugins: { 'react-hooks': reactHooks },
+    plugins: { 'react-hooks': reactHooks, local: { rules: { 'no-component-class': noComponentClass } } },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
+      // Pastel Studio 1.5: components stay inside components/ui (documentation/inline-audit.md).
+      'local/no-component-class': 'error',
       // Phase 8: intentional exceptions carry an eslint-disable comment saying why.
       'react-hooks/exhaustive-deps': 'error',
       // Phase 7 complete: every intentionally ignored error says why in a comment.
@@ -58,7 +69,7 @@ export default tseslint.config(
       // Off: "initialize, then assign in every branch" is intentional and readable here.
       'no-useless-assignment': 'off',
       // Phase 6 complete: user-facing text lives in constants/strings.ts.
-      'no-restricted-syntax': ['error', ...NO_HARDCODED_TEXT]
+      'no-restricted-syntax': ['error', ...NO_HARDCODED_TEXT, ...NO_RAW_CONTROLS]
     }
   },
   {
@@ -70,6 +81,9 @@ export default tseslint.config(
     // UI primitives stay app-agnostic: text comes in through props, data through the caller.
     files: ['src/components/ui/**/*.{ts,tsx}'],
     rules: {
+      // The primitives are where the classes and raw elements live.
+      'local/no-component-class': 'off',
+      'no-restricted-syntax': ['error', ...NO_HARDCODED_TEXT],
       // Phase 5 complete: UI primitives are app-agnostic.
       'no-restricted-imports': ['error', {
         patterns: [

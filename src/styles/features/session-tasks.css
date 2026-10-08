@@ -7,12 +7,12 @@
   --field-bg: var(--surface-1);
   --field-hover: var(--surface-1);
   --row-hover: var(--surface-3);
+  --progress-track: var(--surface-3);
   padding: var(--space-8) var(--space-16) var(--space-16) var(--space-10);
   border-radius: var(--radius-2xl);
   background: var(--surface-2);
 }
 .list-panel.is-collapsed { padding-bottom: var(--space-8); }
-.list-panel .progress-track { background: var(--surface-3); }
 
 .list-panel-header { display: flex; align-items: center; gap: var(--space-6); min-height: 48px; min-width: 0; }
 .list-panel-collapse { color: var(--text-2); }

@@ -98,6 +98,7 @@
 .tour-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); margin-top: var(--space-6); }
 .tour-card.is-center .tour-footer { justify-content: flex-end; }
 .tour-actions { display: flex; gap: var(--space-8); margin-left: auto; }
+/* Exception (sizes): the tour's buttons sit between sm and md (38px) to fit the small card. */
 .tour-actions .btn-action { height: 38px; padding: 0 var(--space-16); }
 .tour-dots { display: flex; gap: var(--space-4); }
 .tour-dot {

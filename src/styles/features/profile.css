@@ -52,6 +52,7 @@
 /* The signed-in profile. */
 .role-badge.is-active { background: var(--success-container); color: var(--success); }
 .rename-inline { display: flex; gap: var(--space-6); }
+/* Exception (sizes): the rename field matches the sm buttons next to it (34px). */
 .rename-inline .form-input { height: 34px; }
 
 .add-profile-form {

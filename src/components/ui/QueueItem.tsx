@@ -35,6 +35,11 @@ export interface QueueItemProps {
   onContextMenu?: (e: React.MouseEvent) => void;
 }
 
+/** One detail on a row's meta line, e.g. a length or an icon with a count. */
+export const QueueMetaItem: React.FC<{ title?: string; children: React.ReactNode }> = ({ title, children }) => (
+  <span className="queue-item-meta-item" title={title}>{children}</span>
+);
+
 /**
  * A selectable, reorderable row in a queue (sessions, task lists): the name owns the first
  * row; the tools appear on hover so they never crop it (styles: components/queue.css).

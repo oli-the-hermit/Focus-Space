@@ -46,9 +46,8 @@
 /* Exceptions (sizes): the island's actions are 36px, between sm and md. */
 .alert-actions .btn-action { height: 36px; }
 .alert-dismiss { position: relative; width: 36px; height: 36px; }
-/* Before a break, the main action takes the break color. */
-.alert-card.is-break-next .alert-actions .btn-action.primary { background: var(--break); color: var(--on-break); }
-.alert-card.is-break-next .alert-actions .btn-action.primary:hover:not(:disabled) { background: var(--break-hover); }
+/* Before a break, the main action takes the break color (through the accent tokens it reads). */
+.alert-card.is-break-next .alert-actions { --accent: var(--break); --accent-hover: var(--break-hover); --on-accent: var(--on-break); }
 .alert-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .alert-ring circle { stroke-width: 3; }
 .alert-ring .progress-ring-track { stroke: transparent; }
