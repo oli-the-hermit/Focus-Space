@@ -6,7 +6,8 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: var(--surface-3);
+  /* --popover-bg: a different fill for a popover that belongs to a tinted area. */
+  background: var(--popover-bg, var(--surface-3));
   color: var(--text-1);
   box-shadow: var(--elev-overlay);
   animation: popover-in var(--dur-2) var(--ease-emphasized);

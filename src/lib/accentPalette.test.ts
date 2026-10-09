@@ -49,6 +49,34 @@ describe('accent palette', () => {
     });
   });
 
+  it('keeps the drawer readable for every accent in both themes', () => {
+    const tokens = parseTokens(css);
+    const problems: string[] = [];
+    for (const [id, entry] of Object.entries(palette as Palette)) {
+      for (const theme of ['dark', 'light'] as const) {
+        const t = tokens[theme];
+        const tokenOf = (name: string) => entry[theme][ACCENT_TOKENS.indexOf(name as (typeof ACCENT_TOKENS)[number])];
+        for (const surface of ['--drawer-bg', '--drawer-hover', '--drawer-hover-2', '--drawer-hover-3']) {
+          // tokens.css: each is oklch(from var(--accent) L C h).
+          const m = t[surface].match(/oklch\(from var\(--accent\) ([\d.]+) ([\d.]+) h\)/);
+          if (!m) throw new Error(`${surface} (${theme}) is not in the expected form`);
+          const bg = oklchToHex({ l: Number(m[1]), c: Number(m[2]), h: hexToOklch(tokenOf('--accent')).h });
+          const check = (what: string, fg: string, min: number) => {
+            const ratio = contrast(fg, bg);
+            if (ratio < min) problems.push(`${id} (${theme}): ${what} on ${surface} ${ratio.toFixed(2)} < ${min}`);
+          };
+          // Labels, the account name and menu, and the toggle; the active item is told apart
+          // by its --on-accent icon and label on the pill (checked with the palette).
+          check('--text-1', t['--text-1'], 4.5);
+          check('--text-2', t['--text-2'], 4.5);
+          check('--accent-text', tokenOf('--accent-text'), 3);
+          check('--focus-ring', tokenOf('--focus-ring'), 3);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+  });
+
   it('tells focus and break apart', () => {
     expect(phasesDistinct('#D1DD23', '#5EC8B8')).toBe(true);
     expect(phasesDistinct('#0BDAC9', '#5EC8B8')).toBe(false);

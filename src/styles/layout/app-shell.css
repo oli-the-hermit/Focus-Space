@@ -2,10 +2,13 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: var(--drawer-width) minmax(0, 1fr);
+  /* The drawer floats with the page margin on its top, left and bottom (the column's own
+     margin is on its right). */
+  grid-template-columns: calc(var(--drawer-width) + var(--grid-margin)) minmax(0, 1fr);
   height: 100vh;
   background: var(--bg);
 }
+.app-shell > .nav-rail { margin: var(--grid-margin) 0 var(--grid-margin) var(--grid-margin); }
 /* The expanded drawer only applies from lg up; below it the rail stays. */
 @media (min-width: 1024px) {
   .app-shell:has(.nav-rail[data-variant='expanded']) { --drawer-width: var(--drawer-expanded); }

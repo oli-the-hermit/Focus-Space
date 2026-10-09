@@ -13,12 +13,13 @@
   text-align: left;
   white-space: nowrap;
 }
-.menu-item:hover:not(:disabled) { background: var(--surface-4); }
+/* --menu-hover: the item hover on a menu with a different fill (see --popover-bg). */
+.menu-item:hover:not(:disabled) { background: var(--menu-hover, var(--surface-4)); }
 .menu-item-icon { flex: none; width: 18px; display: grid; place-items: center; color: var(--text-2); }
 .menu-item.is-danger { color: var(--danger); }
 .menu-item.is-danger .menu-item-icon { color: var(--danger); }
 .menu-item.is-danger:hover:not(:disabled) { background: var(--danger-container); }
-.menu-item:focus-visible { outline: none; background: var(--surface-4); }
+.menu-item:focus-visible { outline: none; background: var(--menu-hover, var(--surface-4)); }
 .menu-item:disabled { color: var(--text-3); }
 .menu-item:disabled .menu-item-icon { color: var(--text-3); }
 .menu-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -30,5 +31,5 @@
   font-size: var(--text-2xs);
   font-variant-numeric: tabular-nums;
 }
-.menu-divider { height: 1px; margin: var(--space-6) var(--space-4); background: var(--surface-4); }
+.menu-divider { height: 1px; margin: var(--space-6) var(--space-4); background: var(--menu-hover, var(--surface-4)); }
 .context-menu { min-width: 224px; }

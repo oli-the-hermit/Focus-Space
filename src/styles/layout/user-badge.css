@@ -7,7 +7,22 @@
   border-radius: var(--radius-pill);
   transition: background var(--transition);
 }
-.user-badge-btn:hover { background: var(--surface-2); }
+.user-badge-btn:hover,
+.user-badge-btn.is-active { background: var(--drawer-hover); }
+/* Expanded: the full drawer width, the name takes the room, the chevron sits at the end. */
+.user-badge:not(.is-compact) .user-badge-btn { width: 100%; padding-right: var(--space-8); }
+.user-badge-chevron {
+  width: var(--icon-button-size-xs);
+  height: var(--icon-button-size-xs);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--text-2);
+  transition: background var(--transition), color var(--transition);
+}
+.user-badge-btn:hover .user-badge-chevron,
+.user-badge-btn.is-active .user-badge-chevron { background: var(--drawer-hover-2); color: var(--text-1); }
 .user-avatar {
   position: relative;
   width: 40px;
@@ -30,11 +45,21 @@
   height: 12px;
   border-radius: var(--radius-round);
   background: var(--accent);
-  box-shadow: 0 0 0 var(--ring-width) var(--bg);
+  box-shadow: 0 0 0 var(--ring-width) var(--drawer-bg);
 }
-.user-badge-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.user-badge-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
-.user-menu { min-width: 220px; }
+/* The account menu belongs to the drawer: its tinted steps instead of the grey overlay ones. */
+.user-menu { min-width: 220px; --popover-bg: var(--drawer-hover-2); --menu-hover: var(--drawer-hover-3); }
 .user-menu-head { display: flex; flex-direction: column; padding: var(--space-8) var(--space-12) var(--space-10); }
 .user-menu-name { font-size: var(--text-md); font-weight: var(--weight-bold); }
 .user-menu-handle { font-size: var(--text-2xs); color: var(--text-2); }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { strings } from '../../constants/strings';
 import { Menu, type MenuItem } from '../ui/Menu';
-import { IconLogOut, IconPalette, IconSettings, IconUser } from '../ui/icons';
+import { IconChevronDown, IconLogOut, IconPalette, IconSettings, IconUser } from '../ui/icons';
 import { initials } from '../../lib/formatUtils';
 import type { UserMenuView } from './UserMenuModal';
 
@@ -65,7 +65,12 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ onOpen, compact = false })
                 <span className="user-role-dot" title={strings.auth.mainAccountTooltip} />
               )}
             </span>
-            {!compact && <span className="user-badge-name">{profile.displayName}</span>}
+            {!compact && (
+              <>
+                <span className="user-badge-name">{profile.displayName}</span>
+                <span className="user-badge-chevron" aria-hidden="true"><IconChevronDown size={16} /></span>
+              </>
+            )}
           </>
         }
       />

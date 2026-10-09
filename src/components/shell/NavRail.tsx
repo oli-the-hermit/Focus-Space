@@ -7,11 +7,7 @@ import { UserMenuModal, type UserMenuView } from '../auth/UserMenuModal';
 import { IconCalendar, IconGift, IconLogo, IconStats, IconTarget, IconTasks, IconTimer } from '../ui/icons';
 import { NavigationRail, type NavigationItem } from '../ui/NavigationRail';
 import { isTauri } from '../../lib/desktop';
-import { storage } from '../../lib/storage';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
-
-/** The expanded drawer needs room; below this the rail is used (tokens.css: lg). */
-const EXPANDABLE_QUERY = '(min-width: 1024px)';
+import { useDrawer } from '../../hooks/useDrawer';
 
 const NAV_ITEMS: { tab: TabType; label: string; icon: React.ReactNode }[] = [
   { tab: 'timer', label: strings.rail.timer, icon: <IconTimer size={22} /> },
@@ -24,20 +20,13 @@ const NAV_ITEMS: { tab: TabType; label: string; icon: React.ReactNode }[] = [
 
 /**
  * The app's navigation: its pages, the rewards count, the account at the bottom. A rail
- * or, on wide windows, an expanded drawer; the choice is remembered per device.
+ * or, on wide windows, an expanded drawer (toggled from the top bar; see useDrawer).
  */
 export const NavRail: React.FC = () => {
   const { activeTab, setActiveTab, state } = useApp();
   const [menuView, setMenuView] = useState<UserMenuView | null>(null);
   const readyRewardsCount = state.rewards.filter(r => r.status === 'ready').length;
-  const [wantExpanded, setWantExpanded] = useState(() => storage.get('drawer') === 'expanded');
-  const canExpand = useMediaQuery(EXPANDABLE_QUERY);
-  const expanded = wantExpanded && canExpand;
-  const toggleDrawer = () => {
-    const next = !wantExpanded;
-    setWantExpanded(next);
-    storage.set('drawer', next ? 'expanded' : 'rail');
-  };
+  const { expanded, canExpand, toggle } = useDrawer();
 
   const items: NavigationItem[] = NAV_ITEMS.map(item => ({
     key: item.tab,
@@ -58,12 +47,13 @@ export const NavRail: React.FC = () => {
       onSelect={key => setActiveTab(key as TabType)}
       variant={expanded ? 'expanded' : 'rail'}
       brand={{
-        mark: <IconLogo size={22} />,
+        mark: <IconLogo size={16} />,
         name: strings.app.title,
         // Tauri only honours the attribute on the element actually pressed.
         attrs: isTauri() ? { 'data-tauri-drag-region': true } : undefined
       }}
-      toggle={canExpand ? { expandLabel: strings.rail.expand, collapseLabel: strings.rail.collapse, onToggle: toggleDrawer } : undefined}
+      // Only where the drawer has room to expand (lg and up).
+      toggle={canExpand ? { expandLabel: strings.rail.expand, collapseLabel: strings.rail.collapse, onToggle: toggle } : undefined}
       footer={<UserBadge compact={!expanded} onOpen={setMenuView} />}
     >
       <UserMenuModal view={menuView} onClose={() => setMenuView(null)} />

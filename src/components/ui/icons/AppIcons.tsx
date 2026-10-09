@@ -446,6 +446,14 @@ export const IconCopy: React.FC<IconProps> = ({ size = 13, ...p }) => (
   </StrokeIcon>
 );
 
+/** A window with a side panel: shows or hides the navigation drawer. */
+export const IconSidebar: React.FC<IconProps> = p => (
+  <StrokeIcon {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+    <line x1="9.5" y1="4" x2="9.5" y2="20" />
+  </StrokeIcon>
+);
+
 export const IconChevronDown: React.FC<IconProps> = ({ size = 16, strokeWidth = 2.2, ...p }) => (
   <StrokeIcon size={size} strokeWidth={strokeWidth} {...p}>
     <polyline points="6 9 12 15 18 9" />

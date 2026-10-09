@@ -1,27 +1,35 @@
 /* ── Navigation rail ────────────────────────────────────── */
+/* A floating panel: its height comes from where it's placed (the shell stretches it). */
 .nav-rail {
-  height: 100vh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-24);
-  padding: var(--space-18) 0 var(--space-16);
-  background: var(--bg);
+  padding: var(--space-24) 0 var(--space-16);
+  border-radius: var(--radius-3xl);
+  background: var(--drawer-bg);
   overflow-y: auto;
 }
 
 .nav-rail-brand {
-  width: 46px;
-  height: 46px;
+  width: var(--icon-button-size-sm);
+  height: var(--icon-button-size-sm);
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: var(--accent);
   color: var(--on-accent);
+  transition: background var(--transition);
 }
+.nav-rail-brand.is-toggle:hover { background: var(--accent-hover); }
+/* Expanded, the toggle drops the tile: a lime icon like the player's volume button. */
+.nav-rail[data-variant='expanded'] .nav-rail-brand.is-toggle { border-radius: var(--radius-round); background: transparent; color: var(--accent-text); }
+.nav-rail[data-variant='expanded'] .nav-rail-brand.is-toggle:hover { background: var(--drawer-hover); }
 
-.nav-rail-items { display: flex; flex-direction: column; gap: var(--space-10); }
+/* Centered between the brand and the footer; the rail's gap keeps them apart on short windows. */
+.nav-rail-items { display: flex; flex-direction: column; gap: var(--space-10); margin-block: auto; }
 
 .nav-rail-item {
   width: 76px;
@@ -34,16 +42,17 @@
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
 }
+/* In the rail each icon sits in a circle, like the other icon buttons; expanded, the row is the pill. */
 .nav-rail-indicator {
   position: relative;
-  width: 58px;
-  height: 34px;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
   display: grid;
   place-items: center;
   border-radius: var(--radius-pill);
   transition: background var(--transition), color var(--transition);
 }
-.nav-rail-item:hover .nav-rail-indicator { background: var(--surface-2); color: var(--text-1); }
+.nav-rail-item:hover .nav-rail-indicator { background: var(--drawer-hover); color: var(--text-1); }
 .nav-rail-item.active { color: var(--text-1); }
 .nav-rail-item.active .nav-rail-indicator { background: var(--accent); color: var(--on-accent); }
 .nav-rail-label { line-height: var(--leading-tight); }
@@ -74,21 +83,18 @@
   color: var(--on-live);
   font-size: var(--text-3xs);
   font-weight: var(--weight-heavy);
-  box-shadow: 0 0 0 var(--ring-width) var(--bg);
+  box-shadow: 0 0 0 var(--ring-width) var(--drawer-bg);
 }
 
-.nav-rail-footer { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: var(--space-8); }
-.nav-rail-head { display: flex; align-items: center; gap: var(--space-12); }
-.nav-rail-toggle { color: var(--text-3); }
+.nav-rail-footer { display: flex; flex-direction: column; align-items: center; gap: var(--space-8); }
+/* Expanded, the head lines up like a card's (e.g. Now playing): the overline and the mark sit
+   at the edges, the card padding (24px) from the drawer's sides. */
+.nav-rail-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); }
+.nav-rail[data-variant='expanded'] .nav-rail-head { padding-inline: calc(var(--space-24) - var(--space-16)); }
 
 /* ── Expanded drawer: labels beside the icons (lg and up) ── */
 .nav-rail[data-variant='expanded'] { align-items: stretch; padding-inline: var(--space-16); }
-.nav-rail[data-variant='expanded'] .nav-rail-brand-name {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  white-space: nowrap;
-  user-select: none;
-}
+.nav-rail-brand-name { white-space: nowrap; user-select: none; }
 .nav-rail[data-variant='expanded'] .nav-rail-item {
   position: relative;
   width: auto;
@@ -102,13 +108,12 @@
 }
 /* The row is the pill now: the indicator only places the icon (and the badge). */
 .nav-rail[data-variant='expanded'] .nav-rail-indicator { position: static; width: auto; height: auto; }
-.nav-rail[data-variant='expanded'] .nav-rail-item:hover { background: var(--surface-2); color: var(--text-1); }
+.nav-rail[data-variant='expanded'] .nav-rail-item:hover { background: var(--drawer-hover); color: var(--text-1); }
 .nav-rail[data-variant='expanded'] .nav-rail-item:hover .nav-rail-indicator { background: transparent; }
 .nav-rail[data-variant='expanded'] .nav-rail-item.active { color: var(--on-accent); }
 .nav-rail[data-variant='expanded'] .nav-rail-label { position: relative; z-index: 1; }
 .nav-rail[data-variant='expanded'] .nav-badge { top: 50%; right: var(--space-12); transform: translateY(-50%); }
-.nav-rail[data-variant='expanded'] .nav-rail-footer { flex-direction: row; justify-content: space-between; }
-.nav-rail[data-variant='expanded'] .nav-rail-toggle { order: 1; }
+.nav-rail[data-variant='expanded'] .nav-rail-footer { align-items: stretch; }
 
 /* ── Nav rail: the active pill is its own layer ─────────── */
 .nav-rail-item.active .nav-rail-indicator { background: transparent; }

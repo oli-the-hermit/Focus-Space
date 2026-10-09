@@ -198,7 +198,7 @@ The single reference for every user-facing message in Focus Space: what the app 
 | Right-click on the player | Status | Context menu | Actions | Start timer / Pause timer · Reset timer · Skip to break / Skip to focus · Turn sound on / off · Open mini player · Edit session | — |
 | Right-click on an item | Status | Context menu | Actions | The item's own actions, e.g. Start session · Edit · Duplicate · Delete, or Mark as complete / Mark as not done | — |
 | Desktop title bar | Status | Window buttons | Window | Minimize · Maximize / Restore · Close | — |
-| Navigation drawer toggle (windows 1024px and wider) | Status | Icon button with tooltip, above the account | Menu width | Expand menu (labels beside the icons) · Collapse menu (back to the rail). Remembered on this device | Click to switch |
+| Navigation drawer toggle (windows 1024px and wider) | Status | The logo tile at the top of the drawer is the button (tooltip): the clock in the rail, a side-panel icon when expanded, with the overline FOCUS SPACE at the start. On narrower windows the tile is only the logo | Menu width | Expand menu (labels beside the icons) · Collapse menu (back to the rail). Remembered on this device | Click to switch |
 | Profile form edited | Status | Footer button | Discard changes | Discard changes (shown only after an edit) | Save changes |
 | Form edited (any other form modal) | Status | Footer button | Cancel | Cancel (shown only after an edit; the X closes an untouched form) | Primary action |
 

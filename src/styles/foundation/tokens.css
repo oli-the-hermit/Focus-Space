@@ -25,6 +25,15 @@
   --surface-4:        #31343A;
   /* A panel sunk one small step into a surface-1 card, to group its content. */
   --surface-inset:    #121417;
+  /* The navigation drawer: a step darker than the page, tinted with the accent's hue (a dark
+     lime for Solar Lime), so it reads as fixed apart from the movable panels. Follows every
+     accent preset; lib/accentPalette.test.ts checks the text on it for all of them. */
+  --drawer-bg:        oklch(from var(--accent) 0.145 0.014 h);
+  /* The surface-2, -3 and -4 steps in the drawer's tint: its hovers, and the account menu
+     opened from it (fill and item hover). */
+  --drawer-hover:     oklch(from var(--accent) 0.243 0.018 h);
+  --drawer-hover-2:   oklch(from var(--accent) 0.284 0.02 h);
+  --drawer-hover-3:   oklch(from var(--accent) 0.324 0.022 h);
 
   /* ── Color: text ── */
   --text-1:           #F1F2EC;
@@ -195,6 +204,10 @@
   --surface-3:        #E7E9E1;
   --surface-4:        #DADDD3;
   --surface-inset:    #F8F9F5;
+  --drawer-bg:        oklch(from var(--accent) 0.92 0.02 h);
+  --drawer-hover:     oklch(from var(--accent) 0.965 0.02 h);
+  --drawer-hover-2:   oklch(from var(--accent) 0.93 0.025 h);
+  --drawer-hover-3:   oklch(from var(--accent) 0.892 0.028 h);
 
   --text-1:           #1A1C17;
   --text-2:           #50544A;

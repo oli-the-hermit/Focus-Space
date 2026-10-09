@@ -1,7 +1,6 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
-import { IconButton } from './IconButton';
-import { IconChevronLeft, IconChevronRight } from './icons';
+import { IconSidebar } from './icons';
 
 export interface NavigationItem {
   key: string;
@@ -20,9 +19,12 @@ export interface NavigationRailProps {
   onSelect: (key: string) => void;
   /** `rail`: icons over small labels. `expanded`: labels beside the icons. */
   variant?: 'rail' | 'expanded';
-  /** The brand mark at the top; its name shows beside it when expanded. */
+  /** The brand mark at the top; its name shows as an overline when expanded. */
   brand: { mark: React.ReactNode; name: string; attrs?: Record<string, unknown> };
-  /** Shows the expand/collapse button above the footer. */
+  /**
+   * Makes the brand mark the expand/collapse button: it shows the mark in the rail and a
+   * side-panel icon when expanded. Without it the mark is only a logo.
+   */
   toggle?: { expandLabel: string; collapseLabel: string; onToggle: () => void };
   /** Pinned to the bottom, e.g. the account. */
   footer?: React.ReactNode;
@@ -32,8 +34,8 @@ export interface NavigationRailProps {
 }
 
 /**
- * Material 3 navigation rail / drawer (styles: components/nav-rail.css). Each item
- * carries data-tab={key}. The active pill is its own element, named for a view
+ * Material 3 navigation rail / drawer (styles: components/nav-rail.css). The items sit
+ * centered between the brand and the footer; each carries data-tab={key}. The active pill is its own element, named for a view
  * transition, so page changes can slide it between items.
  */
 export const NavigationRail: React.FC<NavigationRailProps> = ({
@@ -51,11 +53,25 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   const expanded = variant === 'expanded';
   return (
     <nav className="nav-rail" data-variant={variant} aria-label={ariaLabel} data-tour={dataTour}>
+      {/* Expanded: the name as an overline at the start, the mark at the end (like a card's head). */}
       <div className="nav-rail-head">
-        <div className="nav-rail-brand" title={brand.name} {...brand.attrs}>
-          {brand.mark}
-        </div>
-        {expanded && <span className="nav-rail-brand-name" aria-hidden="true">{brand.name}</span>}
+        {expanded && <span className="overline nav-rail-brand-name" aria-hidden="true" {...brand.attrs}>{brand.name}</span>}
+        {toggle ? (
+          <button
+            type="button"
+            className="nav-rail-brand is-toggle"
+            aria-label={expanded ? toggle.collapseLabel : toggle.expandLabel}
+            title={expanded ? toggle.collapseLabel : toggle.expandLabel}
+            aria-expanded={expanded}
+            onClick={toggle.onToggle}
+          >
+            {expanded ? <IconSidebar size={16} /> : brand.mark}
+          </button>
+        ) : (
+          <div className="nav-rail-brand" title={brand.name} {...brand.attrs}>
+            {brand.mark}
+          </div>
+        )}
       </div>
 
       <div className="nav-rail-items">
@@ -86,18 +102,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         })}
       </div>
 
-      <div className="nav-rail-footer">
-        {toggle && (
-          <IconButton
-            label={expanded ? toggle.collapseLabel : toggle.expandLabel}
-            className="nav-rail-toggle"
-            onClick={toggle.onToggle}
-          >
-            {expanded ? <IconChevronLeft size={18} /> : <IconChevronRight size={18} />}
-          </IconButton>
-        )}
-        {footer}
-      </div>
+      <div className="nav-rail-footer">{footer}</div>
 
       {children}
     </nav>
