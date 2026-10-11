@@ -5,6 +5,7 @@ import { Task, TaskList } from '../../types';
 import { strings } from '../../constants/strings';
 import { IconCheck, IconCopy, IconEdit, IconPlus, IconReset, IconTrash } from '../ui/icons';
 import { useContextMenu } from '../ui/ContextMenu';
+import type { MenuItem } from '../ui/Menu';
 import { useFlip, useNewIds } from '../../hooks/useListMotion';
 import { isDragLeavingElement } from '../../lib/dnd';
 import { Button } from '../ui/Button';
@@ -46,6 +47,8 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
   };
 
   const handleDragOver = (e: React.DragEvent, id: string) => {
+    // Only this list's own task drags (not a list panel or a file passing over).
+    if (!draggedId) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (dragOverId !== id) setDragOverId(id);
@@ -80,9 +83,10 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
     });
   };
 
-  const openTaskMenu = (e: React.MouseEvent, task: Task) => {
+  // A task's ⋮ menu and its right-click menu.
+  const taskMenuItems = (task: Task): MenuItem[] => {
     const cm = strings.actions;
-    contextMenu(e, [
+    return [
       task.completed
         ? { key: 'undo', label: cm.markNotDone, icon: <IconReset size={15} />, onSelect: () => toggleTask(list.id, task.id, false) }
         : { key: 'done', label: strings.common.markComplete, icon: <IconCheck size={15} />, onSelect: () => toggleTask(list.id, task.id, true) },
@@ -90,7 +94,7 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
       { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => duplicateTask(list.id, task.id) },
       { key: 'd1', divider: true },
       { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => handleDeleteTask(list.id, task) }
-    ]);
+    ];
   };
 
   return (
@@ -129,9 +133,8 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
               task={task}
               listId={list.id}
               onToggle={toggleTask}
-              onRename={handleRenameTask}
-              onDuplicate={duplicateTask}
-              onDelete={handleDeleteTask}
+              menuItems={taskMenuItems(task)}
+              onContextMenu={contextMenu}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -139,7 +142,6 @@ export const TaskListBody: React.FC<TaskListBodyProps> = ({ list }) => {
               isDragging={draggedId === task.id}
               isDragOver={dragOverId === task.id && draggedId !== task.id}
               isNew={newIds.has(task.id)}
-              onContextMenu={openTaskMenu}
             />
           ))
         )}

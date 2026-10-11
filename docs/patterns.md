@@ -10,7 +10,7 @@ two presentations, chosen by what a click on the item does:
 
 | Item | A click… | Shows | Cursor | Examples |
 |---|---|---|---|---|
-| **Row** | selects or opens it | a grip (⋮⋮) at its left edge, visible on hover and focus | pointer over the row, grab over the grip, grabbing while held | sessions, task lists, tasks |
+| **Row** | selects or opens it | a grip (⋮⋮) at its left edge, always visible (`--grip-color`, darker than the row) | pointer over the row, grab over the grip, grabbing while held | sessions, task lists, tasks, the session's list panels (grip in the header) |
 | **Card** | does nothing by itself (its controls act) | no grip, so the card keeps even padding | grab over the card's free area, grabbing while held | goals, calendar events |
 
 - The pointer always wins over the hand: buttons, check boxes and text fields inside a card keep
@@ -20,8 +20,15 @@ two presentations, chosen by what a click on the item does:
 - The new order saves with the profile; nothing else changes (no toast).
 - Classes: rows use `draggable-item` + `ui/QueueItem` (or a `drag-handle` grip); cards use
   `draggable-item drag-surface`.
+- A container that holds another draggable list (a session's list panel holds task rows)
+  drags from its header's free area; its grip stays hidden until that area is hovered or the
+  container is held, then shows beside it, centered on the whole block. It and each list only reacts to its own drags
+  (`hooks/useDragReorder` ignores drags it didn't start).
 
-## Tools that appear on hover
+## Row tools
+
+Task rows (and goal cards) put their tools in a ⋮ menu at the end, always visible, with the same
+items as the right-click menu (one list, `ui/Menu`). Other rows still show their tools on hover:
 
 Row tools (edit, duplicate, delete) show on hover and on keyboard focus. When a row has a details
 line they sit on it; otherwise they float over the row's end on the row's own hover color, so they

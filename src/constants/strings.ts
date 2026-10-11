@@ -105,6 +105,13 @@ export const strings = {
     collapseList: 'Collapse list',
     expandList: 'Expand list',
     moreListActions: 'List actions',
+    sessionOverline: 'Session',
+    listOverline: 'Task list',
+    moreSessionActions: 'Session actions',
+    collapseAll: 'Collapse all lists',
+    expandAll: 'Expand all lists',
+    openInTasks: 'Open in Tasks',
+    recentLists: 'Recently opened',
     remainingAria: '{time} remaining'
   },
   mini: {
@@ -138,7 +145,8 @@ export const strings = {
     emptyListPrompt: 'Pick or create a list in the sidebar to start tracking tasks.',
     emptyTasks: 'No tasks yet. Add your first one above.',
     tasksLeft: '{count} left',
-    completionTimeTooltip: 'Completion time'
+    completionTimeTooltip: 'Completion time',
+    moreTaskActions: 'Task actions'
   },
   calendar: {
     prevBtn: 'Previous',

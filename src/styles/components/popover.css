@@ -5,7 +5,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  /* --popover-radius: rounder corners for a popover with pill-shaped content. */
+  border-radius: var(--popover-radius, var(--radius-lg));
   /* --popover-bg: a different fill for a popover that belongs to a tinted area. */
   background: var(--popover-bg, var(--surface-3));
   color: var(--text-1);

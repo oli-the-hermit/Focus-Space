@@ -2,17 +2,18 @@ import React from 'react';
 import { Task } from '../../types';
 import { formatDuration } from '../../lib/formatUtils';
 import { strings } from '../../constants/strings';
-import { IconEdit, IconCopy, IconTrash, IconGrip } from '../ui/icons';
-import { IconButton } from '../ui/IconButton';
+import { IconGrip } from '../ui/icons';
 import { Checkbox } from '../ui/Checkbox';
+import { Menu, type MenuItem } from '../ui/Menu';
 
 export interface TaskItemProps {
   task: Task;
   listId: string;
   onToggle: (listId: string, taskId: string, checked: boolean) => void;
-  onRename: (listId: string, task: Task) => void;
-  onDuplicate: (listId: string, taskId: string) => void;
-  onDelete: (listId: string, task: Task) => void;
+  /** The row's actions: its ⋮ button and a right-click show the same list. */
+  menuItems: MenuItem[];
+  /** Opens a right-click menu (the main window and the mini player each have their own). */
+  onContextMenu: (e: React.MouseEvent, items: MenuItem[]) => void;
   onDragStart: (e: React.DragEvent, id: string) => void;
   onDragOver: (e: React.DragEvent, id: string) => void;
   onDragLeave: (e: React.DragEvent) => void;
@@ -21,24 +22,22 @@ export interface TaskItemProps {
   isDragOver: boolean;
   /** Just added: plays the enter animation. */
   isNew?: boolean;
-  onContextMenu?: (e: React.MouseEvent, task: Task) => void;
 }
 
+/** A task: grip, check box, name, the completion time when it has one, and its ⋮ menu. */
 export const TaskItem: React.FC<TaskItemProps> = ({
   task,
   listId,
   onToggle,
-  onRename,
-  onDuplicate,
-  onDelete,
+  menuItems,
+  onContextMenu,
   onDragStart,
   onDragOver,
   onDragLeave,
   onDrop,
   isDragging,
   isDragOver,
-  isNew,
-  onContextMenu
+  isNew
 }) => {
   return (
     <div
@@ -46,7 +45,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       draggable={true}
       data-tid={task.id}
       data-id={task.id}
-      onContextMenu={onContextMenu ? e => onContextMenu(e, task) : undefined}
+      onContextMenu={e => onContextMenu(e, menuItems)}
       onDragStart={e => onDragStart(e, task.id)}
       onDragOver={e => onDragOver(e, task.id)}
       onDragLeave={onDragLeave}
@@ -66,33 +65,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         </span>
       ) : null}
 
-      <div className="task-row-actions">
-        <IconButton
-          label={strings.common.rename}
-          size="xs"
-          surface={3}
-          onClick={() => onRename(listId, task)}
-        >
-          <IconEdit size={12} />
-        </IconButton>
-        <IconButton
-          label={strings.common.duplicate}
-          size="xs"
-          surface={3}
-          onClick={() => onDuplicate(listId, task.id)}
-        >
-          <IconCopy size={12} />
-        </IconButton>
-        <IconButton
-          label={strings.common.delete}
-          size="xs"
-          surface={3}
-          tone="danger"
-          onClick={() => onDelete(listId, task)}
-        >
-          <IconTrash size={12} />
-        </IconButton>
-      </div>
+      <Menu ariaLabel={strings.tasks.moreTaskActions} items={menuItems} triggerSize="sm" triggerSurface={3} />
     </div>
   );
 };

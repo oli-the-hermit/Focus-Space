@@ -1,7 +1,8 @@
 /* ── Task list body & rows (shared with Tasks tab) ──────── */
-.task-list-body { display: flex; flex-direction: column; }
+/* Blocks (progress, add field, rows) spaced like the player card's. */
+.task-list-body { display: flex; flex-direction: column; gap: var(--space-20); }
 
-.list-progress { display: flex; flex-direction: column; gap: var(--space-8); margin: var(--space-4) 0 var(--space-2); }
+.list-progress { display: flex; flex-direction: column; gap: var(--space-8); }
 .list-progress-row {
   display: flex;
   justify-content: space-between;
@@ -11,12 +12,12 @@
 }
 .list-progress-pct { color: var(--accent-text); font-weight: var(--weight-bold); }
 
-.add-task-form { display: flex; gap: var(--space-8); margin: var(--space-14) 0 var(--space-8); }
+.add-task-form { display: flex; gap: var(--space-8); }
 .add-task-form .form-input { flex: 1; }
 /* Exception (sizes): the Add button takes the field's height and corner (44px, md radius). */
 .add-task-form .btn-action { height: 44px; border-radius: var(--radius-md); }
 
-.task-list-items { display: flex; flex-direction: column; gap: var(--space-2); }
+.task-list-items { display: flex; flex-direction: column; gap: var(--space-6); }
 
 .task-row {
   display: flex;
@@ -25,6 +26,7 @@
   min-height: 48px;
   padding: var(--space-8) var(--space-8) var(--space-8) var(--grip-edge);
   border-radius: var(--radius-md);
+  background: var(--row-bg);
   transition: background var(--transition);
 }
 .task-row:hover,
@@ -44,8 +46,3 @@
   font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
 }
-/* Takes no space until the row is hovered, so the time badge sits at the right edge
-   and slides left while the actions show. */
-.task-row-actions { display: none; gap: var(--space-2); flex: none; }
-.task-row:hover .task-row-actions,
-.task-row:focus-within .task-row-actions { display: flex; }

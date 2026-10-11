@@ -247,7 +247,8 @@ html.mini-root #root {
     --field-hover: var(--surface-1);
   }
   .mini-task-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  .mini-task-list { min-height: 0; overflow-y: auto; }
+  /* Rows sit on the tile (surface 2): their container is a step darker than that. */
+  .mini-task-list { min-height: 0; overflow-y: auto; --row-bg: color-mix(in oklab, var(--surface-2) 50%, var(--bg)); }
   /* Exception (sizes): the app's add-task form, a size smaller than sm (32px) to fit the mini
      player; the list picker shows with several lists. */
   .mini-add-task { margin: var(--space-6) 0 var(--space-4); gap: var(--space-6); }

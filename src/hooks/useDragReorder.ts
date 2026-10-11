@@ -34,6 +34,9 @@ export function useDragReorder(onReorder: (sourceId: string, targetId: string) =
       e.dataTransfer.setData('text/plain', id);
     },
     onDragOver: e => {
+      // Only this list's own drags: not a nested list's items (task rows inside a
+      // list panel) or a file passing over.
+      if (!draggedId) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (dragOverId !== id) setDragOverId(id);

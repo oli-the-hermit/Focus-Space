@@ -68,9 +68,10 @@ export const MiniTaskList: React.FC<MiniTaskListProps> = ({ tasks, lists, onComm
     setEditing(null);
   };
 
-  const openTaskMenu = (e: React.MouseEvent, t: SnapshotTask) => {
+  // A task's ⋮ menu and its right-click menu.
+  const taskMenuItems = (t: SnapshotTask): MenuItem[] => {
     const cm = strings.actions;
-    openMenu(e, [
+    return [
       t.done
         ? { key: 'undo', label: cm.markNotDone, icon: <IconReset size={15} />, onSelect: () => onCommand({ type: 'toggle-task', listId: t.listId, taskId: t.taskId, checked: false }) }
         : { key: 'done', label: strings.common.markComplete, icon: <IconCheck size={15} />, onSelect: () => onCommand({ type: 'toggle-task', listId: t.listId, taskId: t.taskId, checked: true }) },
@@ -78,7 +79,7 @@ export const MiniTaskList: React.FC<MiniTaskListProps> = ({ tasks, lists, onComm
       { key: 'dup', label: strings.common.duplicate, icon: <IconCopy size={15} />, onSelect: () => onCommand({ type: 'duplicate-task', listId: t.listId, taskId: t.taskId }) },
       { key: 'd1', divider: true },
       { key: 'delete', label: strings.common.delete, icon: <IconTrash size={15} />, danger: true, onSelect: () => setConfirming(key(t)) }
-    ]);
+    ];
   };
 
   const renderTask = (t: SnapshotTask) => {
@@ -127,12 +128,8 @@ export const MiniTaskList: React.FC<MiniTaskListProps> = ({ tasks, lists, onComm
         task={asTask(t)}
         listId={t.listId}
         onToggle={(listId, taskId, checked) => onCommand({ type: 'toggle-task', listId, taskId, checked })}
-        onRename={() => startRename(t)}
-        onDuplicate={(listId, taskId) => onCommand({ type: 'duplicate-task', listId, taskId })}
-        onDelete={() => {
-          setEditing(null);
-          setConfirming(k);
-        }}
+        menuItems={taskMenuItems(t)}
+        onContextMenu={openMenu}
         onDragStart={(e, id) => {
           setDragged(find(t.listId, id) ?? null);
           e.dataTransfer.effectAllowed = 'move';
@@ -159,7 +156,6 @@ export const MiniTaskList: React.FC<MiniTaskListProps> = ({ tasks, lists, onComm
         }}
         isDragging={!!dragged && key(dragged) === k}
         isDragOver={dragOver === k && !!dragged && key(dragged) !== k}
-        onContextMenu={e => openTaskMenu(e, t)}
       />
     );
   };

@@ -6,6 +6,7 @@ import { formatDuration } from '../../lib/formatUtils';
 import { format } from '../../lib/i18n';
 import { uid } from '../../lib/id';
 import { moveById } from '../../lib/reorder';
+import { pushRecentList } from '../../lib/recentLists';
 import { Task, TaskList } from '../../types';
 
 export function createListActions({ setState, showToast, stateRef }: Pick<ActionDeps, 'setState' | 'showToast' | 'stateRef'>) {
@@ -28,7 +29,10 @@ export function createListActions({ setState, showToast, stateRef }: Pick<Action
     });
   };
 
-  const setActiveList = (id: string) => setState(prev => ({ ...prev, activeListId: id }));
+  const setActiveList = (id: string) => {
+    pushRecentList(id);
+    setState(prev => ({ ...prev, activeListId: id }));
+  };
 
   const createList = (name: string, options: { activate?: boolean } = {}): string => {
     const { activate = true } = options;

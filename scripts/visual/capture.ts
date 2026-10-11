@@ -531,14 +531,14 @@ async function main() {
         await pip.locator('.mini-task-edit input').press('Enter');
         await settle(live, 300);
         const renamed = await inApp();
-        // Duplicate with the row's hover action; the copy lands right below.
-        await row(1).hover();
-        await row(1).getByRole('button', { name: strings.common.duplicate }).click();
+        // Duplicate from the row's ⋮ menu (it opens inside the mini window); the copy lands right below.
+        await row(1).getByRole('button', { name: strings.tasks.moreTaskActions }).click();
+        await pip.getByRole('menuitem', { name: strings.common.duplicate }).click();
         await settle(live, 300);
         const duplicated = await inApp();
         // Delete the copy, confirming inline.
-        await row(2).hover();
-        await row(2).getByRole('button', { name: strings.common.delete }).click();
+        await row(2).getByRole('button', { name: strings.tasks.moreTaskActions }).click();
+        await pip.getByRole('menuitem', { name: strings.common.delete }).click();
         await pip.locator('.mini-task-confirm').getByRole('button', { name: strings.common.delete, exact: true }).click();
         await settle(live, 300);
         const deleted = await inApp();

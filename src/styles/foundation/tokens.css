@@ -25,6 +25,8 @@
   --surface-4:        #31343A;
   /* A panel sunk one small step into a surface-1 card, to group its content. */
   --surface-inset:    #121417;
+  /* Drag grips: darker than the rows they sit on, so they read apart from check boxes. */
+  --grip-color:       color-mix(in oklab, var(--bg) 55%, #000);
   /* The navigation drawer: a step darker than the page, tinted with the accent's hue (a dark
      lime for Solar Lime), so it reads as fixed apart from the movable panels. Follows every
      accent preset; lib/accentPalette.test.ts checks the text on it for all of them. */
@@ -73,6 +75,8 @@
   --field-bg:         var(--surface-2);
   --field-hover:      var(--surface-3);
   --row-hover:        var(--surface-2);
+  /* A row's own container: a subtle step darker than the card it sits on (surface 1). */
+  --row-bg:           color-mix(in oklab, var(--surface-1) 50%, var(--bg));
 
   /* ── Type ──
      rem is relative to --text-root (15px), so 1rem = 15px. */
@@ -204,6 +208,7 @@
   --surface-3:        #E7E9E1;
   --surface-4:        #DADDD3;
   --surface-inset:    #F8F9F5;
+  --grip-color:       var(--surface-4);
   --drawer-bg:        oklch(from var(--accent) 0.92 0.02 h);
   --drawer-hover:     oklch(from var(--accent) 0.965 0.02 h);
   --drawer-hover-2:   oklch(from var(--accent) 0.93 0.025 h);

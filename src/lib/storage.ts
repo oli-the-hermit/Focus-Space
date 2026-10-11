@@ -23,7 +23,9 @@ export const STORAGE_KEYS = {
   /** 'off' when the user turned off update notices (Settings > Updates). Per device. */
   updateNotify: 'focusspace_update_notify',
   /** 'expanded' when the navigation drawer shows labels beside the icons; else the rail. Per device. */
-  drawer: 'focusspace_drawer'
+  drawer: 'focusspace_drawer',
+  /** Task lists opened on this device, newest first (the list pickers' Recently opened). */
+  recentLists: 'focusspace_recent_lists'
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;

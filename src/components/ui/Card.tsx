@@ -15,6 +15,8 @@ export interface CardHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   titleTooltip?: string;
   /** Small uppercase line above the title. */
   overline?: React.ReactNode;
+  /** Right after the title, on its line (e.g. a count chip). */
+  titleAddon?: React.ReactNode;
   /** Chips or meta shown under the title. */
   subtitle?: React.ReactNode;
   /** Icon buttons on the right, grouped tightly. */
@@ -24,11 +26,18 @@ export interface CardHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 }
 
 /** Large card header: title (with optional overline and subtitle row) and trailing actions. */
-export const CardHeader: React.FC<CardHeaderProps> = ({ title, titleTooltip, overline, subtitle, actions, aside, className, ...rest }) => (
+export const CardHeader: React.FC<CardHeaderProps> = ({ title, titleTooltip, overline, titleAddon, subtitle, actions, aside, className, ...rest }) => (
   <div className={cx('card-header', className)} {...rest}>
     <div className="card-header-main">
       {overline && <span className="overline">{overline}</span>}
-      <h2 className="card-title" title={titleTooltip}>{title}</h2>
+      {titleAddon ? (
+        <div className="card-title-row">
+          <h2 className="card-title" title={titleTooltip}>{title}</h2>
+          {titleAddon}
+        </div>
+      ) : (
+        <h2 className="card-title" title={titleTooltip}>{title}</h2>
+      )}
       {subtitle && <div className="card-subtitle-row">{subtitle}</div>}
     </div>
     {aside}

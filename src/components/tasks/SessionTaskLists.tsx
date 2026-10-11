@@ -3,18 +3,22 @@ import { useApp } from '../../context/AppContext';
 import { TaskListPanel } from './TaskListPanel';
 import { Select } from '../ui/Select';
 import { strings } from '../../constants/strings';
-import { IconList, IconPlus } from '../ui/icons';
+import { IconEdit, IconExpand, IconList, IconPlus, IconTasks } from '../ui/icons';
 import { Card, CardHeader } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { Chip } from '../ui/Chip';
+import { Menu, tidyMenuItems } from '../ui/Menu';
 import { format, plural } from '../../lib/i18n';
+import { moveById } from '../../lib/reorder';
+import { useDragReorder } from '../../hooks/useDragReorder';
+import { pushRecentList, recentLists } from '../../lib/recentLists';
 
 /**
- * Timer page center column: every task list attached to the active session,
- * plus a picker to attach (or create) another one.
+ * Timer page center column: the active session (its name under a "Session" overline) and
+ * every task list attached to it, reorderable, plus a picker to attach (or create) another.
  */
 export const SessionTaskLists: React.FC = () => {
-  const { state, setSessionTaskLists, createList } = useApp();
+  const { state, setSessionTaskLists, createList, openModal, setActiveList, setActiveTab } = useApp();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const session = state.sessions.find(s => s.id === state.activeSessionId) || state.sessions[0];
@@ -22,6 +26,10 @@ export const SessionTaskLists: React.FC = () => {
   const lists = attachedIds.map(id => state.taskLists.find(l => l.id === id)!);
   const available = state.taskLists.filter(l => !attachedIds.includes(l.id));
   const remaining = lists.reduce((sum, l) => sum + l.tasks.filter(t => !t.completed).length, 0);
+  const drag = useDragReorder((sourceId, targetId) => {
+    const next = moveById(attachedIds.map(id => ({ id })), sourceId, targetId);
+    if (next && session) setSessionTaskLists(session.id, next.map(x => x.id));
+  });
 
   if (!session) {
     return (
@@ -33,9 +41,13 @@ export const SessionTaskLists: React.FC = () => {
 
   const save = (ids: string[]) => setSessionTaskLists(session.id, ids);
 
-  const attach = (listId: string) => save([...attachedIds, listId]);
+  const attach = (listId: string) => {
+    pushRecentList(listId);
+    save([...attachedIds, listId]);
+  };
 
   const swap = (index: number, newId: string) => {
+    pushRecentList(newId);
     const next = [...attachedIds];
     next[index] = newId;
     save(next);
@@ -55,6 +67,26 @@ export const SessionTaskLists: React.FC = () => {
     attach(createList(name, { activate: false }));
   };
 
+  const allCollapsed = lists.length > 0 && lists.every(l => collapsed.has(l.id));
+  const sessionMenuItems = tidyMenuItems([
+    lists.length > 0 && {
+      key: 'collapse',
+      label: allCollapsed ? strings.timer.expandAll : strings.timer.collapseAll,
+      icon: <IconExpand size={15} />,
+      onSelect: () => setCollapsed(allCollapsed ? new Set() : new Set(attachedIds))
+    },
+    lists.length > 0 && {
+      key: 'open',
+      label: strings.timer.openInTasks,
+      icon: <IconTasks size={15} />,
+      onSelect: () => {
+        setActiveList(lists[0].id);
+        setActiveTab('tasks');
+      }
+    },
+    { key: 'edit', label: strings.actions.editSession, icon: <IconEdit size={15} />, onSelect: () => openModal('EDIT_SESSION', { session }) }
+  ]);
+
   const pickerOptions = available.map(l => ({
     value: l.id,
     label: l.name,
@@ -64,14 +96,15 @@ export const SessionTaskLists: React.FC = () => {
   return (
     <Card className="session-tasks">
       <CardHeader
-        overline={strings.timer.sessionTasksTitle}
+        overline={strings.timer.sessionOverline}
         title={session.name}
         titleTooltip={session.name}
-        aside={lists.length > 0 && (
+        titleAddon={lists.length > 0 && (
           <Chip tone="accent">
             {plural(remaining, strings.tasks.tasksRemaining)}
           </Chip>
         )}
+        actions={<Menu ariaLabel={strings.timer.moreSessionActions} items={sessionMenuItems} />}
       />
 
       {lists.length === 0 ? (
@@ -85,6 +118,7 @@ export const SessionTaskLists: React.FC = () => {
             placeholder={strings.timer.pickListPlaceholder}
             ariaLabel={strings.timer.pickListPlaceholder}
             options={pickerOptions}
+            recent={{ values: recentLists(), label: strings.timer.recentLists }}
             createOption={{
               label: strings.modals.newTaskListOption,
               placeholder: strings.modals.newTaskListPlaceholder,
@@ -103,6 +137,9 @@ export const SessionTaskLists: React.FC = () => {
               onToggleCollapsed={() => toggleCollapsed(list.id)}
               onSwap={newId => swap(index, newId)}
               onDetach={() => detach(list.id)}
+              drag={drag.itemProps(list.id)}
+              isDragging={drag.isDragging(list.id)}
+              isDragOver={drag.isDragOver(list.id)}
             />
           ))}
 
@@ -114,6 +151,7 @@ export const SessionTaskLists: React.FC = () => {
             icon={<IconPlus size={16} strokeWidth={2.4} />}
             placeholder={strings.timer.addAnotherList}
             options={pickerOptions}
+            recent={{ values: recentLists(), label: strings.timer.recentLists }}
             createOption={{
               label: strings.modals.newTaskListOption,
               placeholder: strings.modals.newTaskListPlaceholder,

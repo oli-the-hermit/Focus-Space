@@ -29,15 +29,18 @@ export function selectorsOf(css) {
 /** Map of class name → the components/*.css file that owns it. */
 export function componentClasses() {
   const owner = new Map();
+  const allowed = new Set();
   for (const file of fs.readdirSync(COMPONENT_CSS).filter(f => f.endsWith('.css')).sort()) {
-    if (ALLOWED_FILES.includes(file)) continue;
     for (const sel of selectorsOf(fs.readFileSync(path.join(COMPONENT_CSS, file), 'utf8'))) {
       // A class right after the start, a space, a combinator, a comma or "(" starts a compound.
       for (const m of sel.matchAll(/(^|[\s>+~,(])\.(-?[_a-zA-Z][\w-]*)/g)) {
         const cls = m[2];
-        if (!SHARED_PREFIX.test(cls) && !owner.has(cls)) owner.set(cls, file);
+        if (ALLOWED_FILES.includes(file)) allowed.add(cls);
+        else if (!SHARED_PREFIX.test(cls) && !owner.has(cls)) owner.set(cls, file);
       }
     }
   }
+  // An allowed file's classes stay allowed even where another component mentions them.
+  for (const cls of allowed) owner.delete(cls);
   return owner;
 }

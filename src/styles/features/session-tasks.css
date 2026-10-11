@@ -1,5 +1,7 @@
 /* ── Session task lists ─────────────────────────────────── */
 .session-tasks .card-header { margin-bottom: var(--space-16); }
+/* The card's ⋮ lines up with the panels' ⋮ below it (they sit inside the panel's padding). */
+.session-tasks .card-header-actions { margin-right: var(--space-20); }
 
 .list-panel-stack { display: flex; flex-direction: column; gap: var(--space-12); }
 
@@ -7,20 +9,26 @@
   --field-bg: var(--surface-1);
   --field-hover: var(--surface-1);
   --row-hover: var(--surface-3);
+  --row-bg: color-mix(in oklab, var(--surface-2) 50%, var(--bg));
   --progress-track: var(--surface-3);
-  padding: var(--space-8) var(--space-16) var(--space-16) var(--space-10);
+  padding: var(--space-20);
+  position: relative;
   border-radius: var(--radius-2xl);
   background: var(--surface-2);
 }
-.list-panel.is-collapsed { padding-bottom: var(--space-8); }
 
-.list-panel-header { display: flex; align-items: center; gap: var(--space-6); min-height: 48px; min-width: 0; }
+/* The overline over the picker (its count inside), some room, then collapse and ⋮. */
+.list-panel-header { display: flex; align-items: center; gap: var(--space-6); min-width: 0; }
+.list-panel-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); margin-right: var(--space-12); }
+/* A container's grip sits in the card's margin beside it, centered on the whole block, and
+   shows only while its header is hovered or the panel is held (rows keep theirs visible). */
+.list-panel-grip { position: absolute; top: 50%; right: 100%; margin-right: var(--space-6); transform: translateY(-50%); visibility: hidden; }
+.list-panel:has(> .list-panel-header:hover) .list-panel-grip,
+.list-panel.dragging .list-panel-grip { visibility: visible; }
 .list-panel-collapse { color: var(--text-2); }
-.list-panel-collapse:hover:not(:disabled) { background: var(--surface-3); }
 .list-panel-collapse svg { transition: transform var(--transition-md); }
 .list-panel.is-collapsed .list-panel-collapse svg { transform: rotate(-90deg); }
-.list-panel-count { flex: none; }
-.list-panel .task-list-body { padding-left: var(--space-6); }
+.list-panel > .task-list-body { margin-top: var(--space-20); }
 
 .session-tasks-empty {
   display: flex;

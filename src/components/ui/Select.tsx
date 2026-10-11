@@ -38,12 +38,20 @@ export interface SelectProps<T = string> {
   variant?: 'field' | 'header' | 'add';
   /** Icon at the start of the trigger, shown instead of the selected option's own. */
   icon?: React.ReactNode;
+  /** Inside the trigger, right after the value (e.g. a count chip). */
+  valueAddon?: React.ReactNode;
+  /**
+   * Options used lately, newest first: the first 3 that match show on top under `label`,
+   * then a separator and the rest. Without a match among them, only the rest shows.
+   */
+  recent?: { values: T[]; label: string };
   createOption?: SelectCreateOption<T>;
   /** Defaults to on when there are more than 8 options. */
   searchable?: boolean;
 }
 
 const SEARCH_THRESHOLD = 8;
+const RECENT_MAX = 3;
 
 function optionText<T>(opt: SelectOption<T>): string {
   if (opt.searchText) return opt.searchText;
@@ -62,6 +70,8 @@ export const Select = <T extends string | number>({
   ariaLabel,
   variant = 'field',
   icon,
+  valueAddon,
+  recent,
   createOption,
   searchable
 }: SelectProps<T>): React.ReactElement => {
@@ -83,11 +93,17 @@ export const Select = <T extends string | number>({
 
   const showSearch = searchable ?? options.length > SEARCH_THRESHOLD;
 
-  const visibleOptions = useMemo(() => {
+  // The matching options, the recent ones first; recentCount of them form the top group.
+  const [visibleOptions, recentCount] = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter(o => optionText(o).toLowerCase().includes(q));
-  }, [options, query]);
+    const matches = q ? options.filter(o => optionText(o).toLowerCase().includes(q)) : options;
+    if (!recent) return [matches, 0] as const;
+    const top = recent.values
+      .map(v => matches.find(o => o.value === v))
+      .filter((o): o is SelectOption<T> => !!o)
+      .slice(0, RECENT_MAX);
+    return [[...top, ...matches.filter(o => !top.includes(o))], top.length] as const;
+  }, [options, query, recent]);
 
   // The create row is a virtual last item for keyboard navigation.
   const itemCount = visibleOptions.length + (createOption ? 1 : 0);
@@ -106,7 +122,7 @@ export const Select = <T extends string | number>({
   const open = () => {
     if (disabled || isOpen) return;
     setIsOpen(true);
-    const idx = options.findIndex(opt => opt.value === value);
+    const idx = visibleOptions.findIndex(opt => opt.value === value);
     setHighlightedIndex(idx >= 0 ? idx : 0);
   };
 
@@ -206,6 +222,7 @@ export const Select = <T extends string | number>({
       <span className={`select-value ${selectedOption ? '' : 'is-placeholder'}`}>
         {selectedOption ? selectedOption.label : placeholder ?? labels.selectPlaceholder}
       </span>
+      {valueAddon && <span className="select-value-addon">{valueAddon}</span>}
     </>
   );
 
@@ -271,31 +288,37 @@ export const Select = <T extends string | number>({
           {visibleOptions.length === 0 && !createOption && (
             <li className="select-empty">{labels.noMatches}</li>
           )}
+          {recent && recentCount > 0 && (
+            <li role="presentation" className="select-group-label">{recent.label}</li>
+          )}
           {visibleOptions.map((option, index) => {
             const isSelected = option.value === value;
             const isHighlighted = index === highlightedIndex;
             return (
-              <li key={String(option.value)} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  tabIndex={-1}
-                  data-index={index}
-                  aria-selected={isSelected}
-                  aria-disabled={option.disabled}
-                  disabled={option.disabled}
-                  className={`select-option ${isSelected ? 'is-selected' : ''} ${isHighlighted ? 'is-highlighted' : ''}`}
-                  onClick={() => !option.disabled && selectValue(option.value)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                >
-                  <span className="select-option-check" aria-hidden="true">
-                    {isSelected && <IconCheck size={15} strokeWidth={2.6} />}
-                  </span>
-                  {option.icon && <span className="select-option-icon">{option.icon}</span>}
-                  <span className="select-option-label">{option.label}</span>
-                  {option.meta && <span className="select-option-meta">{option.meta}</span>}
-                </button>
-              </li>
+              <React.Fragment key={String(option.value)}>
+                {index === recentCount && recentCount > 0 && <li role="separator" className="select-separator" />}
+                <li role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    tabIndex={-1}
+                    data-index={index}
+                    aria-selected={isSelected}
+                    aria-disabled={option.disabled}
+                    disabled={option.disabled}
+                    className={`select-option ${isSelected ? 'is-selected' : ''} ${isHighlighted ? 'is-highlighted' : ''}`}
+                    onClick={() => !option.disabled && selectValue(option.value)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                  >
+                    <span className="select-option-check" aria-hidden="true">
+                      {isSelected && <IconCheck size={15} strokeWidth={2.6} />}
+                    </span>
+                    {option.icon && <span className="select-option-icon">{option.icon}</span>}
+                    <span className="select-option-label">{option.label}</span>
+                    {option.meta && <span className="select-option-meta">{option.meta}</span>}
+                  </button>
+                </li>
+              </React.Fragment>
             );
           })}
         </ul>
