@@ -525,7 +525,7 @@ export const strings = {
     starDesc: 'If Focus Space helps you, a star helps us.',
     shortcutsNote: 'Shortcuts pause while you’re typing or a dialog is open.',
     whatsNew: [
-      'An alpha update on the way to 1.3: mostly design and comfort. Things may still change before the final version, and your feedback shapes them (Help → Report a problem).',
+      'A new look and new ways to organize your task lists. Still an alpha, so things may change before the final version, and your feedback shapes them (Help → Report a problem).',
       'The menu on the left now floats in its own panel, tinted with your accent color. Open or close it from the logo at its top.',
       'The timer page labels the session and each of its task lists, with what’s left right next to their names.',
       'Add a task list from a new picker: search loosely, sort, find your recently opened lists on top, or type a new name to create one. It also opens from the session’s ⋮ menu.',

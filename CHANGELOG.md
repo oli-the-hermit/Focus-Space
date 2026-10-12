@@ -2,11 +2,11 @@
 
 Every release of Focus Space, newest first. The app shows the short version in **Help → What's new**; this file keeps the full record, including the work under the hood. Focus Space is in **alpha**: features and looks may still change before the final version.
 
-Versions follow a simple rule for an app: the last number is a round of polish and fixes, the middle one a planned milestone (1.3 is the next).
+Versions follow [Semantic Versioning](https://semver.org): the middle number goes up when features are added, the last one for fixes. **1.5** is planned as the first final (non-alpha) version.
 
-## 1.2.1 (alpha)
+## 1.3.0 (alpha)
 
-A round of design and comfort on the way to 1.3.
+A new look and new ways to organize your task lists.
 
 ### What's new
 

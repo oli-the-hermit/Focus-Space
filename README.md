@@ -4,7 +4,7 @@ A calm, minimal focus timer with sessions, task lists, goals, landmarks and rewa
 
 Made by San Milano ([@oli-the-hermit](https://github.com/oli-the-hermit)).
 
-**Status:** alpha, version 1.2.1. Still in development, so features and looks may change before the final version. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
+**Status:** alpha, version 1.3.0 (the first final version is planned as 1.5). Still in development, so features and looks may change before the final version. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
 
 ## Get started
 
