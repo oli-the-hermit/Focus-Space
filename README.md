@@ -4,6 +4,8 @@ A calm, minimal focus timer with sessions, task lists, goals, landmarks and rewa
 
 Made by San Milano ([@oli-the-hermit](https://github.com/oli-the-hermit)).
 
+**Status:** alpha, version 1.2.1. Still in development, so features and looks may change before the final version. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
+
 ## Get started
 
 **Desktop (Windows 10/11):** download `Focus Space_<version>_x64-setup.exe` from the [releases page](https://github.com/oli-the-hermit/Focus-Space/releases/latest) and run it. It installs for your user only; no admin rights needed. The first launch asks you to create the **main account**, which looks after every profile on this device.
@@ -23,14 +25,14 @@ A short tour opens on first use. You can replay it any time from **Help** (the `
 
 | Page | What it's for |
 |---|---|
-| **Timer** | Sessions play like tracks: press play to focus, and the break comes right after. Each session has its own focus and break length, and can show one or more task lists while you work. |
+| **Timer** | Sessions play like tracks: press play to focus, and the break comes right after. Each session has its own focus and break length, and can show one or more task lists while you work: add them from a picker with search (or create one by typing its name), and drag them to reorder. |
 | **Tasks** | Group tasks into lists that any session can reuse. Drag to reorder and tick them off; Focus Space times how long each task took. |
 | **Calendar** | Schedule sessions by week, day or month, and drag them to move. You get a heads-up before each one starts. |
 | **Stats** | Daily averages, your most productive days and a log of finished tasks. |
 | **Goals** | Break bigger goals into landmarks and tick them off as you go. |
 | **Rewards** | Link a reward to a session, goal or landmark. It unlocks when you finish that, then you claim it. Rewards with no link can be claimed right away. |
 
-**Right-click** almost anything for its actions, or press <kbd>Shift</kbd>+<kbd>F10</kbd> on the focused item.
+**Right-click** almost anything for its actions, or press <kbd>Shift</kbd>+<kbd>F10</kbd> on the focused item. Task rows, lists and cards also have a ⋮ button with the same actions.
 
 **Mini player:** keeps a small timer on top of your other windows. Resize it into a compact, tall or wide layout. In the browser it uses Picture-in-Picture (Chrome and Edge).
 

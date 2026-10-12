@@ -350,6 +350,7 @@ export const strings = {
   updates: {
     /** The GitHub release's text (scripts/release/notes.ts); a test version adds help.stageNote above it. */
     releaseBody: 'Download the setup file below to install Focus Space. Once installed, it updates itself.',
+    releaseWhatsNew: 'What’s new in {version}',
     releaseFeedback: 'Found a problem or have an idea? Tell us in GitHub Issues: {url}',
     sectionTitle: 'Updates',
     notifyLabel: 'Tell me when an update is ready',
@@ -524,15 +525,15 @@ export const strings = {
     starDesc: 'If Focus Space helps you, a star helps us.',
     shortcutsNote: 'Shortcuts pause while you’re typing or a dialog is open.',
     whatsNew: [
-      'The first public version, an alpha. Your feedback shapes what comes next: Help → Report a problem.',
-      'Focus sessions with task lists, a calendar, stats, goals and rewards. Everything stays on your device, encrypted.',
-      'Pick your accent color from 32 Space colors in Appearance, in light or dark.',
-      'Notifications show what happened at a glance, with a color, an icon and a dot on the bell.',
-      'An emoji picker for rewards, with search and your recent picks.',
-      'A mini player you can resize, with your session tasks: add, tick, rename and reorder them there.',
-      'Clocks count in minutes, so an hour-long session starts at 60:00.',
-      'Alerts when a phase ends, keyboard shortcuts and a quick tour you can replay from Help.',
-      'Desktop: updates install themselves from now on. Turn the notices off in Settings → Updates.'
+      'An alpha update on the way to 1.3: mostly design and comfort. Things may still change before the final version, and your feedback shapes them (Help → Report a problem).',
+      'The menu on the left now floats in its own panel, tinted with your accent color. Open or close it from the logo at its top.',
+      'The timer page labels the session and each of its task lists, with what’s left right next to their names.',
+      'Add a task list from a new picker: search loosely, sort, find your recently opened lists on top, or type a new name to create one. It also opens from the session’s ⋮ menu.',
+      'Reorder a session’s task lists by dragging them by their header.',
+      'Every task row has its own ⋮ menu, in the mini player too, and drag handles are always in sight.',
+      'Goals have a clearer card, with a Complete button that turns into Done.',
+      'Switches, check boxes, dropdowns and menus share one look, with rounder shapes that are easier to scan.',
+      'Goals and Rewards make better use of wide windows.'
     ],
     versionLabel: 'Version {version}',
     /** About, while shared/release.json marks a test version (stage). */
