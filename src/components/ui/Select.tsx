@@ -31,11 +31,8 @@ export interface SelectProps<T = string> {
   name?: string;
   className?: string;
   ariaLabel?: string;
-  /**
-   * `field` for forms, `header` for a large title-style trigger, `add` for an
-   * "Add another…" row (accent text; give it an `icon` and a `placeholder`).
-   */
-  variant?: 'field' | 'header' | 'add';
+  /** `field` for forms, `header` for a large title-style trigger (an "Add…" row is a ListPicker). */
+  variant?: 'field' | 'header';
   /** Icon at the start of the trigger, shown instead of the selected option's own. */
   icon?: React.ReactNode;
   /** Inside the trigger, right after the value (e.g. a count chip). */

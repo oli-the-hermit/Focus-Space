@@ -112,6 +112,16 @@ export const strings = {
     expandAll: 'Expand all lists',
     openInTasks: 'Open in Tasks',
     recentLists: 'Recently opened',
+    addTaskList: 'Add task list',
+    addListTitle: 'Add a task list',
+    sortOrder: 'Your order',
+    sortNameAsc: 'Name (A–Z)',
+    sortNameDesc: 'Name (Z–A)',
+    sortMostLeft: 'Most tasks left',
+    createListNamed: 'Create "{name}"',
+    listMeta: '{total} · {left}',
+    suggestedNames: 'Suggested names',
+    listNameStarters: { today: 'Today', thisWeek: 'This week', errands: 'Errands' },
     remainingAria: '{time} remaining'
   },
   mini: {
@@ -145,6 +155,7 @@ export const strings = {
     emptyListPrompt: 'Pick or create a list in the sidebar to start tracking tasks.',
     emptyTasks: 'No tasks yet. Add your first one above.',
     tasksLeft: '{count} left',
+    taskCount: { one: '{count} task', other: '{count} tasks' },
     completionTimeTooltip: 'Completion time',
     moreTaskActions: 'Task actions'
   },

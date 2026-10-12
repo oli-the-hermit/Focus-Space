@@ -54,19 +54,6 @@
   letter-spacing: var(--tracking-tight);
 }
 
-/* "Add another" row */
-.select--add .select-trigger {
-  height: 52px;
-  padding: 0 var(--space-12) 0 var(--space-20);
-  border-radius: var(--radius-2xl);
-  background: transparent;
-  color: var(--accent-text);
-  font-weight: var(--weight-semibold);
-}
-.select--add .select-value.is-placeholder { color: var(--accent-text); }
-.select--add .select-option-icon { width: auto; color: inherit; }
-.select--add .select-trigger:hover:not(:disabled) { background: var(--surface-2); }
-.select--add .select-chevron { background: var(--surface-2); color: var(--accent-text); }
 
 /* Menu panel: pill-shaped search, options and create row, in rounder corners. */
 .select-menu { --popover-radius: var(--radius-2xl); min-width: 220px; max-width: 440px; padding: var(--space-6); }

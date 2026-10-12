@@ -446,6 +446,16 @@ export const IconCopy: React.FC<IconProps> = ({ size = 13, ...p }) => (
   </StrokeIcon>
 );
 
+/** Two arrows, down and up: changes the order of a list. */
+export const IconSort: React.FC<IconProps> = p => (
+  <StrokeIcon {...p}>
+    <polyline points="4 16 8 20 12 16" />
+    <line x1="8" y1="20" x2="8" y2="4" />
+    <polyline points="12 8 16 4 20 8" />
+    <line x1="16" y1="4" x2="16" y2="20" />
+  </StrokeIcon>
+);
+
 /** A window with a side panel: shows or hides the navigation drawer. */
 export const IconSidebar: React.FC<IconProps> = p => (
   <StrokeIcon {...p}>

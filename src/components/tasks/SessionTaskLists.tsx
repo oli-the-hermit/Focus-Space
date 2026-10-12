@@ -1,31 +1,38 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { TaskListPanel } from './TaskListPanel';
-import { Select } from '../ui/Select';
 import { strings } from '../../constants/strings';
 import { IconEdit, IconExpand, IconList, IconPlus, IconTasks } from '../ui/icons';
 import { Card, CardHeader } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { Chip } from '../ui/Chip';
 import { Menu, tidyMenuItems } from '../ui/Menu';
+import { ListPicker, ListPickerTrigger, type ListPickerItem, type ListPickerSort } from '../ui/ListPicker';
 import { format, plural } from '../../lib/i18n';
 import { moveById } from '../../lib/reorder';
+import { normalizeName } from '../../lib/fuzzy';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { pushRecentList, recentLists } from '../../lib/recentLists';
+import type { TaskList } from '../../types';
+
+const openCount = (l: TaskList) => l.tasks.filter(t => !t.completed).length;
 
 /**
  * Timer page center column: the active session (its name under a "Session" overline) and
- * every task list attached to it, reorderable, plus a picker to attach (or create) another.
+ * every task list attached to it, reorderable, plus a list picker to attach (or create)
+ * another, also opened from the session's ⋮.
  */
 export const SessionTaskLists: React.FC = () => {
   const { state, setSessionTaskLists, createList, openModal, setActiveList, setActiveTab } = useApp();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerAnchor = useRef<HTMLButtonElement>(null);
 
   const session = state.sessions.find(s => s.id === state.activeSessionId) || state.sessions[0];
   const attachedIds = (session?.taskListIds || []).filter(id => state.taskLists.some(l => l.id === id));
   const lists = attachedIds.map(id => state.taskLists.find(l => l.id === id)!);
   const available = state.taskLists.filter(l => !attachedIds.includes(l.id));
-  const remaining = lists.reduce((sum, l) => sum + l.tasks.filter(t => !t.completed).length, 0);
+  const remaining = lists.reduce((sum, l) => sum + openCount(l), 0);
   const drag = useDragReorder((sourceId, targetId) => {
     const next = moveById(attachedIds.map(id => ({ id })), sourceId, targetId);
     if (next && session) setSessionTaskLists(session.id, next.map(x => x.id));
@@ -69,6 +76,7 @@ export const SessionTaskLists: React.FC = () => {
 
   const allCollapsed = lists.length > 0 && lists.every(l => collapsed.has(l.id));
   const sessionMenuItems = tidyMenuItems([
+    { key: 'add', label: strings.timer.addTaskList, icon: <IconPlus size={15} />, onSelect: () => setPickerOpen(true) },
     lists.length > 0 && {
       key: 'collapse',
       label: allCollapsed ? strings.timer.expandAll : strings.timer.collapseAll,
@@ -87,11 +95,45 @@ export const SessionTaskLists: React.FC = () => {
     { key: 'edit', label: strings.actions.editSession, icon: <IconEdit size={15} />, onSelect: () => openModal('EDIT_SESSION', { session }) }
   ]);
 
-  const pickerOptions = available.map(l => ({
-    value: l.id,
+  // The picker: lists not in the session yet, with their size and what's left.
+  const byId = new Map(available.map(l => [l.id, l]));
+  const pickerItems: ListPickerItem[] = available.map(l => ({
+    id: l.id,
     label: l.name,
-    meta: format(strings.tasks.tasksLeft, { count: l.tasks.filter(t => !t.completed).length })
+    meta: format(strings.timer.listMeta, {
+      total: plural(l.tasks.length, strings.tasks.taskCount),
+      left: format(strings.tasks.tasksLeft, { count: openCount(l) })
+    })
   }));
+  const sorts: ListPickerSort[] = [
+    { key: 'order', label: strings.timer.sortOrder },
+    { key: 'az', label: strings.timer.sortNameAsc, compare: (a, b) => a.label.localeCompare(b.label) },
+    { key: 'za', label: strings.timer.sortNameDesc, compare: (a, b) => b.label.localeCompare(a.label) },
+    { key: 'left', label: strings.timer.sortMostLeft, compare: (a, b) => openCount(byId.get(b.id)!) - openCount(byId.get(a.id)!) }
+  ];
+  // With no lists at all: the session's name and a few starters (names already taken left out).
+  const taken = new Set(state.taskLists.map(l => normalizeName(l.name)));
+  const suggestedNames = [session.name, ...Object.values(strings.timer.listNameStarters)]
+    .filter((name, i, all) => !taken.has(normalizeName(name)) && all.findIndex(n => normalizeName(n) === normalizeName(name)) === i);
+
+  const picker = (
+    <ListPicker
+      open={pickerOpen}
+      onClose={() => setPickerOpen(false)}
+      anchorRef={pickerAnchor}
+      title={strings.timer.addListTitle}
+      items={pickerItems}
+      icon={<IconList size={18} />}
+      onPick={attach}
+      recent={{ ids: recentLists(), label: strings.timer.recentLists }}
+      sorts={sorts}
+      newLabel={strings.modals.newTaskListOption}
+      createLabel={name => format(strings.timer.createListNamed, { name })}
+      onCreate={createAndAttach}
+      namePlaceholder={strings.modals.newTaskListPlaceholder}
+      suggestions={{ names: suggestedNames, label: strings.timer.suggestedNames }}
+    />
+  );
 
   return (
     <Card className="session-tasks">
@@ -112,18 +154,12 @@ export const SessionTaskLists: React.FC = () => {
           <span className="session-tasks-empty-icon"><IconList size={22} /></span>
           <p className="session-tasks-empty-title">{strings.timer.noSessionListsTitle}</p>
           <p className="session-tasks-empty-hint">{strings.timer.noSessionListsHint}</p>
-          <Select
-            value=""
-            onChange={val => val && attach(val)}
-            placeholder={strings.timer.pickListPlaceholder}
-            ariaLabel={strings.timer.pickListPlaceholder}
-            options={pickerOptions}
-            recent={{ values: recentLists(), label: strings.timer.recentLists }}
-            createOption={{
-              label: strings.modals.newTaskListOption,
-              placeholder: strings.modals.newTaskListPlaceholder,
-              onCreate: createAndAttach
-            }}
+          <ListPickerTrigger
+            ref={pickerAnchor}
+            look="field"
+            label={strings.timer.pickListPlaceholder}
+            open={pickerOpen}
+            onClick={() => setPickerOpen(o => !o)}
           />
         </div>
       ) : (
@@ -143,23 +179,18 @@ export const SessionTaskLists: React.FC = () => {
             />
           ))}
 
-          <Select
-            variant="add"
-            value=""
-            onChange={val => val && attach(val)}
-            ariaLabel={strings.timer.addAnotherList}
+          <ListPickerTrigger
+            ref={pickerAnchor}
+            look="add"
             icon={<IconPlus size={16} strokeWidth={2.4} />}
-            placeholder={strings.timer.addAnotherList}
-            options={pickerOptions}
-            recent={{ values: recentLists(), label: strings.timer.recentLists }}
-            createOption={{
-              label: strings.modals.newTaskListOption,
-              placeholder: strings.modals.newTaskListPlaceholder,
-              onCreate: createAndAttach
-            }}
+            label={strings.timer.addAnotherList}
+            open={pickerOpen}
+            onClick={() => setPickerOpen(o => !o)}
           />
         </div>
       )}
+
+      {picker}
     </Card>
   );
 };

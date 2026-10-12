@@ -17,6 +17,7 @@ export const defaultUiLabels = {
   search: 'Search…',
   searchOptions: 'Search options',
   noMatches: 'No matches',
+  sort: 'Sort',
   noItems: 'No items found.',
   create: 'Create',
   newItemName: 'Name',

@@ -175,14 +175,22 @@ async function main() {
       await page.locator('.nav-rail [data-tab="timer"]').click();
       await settle(page);
 
-      // ── Hover state: the drag grip only shows on a hovered row ──
+      // ── Hover states: a session row (its tools show), a task row (its hover fill) ──
       await shot(theme, '17-grip-hover', async () => { await page.locator('#sessionsList .queue-item').nth(1).hover(); });
-      // A hovered task row: its actions take room only now, pushing any time badge left.
       await shot(theme, '18-task-row-hover', async () => { await page.locator('#tab-timer .task-row').first().hover(); });
       await page.mouse.move(0, 0);
 
       // ── Menus ──
       await shot(theme, '20-context-menu', openGlobalMenu);
+      await page.keyboard.press('Escape');
+
+      // ── The list picker: opened from "Add another task list", then with a new name typed ──
+      await shot(theme, '21-list-picker', async () => {
+        await page.getByRole('button', { name: strings.timer.addAnotherList }).click();
+      });
+      await shot(theme, '22-list-picker-create', async () => {
+        await page.locator('.list-picker-search input').fill(strings.timer.listNameStarters.errands);
+      });
       await page.keyboard.press('Escape');
 
       // ── Modals and the pickers inside them ──
@@ -322,6 +330,18 @@ async function main() {
       await page.locator('.modal-backdrop').waitFor({ timeout: 3000 });
       await closeOverlays();
       return (await page.locator('.modal-backdrop').count()) === 0;
+    });
+
+    await check('A name typed in the list picker creates that list and adds it to the session', async () => {
+      const name = 'Made in the list picker';
+      await page.locator('.nav-rail [data-tab="timer"]').click();
+      await settle(page);
+      await page.getByRole('button', { name: strings.timer.addAnotherList }).click();
+      await page.locator('.list-picker-search input').fill(name);
+      // Nothing matches, so the create row is the first stop: Enter creates.
+      await page.locator('.list-picker-search input').press('Enter');
+      await settle(page, 300);
+      return (await page.locator('#tab-timer .list-panel .select-value', { hasText: name }).count()) === 1;
     });
 
     // ── A completed task (checked checkbox). Runs last on the main page: it changes stats. ──

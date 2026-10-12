@@ -1,0 +1,141 @@
+/* ── List picker (ui/ListPicker) ──────────────────────────── */
+/* On the popover (surface 3): a head, a pill search, the list in its own sunken container
+   (surface 2, fixed height, rounded, clipped) and a create row fixed at the bottom. */
+.list-picker { --popover-radius: var(--radius-2xl); }
+.list-picker-body { display: flex; flex-direction: column; gap: var(--space-10); padding: var(--space-12); }
+
+.list-picker-head { display: flex; align-items: center; gap: var(--space-4); }
+.list-picker-title { flex: 1; min-width: 0; padding-left: var(--space-8); font-size: var(--text-lg); font-weight: var(--weight-bold); }
+.list-picker-sort-wrap { position: relative; }
+/* The sort menu opens under its button, inside the picker (a nested popover would close it). */
+.list-picker-sort {
+  position: absolute;
+  top: calc(100% + var(--space-4));
+  right: 0;
+  z-index: 1;
+  border-radius: var(--radius-lg);
+  background: var(--surface-4);
+  box-shadow: var(--elev-overlay);
+  --menu-hover: var(--surface-3);
+}
+
+.list-picker-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: var(--button-height);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-pill);
+  background: var(--surface-4);
+  color: var(--text-2);
+}
+.list-picker-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text-1);
+  font-size: var(--text-md);
+  outline: none;
+}
+.list-picker-search input::placeholder { color: var(--text-3); }
+.list-picker-search:focus-within { box-shadow: inset 0 0 0 var(--ring-width) var(--accent); }
+
+.list-picker-list {
+  height: var(--list-picker-height);
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.list-picker-list > ul { height: 100%; padding: var(--space-6); list-style: none; overflow-y: auto; }
+
+.list-picker-group {
+  padding: var(--space-8) var(--space-10) var(--space-6);
+  font-size: var(--text-3xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.list-picker-separator { height: 1px; margin: var(--space-6) var(--space-10); background: var(--surface-3); }
+.list-picker-empty { padding: var(--space-16) var(--space-10); font-size: var(--text-sm); color: var(--text-3); }
+
+.list-picker-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-6) var(--space-16) var(--space-6) var(--space-6);
+  border-radius: var(--radius-lg);
+  color: var(--text-1);
+  text-align: left;
+}
+.list-picker-row.is-highlighted { background: var(--surface-3); }
+.list-picker-tile {
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+.list-picker-row.is-highlighted .list-picker-tile { background: var(--surface-4); color: var(--text-1); }
+.list-picker-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.list-picker-name { overflow: hidden; font-size: var(--text-md); font-weight: var(--weight-semibold); white-space: nowrap; text-overflow: ellipsis; }
+.list-picker-meta { font-size: var(--text-2xs); color: var(--text-2); }
+
+/* The create row sits on the popover itself, in the accent. */
+.list-picker-create { color: var(--accent-text); }
+.list-picker-create .list-picker-tile { background: var(--accent-container); color: var(--on-accent-container); }
+.list-picker-create.is-highlighted { background: var(--surface-4); }
+.list-picker-create.is-highlighted .list-picker-tile { background: var(--accent); color: var(--on-accent); }
+.list-picker-name-form { display: flex; align-items: center; gap: var(--space-8); --field-bg: var(--surface-4); --field-hover: var(--surface-4); }
+
+/* ── Its trigger ── */
+.list-picker-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  text-align: left;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+.list-picker-trigger-icon { flex: none; display: inline-grid; place-items: center; }
+.list-picker-trigger-label { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.list-picker-trigger-chevron {
+  width: var(--icon-button-size-xs);
+  height: var(--icon-button-size-xs);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  transition: transform var(--transition-md), background var(--transition), color var(--transition);
+}
+.list-picker-trigger.is-open .list-picker-trigger-chevron { transform: rotate(180deg); background: var(--accent); color: var(--on-accent); }
+
+/* add: an accent row at the end of a stack of panels */
+.list-picker-trigger--add {
+  height: 52px;
+  padding: 0 var(--space-12) 0 var(--space-20);
+  border-radius: var(--radius-2xl);
+  color: var(--accent-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+.list-picker-trigger--add:hover { background: var(--surface-2); }
+.list-picker-trigger--add .list-picker-trigger-chevron { background: var(--surface-2); }
+
+/* field: a form field showing its placeholder */
+.list-picker-trigger--field {
+  height: var(--field-height);
+  padding: 0 calc((var(--field-height) - var(--icon-button-size-xs)) / 2) 0 var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--field-bg);
+  color: var(--text-3);
+  font-size: var(--text-md);
+}
+.list-picker-trigger--field:hover { background: var(--field-hover); }
+.list-picker-trigger--field.is-open { box-shadow: inset 0 0 0 var(--ring-width) var(--accent); }
+.list-picker-trigger--field .list-picker-trigger-chevron { background: color-mix(in oklab, var(--field-bg) 50%, var(--bg)); color: var(--text-2); }

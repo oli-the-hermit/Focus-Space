@@ -155,6 +155,7 @@
 
   /* ── Component sizes ── */
   --field-height:     44px;      /* inputs, selects, pickers, steppers */
+  --list-picker-height: 288px;   /* ui/ListPicker's list: about five rows, the same at any length */
   --button-height-lg: 44px;
   --button-height:    40px;
   --button-height-sm: 34px;

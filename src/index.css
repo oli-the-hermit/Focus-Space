@@ -35,6 +35,7 @@
 @import url('./styles/components/form.css') layer(app);
 @import url('./styles/components/input-chip.css') layer(app);
 @import url('./styles/components/select.css') layer(app);
+@import url('./styles/components/list-picker.css') layer(app);
 @import url('./styles/components/popover.css') layer(app);
 @import url('./styles/components/menu.css') layer(app);
 @import url('./styles/components/picker.css') layer(app);
